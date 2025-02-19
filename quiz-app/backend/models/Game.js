@@ -5,10 +5,11 @@ const GameSchema = new mongoose.Schema({
     players: [{ 
         username: String, 
         score: Number, 
-        isReady: { type: Boolean, default: false } // 💡 Neu hinzugefügt
+        isReady: Boolean, 
+        socketId: String 
     }],
-    currentQuestionIndex: { type: Number, default: 0 },
-    isActive: { type: Boolean, default: true }
-});
+    host: { type: String, required: true },
+    currentQuestionIndex: { type: Number, default: 0 }
+}, { versionKey: false });  // ✅ Versionierung deaktiviert
 
 module.exports = mongoose.model("Game", GameSchema);

@@ -4,7 +4,7 @@ require('dotenv').config();
 const connectDB = require("./config/db");
 const socketIo = require("socket.io");
 const gameModule = require("./sockets/game");
-const singleplayerModule = require("./sockets/singleplayer");
+const highscoreRoutes = require('./routes/highscore');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,11 +22,12 @@ app.use(express.static("public"));
 // Datenbankverbindung starten
 connectDB();
 gameModule(io); // Multiplayer laden
-singleplayerModule(io); // Einzelspieler-Modul laden
+
 // API-Routen
 app.use("/api/questions", require("./routes/questions"));
 app.use("/api/players", require("./routes/players"));
 app.use("/api/decks", require("./routes/decks"));
+app.use('/api/highscore', highscoreRoutes);
 
 // WebSocket-Logik
 require("./sockets/game")(io);

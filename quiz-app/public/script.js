@@ -35,9 +35,17 @@ let isReady = false;
 let playersReady = {};
 
 function showScreen(screenName) {
-    Object.values(screens).forEach(screen => screen.classList.remove('active'));
-    screens[screenName].classList.add('active');
+    Object.values(screens).forEach(screen => {
+        screen.classList.remove('active');
+        screen.style.opacity = 0;  // Animation starten
+    });
+
+    setTimeout(() => {
+        screens[screenName].classList.add('active');
+        screens[screenName].style.opacity = 1;  // Sichtbarkeit erhöhen
+    }, 200);
 }
+
 
 // Decks laden aus Backend
 async function loadDecks() {
@@ -65,9 +73,14 @@ function createGame() {
         showNotification('Bitte wähle ein Deck aus!');
         return;
     }
-    isHost = true;
-    socket.emit('createRoom', { username, deckId: selectedDeck });
+
+    isHost = true; // Markiere den aktuellen Benutzer als Host
+    socket.emit('createRoom', { username, deckId: selectedDeck, isHost: true });
 }
+
+
+
+
 
 socket.on('roomCreated', ({ roomId, deckId, players }) => {
     roomCode = roomId;
@@ -129,65 +142,61 @@ socket.on('roomJoined', ({ roomCode: joinedRoomCode, players, host }) => {
 });
 
 
-
-
-
-
-
-
 socket.on("playerReady", async ({ roomCode, username, isReady }) => {
     try {
-        if (!roomCode || !username) {
-            console.error("[ERROR] Spieler oder Raumcode fehlt.");
-            return;
-        }
+        const game = await Game.findOneAndUpdate(
+            { _id: roomCode, "players.username": username },
+            { $set: { "players.$.isReady": isReady } },
+            { new: true, runValidators: false }
+        );
 
-        const game = await Game.findById(roomCode);
         if (!game) {
-            console.warn("[ROOM] Raum nicht gefunden.");
-            return;
+            console.error("[ERROR] Raum oder Spieler nicht gefunden:", roomCode, username);
+            return socket.emit("errorMessage", "❌ Raum oder Spieler nicht gefunden.");
         }
 
-        // Status für den richtigen Spieler setzen
-        const player = game.players.find(p => p.username === username);
-        if (player) {
-            player.isReady = isReady;
-            await game.save();
-        }
-
-        // Sende die aktualisierte Spieler-Liste an alle Clients
         io.to(roomCode).emit("updateReadyStatus", game.players);
-
-        console.log(`[ROOM] Spieler ${username} ist jetzt ${isReady ? "bereit ✅" : "nicht bereit ❌"}`);
     } catch (error) {
         console.error(`[ERROR] Fehler beim Setzen des Bereit-Status: ${error.message}`);
     }
 });
 
-function updatePlayerList(players) {
+function updatePlayerList(players, host) {
     const playerList = document.getElementById("waitingPlayerList");
     if (!playerList) {
         console.error("[ERROR] Spieler-Liste nicht gefunden!");
         return;
     }
 
-    playerList.innerHTML = ""; // Liste leeren
+    playerList.innerHTML = ""; // ✅ Verhindert doppelte Einträge vor dem Neuladen
 
-    // Verwende ein Set, um doppelte Spielernamen zu vermeiden
-    const uniquePlayers = new Map();
+    // 🛠 Doppelte Spieler vermeiden, indem wir ein Set nutzen
+    const uniquePlayers = new Set();
 
     players.forEach(player => {
         if (!uniquePlayers.has(player.username)) {
-            uniquePlayers.set(player.username, player.isReady);
+            uniquePlayers.add(player.username);
+
+            const listItem = document.createElement("li");
+            listItem.innerText = `${player.username} ${player.isReady ? "✅" : "❌"}`;
+
+            // Host markieren
+            if (player.username === host) {
+                listItem.innerText += " (Host)";
+                listItem.style.fontWeight = "bold";
+            }
+
+            playerList.appendChild(listItem);
         }
     });
-
-    uniquePlayers.forEach((isReady, username) => {
-        const listItem = document.createElement("li");
-        listItem.innerText = `${username} ${isReady ? "✅" : "❌"}`;
-        playerList.appendChild(listItem);
-    });
 }
+
+// Nutze updatePlayerList mit dem Host als Parameter
+socket.on("updatePlayers", ({ players, host }) => {
+    updatePlayerList(players, host);
+});
+
+
 
 
 
@@ -206,33 +215,28 @@ socket.on("roomJoined", ({ roomCode: joinedRoomCode, players, host }) => {
     setupReadyButton(); 
 });
 
-
-
 socket.on("joinRoom", async ({ username, roomCode }) => {
     try {
         const game = await Game.findById(roomCode);
-        if (!game) {
-            socket.emit("error", "Raum nicht gefunden.");
-            return;
-        }
+        if (!game) return socket.emit("errorMessage", "Raum nicht gefunden.");
 
-        // ✅ Überprüfen, ob Spieler bereits existiert
+        // 🛠 Spieler darf nur einmal hinzugefügt werden!
         const playerExists = game.players.some(player => player.username === username);
         if (!playerExists) {
-            game.players.push({ username, score: 0, isReady: false });
+            game.players.push({ username, score: 0, isReady: false, socketId: socket.id });
             await game.save();
         }
 
         socket.join(roomCode);
+        io.to(roomCode).emit("updatePlayers", { players: game.players, host: game.host });  
+        socket.emit("showWaitingRoom", { roomCode, players: game.players, host: game.host });
 
-        // 💡 Sende die aktualisierte Spieler-Liste an alle Spieler im Raum
-        io.to(roomCode).emit("updatePlayers", game.players);
-
-        console.log(`[ROOM] Spieler ${username} ist dem Raum ${roomCode} beigetreten.`);
     } catch (error) {
-        console.error(`[ERROR] Fehler beim Beitreten: ${error.message}`);
+        console.error(`[ERROR] Fehler beim Beitritt: ${error.message}`);
     }
 });
+
+
 
 
 
@@ -334,7 +338,12 @@ socket.on("updateReadyStatus", (players) => {
 });
 
 socket.on("gameRestarted", ({ gameId, deckId, players }) => {
-    console.log("[DEBUG] Spiel neugestartet:", gameId, "Deck:", deckId);
+    console.log("[DEBUG] gameRestarted-Event empfangen:", gameId, "Deck:", deckId); // 🛠 Debugging
+
+    if (!gameId) {
+        console.error("[ERROR] gameRestarted enthält keine gültige gameId!");
+        return;
+    }
 
     roomCode = gameId;
     selectedDeck = deckId;
@@ -345,13 +354,15 @@ socket.on("gameRestarted", ({ gameId, deckId, players }) => {
 
     // "Bereit"-Status zurücksetzen
     document.getElementById("readyMessage").innerText = "Bitte erneut auf 'Bereit' klicken!";
-    readyBtn.style.display = "block";
     document.getElementById("readyMessage").style.display = "block";
     document.getElementById("readyBtn").style.display = "block";
 
     // Host-Kontrolle sichtbar machen
-    document.getElementById("hostControls").style.display = isHost ? "block" : "none";
+    document.getElementById("hostDeckSelection").style.display = isHost ? "block" : "none";
+    
+    console.log("[DEBUG] Spiel erfolgreich neugestartet und UI aktualisiert.");
 });
+
 
 socket.on("deckChanged", ({ newDeckId, players }) => {
     console.log("[DEBUG] Neues Deck gewählt:", newDeckId);
@@ -431,38 +442,6 @@ socket.on('gameStarted', ({ gameId, deckId }) => {
     startGame(deckId);
 });
 
-
-
-// Einzelspieler-Modus starten
-function startSingleplayer() {
-    selectedDeck = deckList.value;
-    if (!selectedDeck || selectedDeck === 'undefined') {
-        showNotification('Bitte wähle ein Deck aus!');
-        return;
-    }
-
-    socket.emit("startSingleplayer", { username, deckId: selectedDeck });
-}
-
-// Server sendet Fragen für Einzelspieler
-socket.on("singleplayerGameStarted", ({ questions: fetchedQuestions }) => {
-    questions = fetchedQuestions;
-    currentQuestionIndex = 0;
-    score = 0;
-    showScreen("quiz");
-    displayQuestion();
-});
-
-socket.on("singleplayerAnswerResult", ({ isCorrect }) => {
-    console.log(`[DEBUG] Antwort war ${isCorrect ? "richtig ✅" : "falsch ❌"}`);
-    nextQuestion();
-});
-
-// Server sendet Endstand
-socket.on("singleplayerFinished", ({ score }) => {
-    showNotification(`Spiel beendet! Dein Score: ${score}`);
-    showScreen("home");
-});
 
 // Spiel starten
 function startGame(deckId) {
@@ -548,12 +527,16 @@ function goToDeckSelection() {
 // Spiel neustarten
 function restartGame() {
     if (!isHost) {
-        showNotification("Nur der Host kann das Spiel neustarten!");
+        showNotification("❌ Nur der Host kann das Spiel neustarten!");
         return;
     }
-    
+
+    console.log("[DEBUG] Neustart-Button wurde gedrückt."); // 🛠 Prüfen, ob Button funktioniert
     socket.emit("restartGame", { gameId: roomCode });
+
+    showNotification("🔄 Spiel wird neugestartet...");
 }
+
 
 function openDeckSelection() {
     showScreen('waitingRoom'); // Bleibt im Warteraum
