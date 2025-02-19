@@ -278,26 +278,26 @@ function setupReadyButton() {
     readyBtn.onclick = toggleReady;
 }
 
-
 function toggleReady() {
     if (!roomCode) {
-        console.error("[ERROR] Kein gültiger Raumcode für Spieler bereit.");
+        console.error("[ERROR] Kein gültiger Raumcode!");
         return;
     }
 
     isReady = !isReady;
     socket.emit('playerReady', { roomCode, username, isReady });
 
-    const readyMessage = document.getElementById("readyMessage");
-
-    if (!readyMessage) {
-        console.error("[ERROR] Element 'readyMessage' nicht gefunden!");
-        return;
+    const readyBtn = document.getElementById("readyBtn");
+    if (readyBtn) {
+        readyBtn.innerText = isReady ? "❌ Nicht bereit" : "✅ Bereit";
+        readyBtn.classList.toggle("btn-danger", isReady);
+        readyBtn.classList.toggle("btn-secondary", !isReady);
     }
 
-    readyMessage.innerText = isReady ? "Warten auf andere Spieler..." : "";
-    readyMessage.style.display = isReady ? "block" : "none";
+    showNotification(isReady ? "success" : "error", isReady ? "Du bist bereit! ✅" : "Du bist nicht mehr bereit! ❌");
+
 }
+
 
 
 socket.on("showLeaderboard", ({ players, host }) => {
@@ -387,45 +387,32 @@ function restartGame() {
     // ✅ Antworten-Container leeren (falls Quiz schon gestartet war)
     optionsGrid.innerHTML = "";
 
-    showNotification("🔄 Spiel wird neugestartet...");
+    showNotification("info", "🔄 Spiel wird neugestartet...");
+
 }
 
 // 🎯 Server sendet zurück, dass das Spiel neugestartet wurde
-socket.on("gameRestarted", ({ gameId, deckId, players, host, questions }) => {
-    console.log("[DEBUG] Spiel wurde neugestartet:", gameId, "Deck:", deckId, "Fragen:", questions.length);
+socket.on("gameRestarted", ({ gameId, deckId, players, host }) => {
+    console.log("[DEBUG] Spiel wurde neugestartet:", gameId, "Deck:", deckId, "Spieler:", players.length);
 
-    // ✅ Spielstatus-Variablen zurücksetzen
+    if (!players || players.length === 0) {
+        console.error("[ERROR] Keine Spieler-Daten erhalten!");
+        return showNotification("error", "❌ Spieler-Daten fehlen!");
+    }
+
+    // Spielvariablen zurücksetzen
     roomCode = gameId;
     selectedDeck = deckId;
     currentQuestionIndex = 0;
     score = 0;
     answerSelected = false;
-    
-    // ✅ Neue Fragen setzen
-    if (questions && questions.length > 0) {
-        console.log("[DEBUG] Fragenliste aktualisiert!");
-        fetchQuestions(deckId);
-    } else {
-        console.warn("[WARN] Keine neuen Fragen erhalten!");
-    }
 
-    // ✅ UI zurücksetzen
-    showScreen('waitingRoom');
     updatePlayerList(players, host);
+    showScreen('waitingRoom');
 
-    // ✅ "Nächste Frage"-Button wieder sichtbar machen
-    const nextQuestionBtn = document.getElementById("nextQuestion");
-    if (nextQuestionBtn) {
-        nextQuestionBtn.style.display = "block";  // ✅ Button sichtbar!
-    } else {
-        console.error("[ERROR] 'nextQuestion' Button nicht gefunden!");
-    }
-
-    // ✅ Sicherstellen, dass das Quiz nicht als „beendet“ angezeigt wird
-    finishGameBtn.style.display = 'none';
-
-    console.log("[DEBUG] Spiel erfolgreich neugestartet und UI aktualisiert.");
+    console.log("[DEBUG] UI wurde aktualisiert.");
 });
+
 
 
 
@@ -600,15 +587,17 @@ function goToDeckSelection() {
 // Spiel neustarten
 function restartGame() {
     if (!isHost) {
-        showNotification("❌ Nur der Host kann das Spiel neustarten!");
+        showNotification("error", "❌ Nur der Host kann das Spiel neustarten!");
         return;
     }
 
-    console.log("[DEBUG] Neustart-Button wurde gedrückt."); // 🛠 Prüfen, ob Button funktioniert
+    console.log("[DEBUG] Neustart-Button wurde gedrückt. Sende Event an Server mit gameId:", roomCode);
+
     socket.emit("restartGame", { gameId: roomCode });
 
-    showNotification("🔄 Spiel wird neugestartet...");
+    showNotification("info", "🔄 Spiel wird neugestartet...");
 }
+
 
 function openDeckSelection() {
     if (!isHost) {
@@ -686,20 +675,51 @@ socket.on("showWaitingRoom", ({ roomCode, players, host }) => {
 });
 
 // Funktion zum Anzeigen der Benachrichtigung
-function showNotification(message, type = "success") {
-    const modal = document.getElementById("notificationModal");
-    const messageElement = document.getElementById("notificationMessage");
+function showNotification(type, message) {
+    // ✅ Stelle sicher, dass der Typ eine gültige Klasse ist
+    const validTypes = ["success", "error", "info", "warning"];
+    if (!validTypes.includes(type)) {
+        console.warn(`[WARN] Ungültiger Typ für Benachrichtigung: ${type}. Standardwert 'info' wird verwendet.`);
+        type = "info"; // Fallback für ungültige Typen
+    }
 
-    messageElement.innerText = message;
-    modal.className = `notification-modal ${type}`; // Setzt Erfolgs- oder Fehlerklasse
+    // 🛠 Erstelle das Benachrichtigungs-Element
+    const notification = document.createElement("div");
+    notification.classList.add("notification-modal", "show-notification", type); // ✅ Keine Leerzeichen im Klassennamen!
 
-    modal.style.display = "block"; // Modal sichtbar machen
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${type === "success" ? "✅" : "❌"}</span>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close">&times;</button>
+    `;
+
+    document.body.appendChild(notification);
+
+    // ✅ Schließen-Button hinzufügen
+    notification.querySelector(".notification-close").addEventListener("click", () => {
+        hideNotification(notification);
+    });
+
+    // ✅ Automatisches Ausblenden nach 5 Sekunden
+    setTimeout(() => {
+        hideNotification(notification);
+    }, 5000);
 }
 
-// Funktion zum Schließen der Benachrichtigung
-function closeNotification() {
-    document.getElementById("notificationModal").style.display = "none";
+
+// Funktion zum Verstecken der Benachrichtigung
+function hideNotification(notification) {
+    notification.classList.remove("show-notification");
+    setTimeout(() => {
+        notification.remove();
+    }, 300);
 }
+
+// Beispielaufruf für eine Benachrichtigung
+showNotification("success", "Deine Änderungen wurden gespeichert!");
+
 
 
 document.getElementById("restartGameBtn").addEventListener("click", () => {
@@ -711,7 +731,8 @@ document.getElementById("restartGameBtn").addEventListener("click", () => {
     console.log("[DEBUG] Neustart-Button wurde gedrückt.");
     socket.emit("restartGame", { gameId: roomCode });
 
-    showNotification("🔄 Spiel wird neugestartet...");
+    showNotification("info", "🔄 Spiel wird neugestartet...");
+
 });
 
 function updateReadyMessage(players) {

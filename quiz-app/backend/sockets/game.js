@@ -7,8 +7,15 @@ module.exports = (io) => {
 const playersReady = {}; // Speichert den Bereitschaftsstatus der Spieler
 const chalk = require("chalk");
 
+const gameCache = new Map(); // Cache für Spiele
+
 async function getGame(roomCode) {
-    return await Game.findById(roomCode).populate("deckId");
+    if (gameCache.has(roomCode)) {
+        return gameCache.get(roomCode);
+    }
+    const game = await Game.findById(roomCode).populate("deckId");
+    if (game) gameCache.set(roomCode, game);
+    return game;
 }
 
 io.on("connection", (socket) => {
@@ -32,15 +39,32 @@ io.on("connection", (socket) => {
     socket.on("restartGame", async ({ gameId }) => {
         console.log("[DEBUG] Neustart-Event empfangen für Spiel:", gameId);
     
+        if (!gameId) {
+            console.error("[ERROR] Kein gameId übergeben!");
+            return socket.emit("errorMessage", "❌ Fehler: Ungültige Spiel-ID!");
+        }
+    
         try {
-            const game = await Game.findById(gameId).populate("deckId");
+            // 🛠 Cache zuerst leeren
+            gameCache.delete(gameId);
+            console.log("[DEBUG] Cache für Spiel gelöscht:", gameId);
+    
+            // 🛠 Spiel aus der Datenbank abrufen
+            const game = await getGame(gameId);
             if (!game) {
-                console.log("[ERROR] Spiel nicht gefunden:", gameId);
-                socket.emit("errorMessage", "❌ Raum nicht gefunden.");
-                return;
+                console.error("[ERROR] Spiel nicht gefunden:", gameId);
+                return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
             }
     
-            // ✅ Alle Spieler zurücksetzen (Bereit-Status & Punkte)
+            console.log("[DEBUG] Spiel erfolgreich aus der Datenbank geladen:", game);
+    
+            // **Host-Überprüfung**
+            if (game.host !== socket.id) {
+                console.log("[ERROR] Kein Host! Host ist:", game.host, "aber Socket-ID ist:", socket.id);
+                return socket.emit("errorMessage", "❌ Nur der Host kann das Spiel neustarten.");
+            }
+    
+            // ✅ Spieler-Status & Punkte zurücksetzen
             game.players.forEach(player => {
                 player.isReady = false;
                 player.score = 0;
@@ -48,24 +72,21 @@ io.on("connection", (socket) => {
     
             // ✅ Fragen-Index zurücksetzen
             game.currentQuestionIndex = 0;
-    
             await game.save();
     
-            // ✅ Neue Fragen senden, falls notwendig
-            const questions = game.deckId.questions || [];
-            console.log(`[DEBUG] Neue Fragen geladen: ${questions.length} Fragen verfügbar.`);
+            // ✅ Neues Spiel-Objekt cachen
+            gameCache.set(gameId, game);
     
-            // ✅ Host-Information mitsenden
+            // ✅ Event an alle Spieler senden
             io.to(gameId).emit("gameRestarted", { 
                 gameId: game._id, 
                 deckId: game.deckId, 
-                players: Array.isArray(game.players) ? game.players : [],
+                players: game.players,
                 currentQuestionIndex: 0,
-                host: game.host,
-                questions // ✅ Fragen mitgeben
+                host: game.host
             });
     
-            console.log("[DEBUG] Spiel erfolgreich neugestartet. Alle Spieler sind jetzt 'nicht bereit'.");
+            console.log("[DEBUG] Spiel erfolgreich neugestartet!");
         } catch (error) {
             console.error(`[ERROR] Fehler beim Neustarten des Spiels: ${error.message}`);
         }
@@ -73,53 +94,59 @@ io.on("connection", (socket) => {
     
     
     
+    
     socket.on("changeDeck", async ({ roomCode, newDeckId }) => {
         try {
+            // 🛠 Cache leeren, um veraltete Daten zu verhindern
+            gameCache.delete(roomCode);
+    
             const game = await getGame(roomCode);
-            if (!game) return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
+            if (!game) {
+                return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
+            }
+    
+            const deck = await Deck.findById(newDeckId);
+            if (!deck) {
+                return socket.emit("errorMessage", "❌ Deck nicht gefunden.");
+            }
     
             game.deckId = newDeckId;
-    
-            // ✅ Alle Spieler auf "nicht bereit" setzen
             game.players.forEach(player => player.isReady = false);
-    
             await game.save();
     
-            // ✅ Update an alle Spieler senden
-            io.to(roomCode).emit("deckChanged", { newDeckId, players: game.players });
+            // 🛠 Cache aktualisieren
+            gameCache.set(roomCode, game);
     
-            console.log(`[ROOM] Deck in Raum ${roomCode} gewechselt zu ${newDeckId}.`);
+            io.to(roomCode).emit("deckChanged", { newDeckId, players: game.players });
+            console.log(`[ROOM] Deck in Raum ${roomCode} gewechselt zu ${newDeckId}`);
         } catch (error) {
             console.error(`[ERROR] Fehler beim Wechseln des Decks: ${error.message}`);
         }
     });
     
     
-   
     socket.on("createRoom", async ({ username, deckId }) => {
-        if (!deckId) {
-            socket.emit("errorMessage", "Deck ID fehlt!");
-            return;
-        }
-    
         try {
             const newGame = new Game({
                 deckId,
-                host: username,  // ✅ Host speichern
-                players: [{ username, score: 0, isReady: false, socketId: socket.id }] // ✅ Host als Spieler hinzufügen
+                host: socket.id, // ✅ Socket-ID als Host speichern!
+                players: [{ username, score: 0, isReady: false, socketId: socket.id }]
             });
     
             await newGame.save();
+            gameCache.set(newGame._id.toString(), newGame);
             socket.join(newGame._id.toString());
     
-            console.log(chalk.green(`[ROOM] Raum erstellt mit ID: ${newGame._id}, Host: ${username}, Socket: ${socket.id}`));
+            console.log(chalk.green(`[ROOM] Raum erstellt mit ID: ${newGame._id}, Host: ${socket.id}`));
     
-            socket.emit("roomCreated", { roomId: newGame._id, deckId, players: newGame.players, host: username });
-            io.to(newGame._id.toString()).emit("updatePlayers", { players: newGame.players, host: username });
+            socket.emit("roomCreated", { roomId: newGame._id, deckId, players: newGame.players, host: socket.id });
+            io.to(newGame._id.toString()).emit("updatePlayers", { players: newGame.players, host: socket.id });
         } catch (error) {
             socket.emit("errorMessage", "Fehler beim Erstellen des Raumes.");
         }
     });
+    
+    
     
     socket.on("joinRoom", async ({ username, roomCode }) => {
         try {
@@ -227,13 +254,15 @@ io.on("connection", (socket) => {
                 return socket.emit("errorMessage", "❌ Fehler: Kein gültiger Raumcode!");
             }
     
-            const game = await getGame(roomCode); // ✅ `roomCode` korrekt verwendet
+            // 🛠 Cache löschen, damit die neueste Version geladen wird
+            gameCache.delete(roomCode);
+    
+            const game = await getGame(roomCode);
             if (!game) {
                 console.error(`[ERROR] Spiel nicht gefunden: ${roomCode}`);
                 return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
             }
     
-            // ✅ Frage aus dem Spiel laden
             const question = game.deckId.questions[game.currentQuestionIndex];
             if (!question) {
                 console.error("[ERROR] Keine gültige Frage gefunden!");
@@ -242,24 +271,24 @@ io.on("connection", (socket) => {
     
             const correct = Number(answerIndex) === Number(question.correctIndex);
     
-            // ✅ Punkte aktualisieren
             game.players.forEach(player => {
                 if (player.username === username && correct) {
-                    player.score += 10; // Punkte vergeben
+                    player.score += 10;
                 }
             });
     
             await game.save();
     
-            // ✅ Ergebnis an alle Spieler senden
+            // 🛠 Cache mit der neuesten Spielversion aktualisieren
+            gameCache.set(roomCode, game);
+    
             io.to(roomCode).emit("answerResult", { username, correct });
-    
             console.log(`[DEBUG] Antwort von ${username} verarbeitet. Korrekt? ${correct}`);
-    
         } catch (error) {
             console.error(`[ERROR] Fehler bei der Antwortverarbeitung: ${error.message}`);
         }
     });
+    
     
 
     socket.on("disconnect", async () => {
