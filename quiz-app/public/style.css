@@ -50,21 +50,39 @@ h3 {
     margin-top: 20px;
     font-size: 1.1rem;
 }
-
-@keyframes fadePulse {
-    0% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.03); }
-    100% { opacity: 0.6; transform: scale(1); }
-}
-
 .waiting-animation {
-    animation: fadePulse 2.5s infinite ease-in-out;
-    color: #5a0dab; /* Modernes, tiefes Lila */
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    text-shadow: 0 0 12px rgba(90, 13, 171, 0.3), 0 0 4px rgba(255, 255, 255, 0.2); /* Dezenter Glow */
-    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    color: #ffcc00; /* Gold für bessere Sichtbarkeit */
+    animation: fadeInOut 1.5s infinite ease-in-out;
 }
+
+/* Animierte Punkte */
+@keyframes dots {
+    0% { content: "."; }
+    33% { content: ".."; }
+    66% { content: "..."; }
+    100% { content: "."; }
+}
+
+#dots::after {
+    content: "...";
+    display: inline-block;
+    animation: dots 1.5s infinite;
+}
+
+/* Sanftes Ein- & Ausblenden */
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.hidden {
+    display: none;
+}
+
 
 
 
@@ -230,48 +248,62 @@ h3 {
 .player-list .kick-btn:hover {
     background: #c0392b;
 }
-
 /* 🌟 Modal-Overlay */
 .modal {
     display: none;
     position: fixed;
+    inset: 0;
     z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: opacity 0.3s ease-in-out;
 }
 
 /* 💎 Modal-Inhalt */
 .modal-content {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 10px;
-    width: 350px;
-    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    width: min(90%, 400px);
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     text-align: center;
+    position: relative;
     animation: fadeIn 0.3s ease-in-out;
 }
 
 /* ❌ Schließen-Button */
 .close-btn {
     position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
+    top: 12px;
+    right: 12px;
+    font-size: 22px;
     cursor: pointer;
+    border: none;
+    background: none;
+    color: #555;
+    transition: color 0.2s;
 }
 
-/* 📌 Sanfte Einblendung */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+.close-btn:hover {
+    color: #222;
 }
+
+/* 🌀 Animationen */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 
 
 /* Benachrichtigungs-Modal */
@@ -297,20 +329,6 @@ h3 {
     align-items: center;
 }
 
-/* OK-Button */
-.close-btn {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.close-btn:hover {
-    background-color: #45a049;
-}
 
 /* Fehler- und Erfolgsfarben */
 .notification-modal.success {

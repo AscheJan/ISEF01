@@ -160,6 +160,7 @@ socket.on("playerReady", async ({ roomCode, username, isReady }) => {
         console.error(`[ERROR] Fehler beim Setzen des Bereit-Status: ${error.message}`);
     }
 });
+
 function updatePlayerList(players, host) {
     const playerList = document.getElementById("waitingPlayerList");
     if (!playerList) {
@@ -167,15 +168,21 @@ function updatePlayerList(players, host) {
         return;
     }
 
-    playerList.innerHTML = ""; // 🛠 Nur die UI wird aktualisiert, keine Spieler entfernt
+    // 🛠 Spieler-Liste **vorher** leeren, um doppelte Einträge zu vermeiden
+    playerList.innerHTML = "";
+
+    const addedPlayers = new Set(); // Set zur Speicherung von bereits hinzugefügten Spielern
 
     players.forEach(player => {
-        const listItem = document.createElement("li");
-        listItem.innerHTML = `
-            <span>${player.username} ${player.isReady ? "✅" : "❌"} ${player.username === host ? "(Host)" : ""}</span>
-            ${player.username === username ? `<button class="btn ${player.isReady ? "btn-danger" : "btn-secondary"}" onclick="toggleReady()" id="readyBtn">${player.isReady ? "❌ Nicht bereit" : "✅ Bereit"}</button>` : ""}
-        `;
-        playerList.appendChild(listItem);
+        if (!addedPlayers.has(player.username)) {
+            const listItem = document.createElement("li");
+            listItem.innerHTML = `
+                <span>${player.username} ${player.isReady ? "✅" : "❌"} ${player.username === host ? "(Host)" : ""}</span>
+                ${player.username === username ? `<button class="btn ${player.isReady ? "btn-danger" : "btn-secondary"}" onclick="toggleReady()" id="readyBtn">${player.isReady ? "❌ Nicht bereit" : "✅ Bereit"}</button>` : ""}
+            `;
+            playerList.appendChild(listItem);
+            addedPlayers.add(player.username); // Spieler zur Set-Liste hinzufügen
+        }
     });
 
     // ✅ Host sieht den "Spiel starten"-Button nur, wenn alle bereit sind
@@ -185,20 +192,15 @@ function updatePlayerList(players, host) {
     }
 }
 
+
+
 // 🎯 Wird aufgerufen, wenn sich der Bereitschaftsstatus eines Spielers ändert
-socket.on("updateReadyStatus", (players) => {
-    const host = players.find(p => p.username === username)?.host;
-    updatePlayerList(players, host);
-});
-
-
-
-socket.on("updateReadyStatus", ({ players, host }) => {
-    updatePlayerList(players, host); // ✅ Host wird jetzt mitgegeben
+socket.on("updateReadyStatus", ({ players }) => {
+    updatePlayerList(players);
 
     const allReady = players.length > 0 && players.every(player => player.isReady);
     
-    console.log(`[DEBUG] Alle Spieler bereit: ${allReady}, Host: ${host}`);
+    console.log(`[DEBUG] Alle Spieler bereit: ${allReady}`);
 
     // "Warten auf andere Spieler" Nachricht anzeigen/verbergen
     const readyMessage = document.getElementById("readyMessage");
@@ -206,15 +208,16 @@ socket.on("updateReadyStatus", ({ players, host }) => {
         readyMessage.style.display = allReady ? "none" : "block";
     }
 
-    // ✅ "Bereit"-Button für ALLE sichtbar lassen, auch für den Host!
-    const readyBtn = document.getElementById("readyBtn");
-    if (readyBtn) {
-        readyBtn.style.display = "block";  // Immer anzeigen!
+    // ✅ Host darf das Deck nur wechseln, wenn nicht alle bereit sind
+    const hostDeckSelection = document.getElementById("hostDeckSelection");
+    if (hostDeckSelection) {
+        hostDeckSelection.style.display = allReady ? "none" : "block";
     }
 
     // ✅ "Spiel starten"-Button nur für den Host sichtbar, wenn alle bereit sind
-    document.getElementById("startGameBtn").style.display = (allReady && username === host) ? "block" : "none";
+    document.getElementById("startGameBtn").style.display = (allReady && isHost) ? "block" : "none";
 });
+
 
 
 
@@ -429,21 +432,6 @@ socket.on("gameRestarted", ({ gameId, deckId, players, host, questions }) => {
 
 
 
-socket.on("deckChanged", ({ newDeckId, players }) => {
-    console.log("[DEBUG] Neues Deck gewählt:", newDeckId);
-
-    selectedDeck = newDeckId; // Speichert das neue Deck für das Spiel
-    showScreen('waitingRoom'); // Bleibt im Warteraum
-
-    updatePlayerList(players); // Aktualisiert die Spieler-Liste mit "nicht bereit"
-
-    document.getElementById("readyMessage").innerText = "Bitte erneut auf 'Bereit' klicken!";
-    document.getElementById("readyMessage").style.display = "block";
-
-    startGameBtn.style.display = "none"; // Versteckt "Spiel starten", bis alle wieder bereit sind
-
-    console.log("[DEBUG] Alle Spieler wurden auf 'nicht bereit' gesetzt.");
-});
 
 
 
@@ -622,35 +610,63 @@ function restartGame() {
     showNotification("🔄 Spiel wird neugestartet...");
 }
 
-
 function openDeckSelection() {
-    showScreen('waitingRoom'); // Bleibt im Warteraum
-    document.getElementById("hostDeckSelection").style.display = "block"; // Zeigt das Deck-Auswahl-Feld
+    if (!isHost) {
+        showNotification("❌ Nur der Host kann das Deck wechseln!");
+        return;
+    }
+
+    console.log("[DEBUG] Deck-Auswahl geöffnet.");
+
+    // 📌 Deck-Auswahl anzeigen
+    document.getElementById("hostDeckSelection").style.display = "block"; 
+
+    // 📌 Lade aktuelle Decks
+    loadDecksInRoom();
 }
 
 
-socket.on("deckChanged", ({ newDeckId }) => {
-    console.log("[DEBUG] Neues Deck gewählt:", newDeckId);
+socket.on("deckChanged", ({ newDeckId, players }) => {
+    console.log(`[DEBUG] Neues Deck gewählt: ${newDeckId}`);
 
-    selectedDeck = newDeckId; // Speichert das neue Deck für das Spiel
-    showScreen('waitingRoom'); // Bleibt im Warteraum und geht NICHT zurück zum Startbildschirm
+    selectedDeck = newDeckId;  // Speichert das neue Deck
 
+    // ✅ Bleibt im Warteraum
+    showScreen('waitingRoom');
+
+    // ✅ Spieler-Liste aktualisieren
+    updatePlayerList(players);
+
+    // ✅ Bereit-Status zurücksetzen
     document.getElementById("readyMessage").innerText = "Bitte erneut auf 'Bereit' klicken!";
     document.getElementById("readyMessage").style.display = "block";
-    
-    startGameBtn.style.display = "none"; // Versteckt "Spiel starten", bis alle wieder bereit sind
+
+    // ✅ "Spiel starten" wird erst wieder aktiv, wenn alle bereit sind
+    startGameBtn.style.display = "none";
+
+    console.log("[DEBUG] Alle Spieler wurden auf 'nicht bereit' gesetzt.");
 });
 
 
 function changeDeck() {
+    if (!isHost) {
+        showNotification("❌ Nur der Host kann das Deck wechseln!");
+        return;
+    }
+
     const newDeckId = document.getElementById("deckListInRoom").value;
     if (!newDeckId) {
         showNotification("Bitte wähle ein neues Deck!");
         return;
     }
 
+    console.log(`[DEBUG] Deck-Wechsel angefordert: ${newDeckId}`);
+
+    // ✅ Sende den Deck-Wechsel an den Server
     socket.emit("changeDeck", { roomCode, newDeckId });
 }
+
+
 
 socket.on("showWaitingRoom", ({ roomCode, players, host }) => {
     console.log(`[DEBUG] Beigetreten in Raum ${roomCode}`);
@@ -698,6 +714,29 @@ document.getElementById("restartGameBtn").addEventListener("click", () => {
     showNotification("🔄 Spiel wird neugestartet...");
 });
 
+function updateReadyMessage(players) {
+    const readyMessage = document.getElementById("readyMessage");
+
+    if (!readyMessage) return;
+
+    // 🔥 Prüfe, ob alle bereit sind
+    const allReady = players.length > 0 && players.every(player => player.isReady);
+
+    // ✅ Standardmäßig sichtbar, nur verstecken wenn ALLE bereit sind
+    if (allReady) {
+        readyMessage.classList.add("hidden"); // Verstecken
+    } else {
+        readyMessage.classList.remove("hidden"); // Zeigen
+    }
+}
+
+
+
+
+socket.off("updatePlayers"); // 🛠 Entfernt doppelte Listener
+socket.on("updatePlayers", ({ players, host }) => {
+    updatePlayerList(players, host);
+});
 
 document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("roomCodeModal").style.display = "none";

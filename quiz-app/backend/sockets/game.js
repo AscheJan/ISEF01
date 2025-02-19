@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
             io.to(gameId).emit("gameRestarted", { 
                 gameId: game._id, 
                 deckId: game.deckId, 
-                players: game.players,
+                players: Array.isArray(game.players) ? game.players : [],
                 currentQuestionIndex: 0,
                 host: game.host,
                 questions // ✅ Fragen mitgeben
@@ -73,17 +73,19 @@ io.on("connection", (socket) => {
     
     
     
-    
-    
     socket.on("changeDeck", async ({ roomCode, newDeckId }) => {
         try {
             const game = await getGame(roomCode);
-            if (!game) return socket.emit("errorMessage", "Raum nicht gefunden.");
+            if (!game) return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
     
             game.deckId = newDeckId;
+    
+            // ✅ Alle Spieler auf "nicht bereit" setzen
             game.players.forEach(player => player.isReady = false);
+    
             await game.save();
     
+            // ✅ Update an alle Spieler senden
             io.to(roomCode).emit("deckChanged", { newDeckId, players: game.players });
     
             console.log(`[ROOM] Deck in Raum ${roomCode} gewechselt zu ${newDeckId}.`);
@@ -91,6 +93,8 @@ io.on("connection", (socket) => {
             console.error(`[ERROR] Fehler beim Wechseln des Decks: ${error.message}`);
         }
     });
+    
+    
    
     socket.on("createRoom", async ({ username, deckId }) => {
         if (!deckId) {
@@ -120,18 +124,26 @@ io.on("connection", (socket) => {
     socket.on("joinRoom", async ({ username, roomCode }) => {
         try {
             const game = await Game.findById(roomCode);
-            if (!game) return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
-    
-            // 🛠 Spieler nur hinzufügen, wenn er nicht schon existiert!
-            const playerExists = game.players.some(player => player.username === username);
-            if (!playerExists) {
-                game.players.push({ username, score: 0, isReady: false, socketId: socket.id });
-                await game.save();
-            } else {
-                console.log(`[INFO] Spieler ${username} ist bereits im Raum ${roomCode}`);
+            if (!game) {
+                socket.emit("errorMessage", "❌ Raum nicht gefunden.");
+                return;
             }
     
+            // 🛠 Sicherstellen, dass Spieler nicht doppelt hinzugefügt wird
+            const existingPlayerIndex = game.players.findIndex(player => player.username === username);
+    
+            if (existingPlayerIndex !== -1) {
+                console.log(`[INFO] Spieler ${username} ist bereits im Raum ${roomCode}, aktualisiere Socket-ID.`);
+                game.players[existingPlayerIndex].socketId = socket.id;
+            } else {
+                console.log(`[INFO] Neuer Spieler tritt bei: ${username}`);
+                game.players.push({ username, score: 0, isReady: false, socketId: socket.id });
+            }
+    
+            await game.save();
             socket.join(roomCode);
+            
+            // ✅ Sendet aktualisierte Spieler-Liste an alle
             io.to(roomCode).emit("updatePlayers", { players: game.players, host: game.host });
     
             socket.emit("showWaitingRoom", { roomCode, players: game.players, host: game.host });
@@ -140,6 +152,7 @@ io.on("connection", (socket) => {
             console.error(`[ERROR] Fehler beim Beitritt: ${error.message}`);
         }
     });
+    
     
     
     
