@@ -32,7 +32,6 @@
             </div>
         </div>
 
-    
         <!-- Multiplayer Warteraum -->
         <div id="waitingRoom" class="screen">
             <h2>Warte auf weitere Spieler...</h2>
@@ -54,7 +53,13 @@
                 <select id="deckListInRoom" class="input-field"></select>
                 <button onclick="changeDeck()" class="btn secondary">📚 Deck wechseln</button>
             </div>
-            
+
+            <!-- Section for managing questions -->
+            <div id="hostQuestionEditing" style="display: none;">
+                <h3>Fragen bearbeiten</h3>
+                <ul id="questionsList"></ul>
+                <button onclick="addNewQuestion()" class="btn secondary">Frage hinzufügen</button>
+            </div>
 
             <!-- Spiel starten nur, wenn alle bereit sind -->
             <button id="startGameBtn" onclick="startMultiplayerGame()" class="btn primary" style="display: none;">
@@ -62,7 +67,6 @@
             </button>
         </div>
 
-    
         <!-- Quiz Bereich -->
         <div id="quiz" class="screen">
             <h2 id="question" class="question-text"></h2>
@@ -83,8 +87,6 @@
         </div>
     </div>
 
-
-
     <!-- 🌟 Raumcode-Eingabe Modal -->
     <div id="roomCodeModal" class="modal">
         <div class="modal-content">
@@ -95,11 +97,6 @@
             <button class="btn primary" onclick="submitRoomCode()">🔗 Beitreten</button>
         </div>
     </div>
-
-
-
-
-
 
     <!-- Benachrichtigungs-Modal -->
     <div id="notificationModal" class="notification-modal">
@@ -114,7 +111,6 @@
         <p>© 2025 Multiplayer Quiz | Entwickelt von Jan Asche</p>
     </footer>
 
-    
     <script src="script.js"></script>        
 </body>
 </html>

@@ -9,6 +9,32 @@
     --border-radius: 8px;
 }
 
+/* Animierte Punkte */
+@keyframes dots {
+    0% { content: "."; }
+    33% { content: ".."; }
+    66% { content: "..."; }
+    100% { content: "."; }
+}
+
+/* Sanftes Ein- & Ausblenden */
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* 🌀 Animationen */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
 /* 🌍 Allgemeine Stile */
 body {
     font-family: 'Inter', sans-serif;
@@ -19,6 +45,17 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+}
+
+/* 🖋️ Typografie */
+h1, h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+h3 {
+    margin-top: 20px;
+    font-size: 1.1rem;
 }
 
 .favicon-img {
@@ -49,16 +86,7 @@ body {
     display: block;
 }
 
-/* 🖋️ Typografie */
-h1, h2 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
 
-h3 {
-    margin-top: 20px;
-    font-size: 1.1rem;
-}
 .waiting-animation {
     font-size: 1.5rem;
     font-weight: bold;
@@ -67,13 +95,7 @@ h3 {
     animation: fadeInOut 1.5s infinite ease-in-out;
 }
 
-/* Animierte Punkte */
-@keyframes dots {
-    0% { content: "."; }
-    33% { content: ".."; }
-    66% { content: "..."; }
-    100% { content: "."; }
-}
+
 
 #dots::after {
     content: "...";
@@ -81,12 +103,7 @@ h3 {
     animation: dots 1.5s infinite;
 }
 
-/* Sanftes Ein- & Ausblenden */
-@keyframes fadeInOut {
-    0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
-}
+
 
 .hidden {
     display: none;
@@ -301,15 +318,135 @@ h3 {
     color: #222;
 }
 
-/* 🌀 Animationen */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
+
+
+
+/* 🌍 Allgemeine Stile für die Fragenliste */
+#questionsList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: var(--bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px; /* Ensures it doesn't stretch too wide on large screens */
+    margin: 0 auto; /* Centers the list */
+}
+
+#questionsList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e1e1e1;
+    font-size: 1rem;
+    color: var(--text-color);
+    transition: background-color 0.3s ease; /* Smooth background transition */
+}
+
+#questionsList li:last-child {
+    border-bottom: none;
+}
+
+#questionsList li:hover {
+    background-color: #f1f2f6; /* Subtle hover effect for better UX */
+}
+
+/* 🎨 Spezifische Buttons im hostQuestionEditing */
+#hostQuestionEditing button {
+    padding: 8px 18px;
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    border: none;
+    min-width: 90px; /* Ensures buttons have consistent width */
+    text-align: center;
+}
+
+/* 🎨 'Bearbeiten' Button mit Emoji */
+#hostQuestionEditing button:nth-child(1) {
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    border: none;
+    min-width: 90px;
+    text-align: center;
+}
+
+#hostQuestionEditing button:nth-child(1)::before {
+    content: "✏️"; /* Emoji für Bearbeiten */
+    margin-right: 8px;
+}
+
+#hostQuestionEditing button:nth-child(1):hover {
+    background: var(--button-hover);
+}
+
+/* 🎨 'Löschen' Button mit Emoji */
+#hostQuestionEditing button:nth-child(2) {
+    background: #e74c3c;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    border: none;
+    min-width: 90px;
+    text-align: center;
+}
+
+#hostQuestionEditing button:nth-child(2)::before {
+    content: "🗑️"; /* Emoji für Löschen */
+    margin-right: 8px;
+}
+
+#hostQuestionEditing button:nth-child(2):hover {
+    background: #c0392b;
+}
+
+
+/* 🎨 'Frage hinzufügen' Button */
+#hostQuestionEditing .btn.secondary {
+    background: var(--secondary-color);
+    color: white;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    margin-top: 15px; /* Adds space between the buttons */
+    width: 100%;
+    text-align: center;
+}
+
+#hostQuestionEditing .btn.secondary:hover {
+    background: var(--button-secondary);
+}
+
+/* 🌟 Mobile-friendly Anpassungen */
+@media screen and (max-width: 768px) {
+    #questionsList {
+        max-width: 100%; /* Ensures the list takes up the full width on mobile */
     }
-    to {
-        opacity: 1;
-        transform: scale(1);
+    
+    #questionsList li {
+        flex-direction: column; /* Stacks the question and buttons for mobile */
+        align-items: flex-start; /* Aligns buttons to the left */
+    }
+
+    #hostQuestionEditing button {
+        width: 100%; /* Makes buttons take up full width on mobile */
+        margin-top: 10px; /* Adds spacing between buttons */
     }
 }
 

@@ -24,6 +24,8 @@ app.use(express.static("public"));
 connectDB();
 gameModule(io); // Multiplayer laden
 
+// WebSocket-Logik
+require("./sockets/game")(io);
 // API-Routen
 app.use("/api/questions", require("./routes/questions"));
 app.use("/api/players", require("./routes/players"));
@@ -81,8 +83,11 @@ app.get('/leaderboard/:gameId', async (req, res) => {
 
 
 
-// WebSocket-Logik
-require("./sockets/game")(io);
+
+
+
+
+
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server läuft auf Port ${PORT}`));

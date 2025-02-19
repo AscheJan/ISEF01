@@ -324,6 +324,66 @@ io.on("connection", (socket) => {
         }
     });
     
+    let questions = []; // Store questions
+
+    socket.on('addQuestion', ({ roomCode, newQuestionData }) => {
+        const room = rooms[roomCode];  // Beispiel, wie der Raum gespeichert wird
+        room.questions.push(newQuestionData);  // Neue Frage hinzufügen
+    
+        // Alle Spieler über die neue Frage informieren
+        io.to(roomCode).emit('updateQuestions', room.questions);
+    });
+    
+
+    socket.on('editQuestion', ({ roomCode, questionId, updatedQuestionData }) => {
+        const room = rooms[roomCode];  // Beispiel, wie der Raum gespeichert wird
+        room.questions[questionId] = updatedQuestionData;  // Frage bearbeiten
+    
+        // Alle Spieler über die bearbeitete Frage informieren
+        io.to(roomCode).emit('updateQuestions', room.questions);
+    });
+    
+
+    
+    socket.on('deleteQuestion', ({ roomCode, questionId }) => {
+        const room = rooms[roomCode];  // Beispiel, wie der Raum gespeichert wird
+        room.questions.splice(questionId, 1);  // Frage löschen
+    
+        // Alle Spieler über die gelöschte Frage informieren
+        io.to(roomCode).emit('updateQuestions', room.questions);
+    });
+    
+    
+    socket.on("validateQuestion", async ({ roomCode, questionId }) => {
+        const game = await getGame(roomCode);
+        if (!game) return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
+    
+        // Nur der Host kann die Fragen validieren
+        if (game.host !== socket.id) {
+            return socket.emit("errorMessage", "❌ Nur der Host kann Fragen validieren.");
+        }
+    
+        // Frage aus den "pendingQuestions" entfernen und ins endgültige Deck verschieben
+        const deck = await Deck.findById(game.deckId);
+        if (!deck) {
+            return socket.emit("errorMessage", "❌ Deck nicht gefunden.");
+        }
+    
+        const questionIndex = deck.pendingQuestions.findIndex(q => q._id.toString() === questionId);
+        if (questionIndex === -1) {
+            return socket.emit("errorMessage", "❌ Frage nicht gefunden.");
+        }
+    
+        const question = deck.pendingQuestions[questionIndex];
+        deck.pendingQuestions.splice(questionIndex, 1);  // Frage aus der Pending-Liste entfernen
+        deck.questions.push(question);  // Frage ins endgültige Deck hinzufügen
+        await deck.save();
+    
+        // Update der Fragen
+        io.to(roomCode).emit("updateDeckQuestions", deck.questions);
+        console.log(`[DEBUG] Frage validiert und zum Deck hinzugefügt: ${question.question}`);
+    });
+    
 
 
     socket.on("disconnect", async () => {

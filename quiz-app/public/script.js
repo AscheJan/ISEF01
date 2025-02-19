@@ -81,18 +81,44 @@ function createGame() {
 
 
 
-
-socket.on('roomCreated', ({ roomId, deckId, players }) => {
+socket.on('roomCreated', ({ roomId, deckId, players, host }) => {
     roomCode = roomId;
     document.getElementById("roomCodeText").innerText = roomCode;
     roomCodeDisplay.style.display = 'block';
 
     updatePlayerList(players);
-    loadDecksInRoom();
+    loadDecksInRoom(); // Lädt die Decks für die Auswahl im Warteraum
     showScreen('waitingRoom');
 
-    setupReadyButton(); // Stellt den Button für den Host bereit
+    // Zeige den Bereich für das Bearbeiten der Fragen für alle Spieler an
+    document.getElementById("hostQuestionEditing").style.display = "block"; // Sichtbar machen für alle
+    loadQuestionsForDeck(deckId); // Lade die Fragen für das Deck
 });
+
+
+// Funktion zum Laden der Fragen für das ausgewählte Deck
+async function loadQuestionsForDeck(deckId) {
+    try {
+        const response = await fetch(`/api/questions/${deckId}`);  // API-Aufruf an den Server
+        const questions = await response.json();  // Die Antwort als JSON parsen
+
+        const questionsList = document.getElementById("questionsList");
+        questionsList.innerHTML = '';  // Liste zurücksetzen
+
+        // Durch alle Fragen iterieren und sie im DOM anzeigen
+        questions.forEach((question, index) => {
+            const questionItem = document.createElement('li');
+            questionItem.innerHTML = `
+                ${question.question}
+                <button onclick="editQuestion(${index})"></button>
+                <button onclick="deleteQuestion(${index})"></button>
+            `;
+            questionsList.appendChild(questionItem);
+        });
+    } catch (error) {
+        console.error('Fehler beim Laden der Fragen:', error);
+    }
+}
 
 
 
@@ -669,26 +695,35 @@ function changeDeck() {
 
     // ✅ Sende den Deck-Wechsel an den Server
     socket.emit("changeDeck", { roomCode, newDeckId });
+        // Lade die Fragen für das neue Deck
+        loadQuestionsForDeck(newDeckId);
 }
-
 
 
 socket.on("showWaitingRoom", ({ roomCode, players, host }) => {
     console.log(`[DEBUG] Beigetreten in Raum ${roomCode}`);
     
     roomCode = roomCode; // Speichert die Spiel-ID
-    updatePlayerList(players); // Zeigt Spieler-Liste an
+    updatePlayerList(players); // Zeigt die Spieler-Liste an
 
     // Zeigt den Warteraum an
     showScreen("waitingRoom");
 
     // Unterscheide zwischen Host & Gast
     const isHost = username === host;
-    document.getElementById("hostDeckSelection").style.display = isHost ? "block" : "none"; // Nur Host sieht Deck-Auswahl
-    document.getElementById("readyBtn").style.display = "block"; // Jeder sieht "Bereit"-Button
+    
+    // Zeigt die Deck-Auswahl 
+    document.getElementById("hostDeckSelection").style.display = "block";
+    
+    // Zeigt den "Bereit"-Button für alle an
+    document.getElementById("readyBtn").style.display = "block"; 
+
+    // Zeigt den Bereich für das Bearbeiten der Fragen
+    document.getElementById("hostQuestionEditing").style.display = "block"; 
 
     console.log(`[DEBUG] Host: ${host}, Aktueller Spieler: ${username}, Ist Host? ${isHost}`);
 });
+
 
 // Funktion zum Anzeigen der Benachrichtigung
 function showNotification(type, message) {
@@ -871,6 +906,194 @@ function updateReadyMessage(players) {
 }
 
 
+// Funktion zum Hinzufügen einer neuen Frage
+function addNewQuestion() {
+    const newQuestion = prompt("Gib deine Frage ein:");
+    const newOptions = [];
+    for (let i = 1; i <= 4; i++) {
+        newOptions.push(prompt(`Option ${i}:`));
+    }
+
+    const newQuestionData = {
+        question: newQuestion,
+        options: newOptions
+    };
+
+    // API-Aufruf, um die neue Frage zum Backend zu senden
+    fetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newQuestionData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Frage hinzugefügt:', data);
+        loadQuestionsForDeck(selectedDeckId);  // Fragen neu laden
+    })
+    .catch(error => {
+        console.error('Fehler beim Hinzufügen der Frage:', error);
+    });
+}
+
+
+// Funktion zum Bearbeiten einer Frage
+function editQuestion(index) {
+    const editedQuestion = prompt("Bearbeite deine Frage:", questions[index].question);
+    const editedOptions = [];
+    for (let i = 0; i < 4; i++) {
+        editedOptions.push(prompt(`Bearbeite Option ${i + 1}:`, questions[index].options[i]));
+    }
+
+    // Bearbeite die Frage
+    questions[index] = { question: editedQuestion, options: editedOptions };
+
+    // Sende die bearbeitete Frage an den Server
+    socket.emit('editQuestion', { roomCode, questionId: index, updatedQuestionData: { question: editedQuestion, options: editedOptions } });
+}
+
+// Funktion zum Löschen einer Frage
+function deleteQuestion(index) {
+    if (confirm('Möchtest du diese Frage wirklich löschen?')) {
+        socket.emit('deleteQuestion', { roomCode, questionId: index });
+    }
+}
+
+// Sende die aktualisierte Fragenliste an alle Spieler
+socket.on('updateQuestions', (updatedQuestions) => {
+    io.to(roomCode).emit('updateQuestions', updatedQuestions);
+});
+
+
+// Display questions in the waiting room
+function displayQuestions() {
+    const questionsList = document.getElementById('questionsList');
+    questionsList.innerHTML = ''; // Clear the list first
+    questions.forEach((q, index) => {
+        const li = document.createElement('li');
+        li.textContent = q.question;
+
+        const editButton = document.createElement('button');
+        editButton.textContent = '';
+        editButton.onclick = () => editQuestion(index);
+
+        li.appendChild(editButton);
+        questionsList.appendChild(li);
+    });
+}
+
+
+
+// Validierung der Frage durch den Host
+function validateQuestion(questionId) {
+    socket.emit("validateQuestion", { roomCode, questionId });
+}
+
+// Löschen einer Frage durch den Host
+function deleteQuestion(questionId) {
+    socket.emit("deleteQuestion", { roomCode, questionId });
+}
+
+// Im Warteraum anzeigen, wenn der Host das Deck bearbeiten möchte
+function showEditQuestionsUI() {
+    // Zeige den Bearbeitungsbereich an
+    const editQuestionsDiv = document.getElementById("editQuestions");
+    editQuestionsDiv.style.display = "block";
+
+    // Lade die aktuellen Fragen aus dem Deck
+    loadQuestions();
+}
+// Funktion, um Fragen zu laden
+async function loadQuestions() {
+    try {
+        const response = await fetch(`/api/getQuestions?roomCode=${roomCode}`);
+        const questions = await response.json();
+
+        const questionsList = document.getElementById("questionsList");
+        questionsList.innerHTML = ''; // Liste zurücksetzen
+
+        questions.forEach(question => {
+            const questionItem = document.createElement('li');
+            questionItem.innerHTML = `
+                ${question.text}
+                <button onclick="editQuestion('${question._id}')"></button>
+                <button onclick="deleteQuestion('${question._id}')"></button>
+            `;
+            questionsList.appendChild(questionItem);
+        });
+    } catch (error) {
+        console.error("Fehler beim Laden der Fragen:", error);
+    }
+}
+
+// Frage bearbeiten
+function editQuestion(questionId) {
+    // Zeige die Bearbeitungsoberfläche für die Frage an
+    const newQuestionText = prompt("Bearbeite die Frage:");
+    if (newQuestionText) {
+        fetch('/api/questions/editQuestion', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                roomCode,
+                questionId,
+                updatedQuestionData: { text: newQuestionText },
+                hostSocketId
+            })
+        }).then(response => {
+            if (response.ok) {
+                loadQuestions();  // Lade die Fragen neu
+            } else {
+                alert('Fehler beim Bearbeiten der Frage');
+            }
+        });
+    }
+}
+
+// Frage löschen
+function deleteQuestion(questionId) {
+    if (confirm('Möchtest du diese Frage wirklich löschen?')) {
+        fetch('/api/questions/deleteQuestion', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roomCode, questionId, hostSocketId })
+        }).then(response => {
+            if (response.ok) {
+                loadQuestions();  // Lade die Fragen neu
+            } else {
+                alert('Fehler beim Löschen der Frage');
+            }
+        });
+    }
+}
+
+// Frage hinzufügen
+function addQuestion() {
+    const questionText = prompt('Gib die Frage ein:');
+    if (questionText) {
+        const options = [];
+        for (let i = 0; i < 4; i++) {
+            const option = prompt(`Option ${i + 1}:`);
+            options.push(option);
+        }
+        const correctIndex = prompt('Welche Option ist korrekt? (0-3)');
+
+        fetch('/api/addQuestion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                roomCode,
+                questionData: { text: questionText, options, correctIndex },
+                hostSocketId
+            })
+        }).then(response => {
+            if (response.ok) {
+                loadQuestions();  // Lade die Fragen neu
+            } else {
+                alert('Fehler beim Hinzufügen der Frage');
+            }
+        });
+    }
+}
 
 
 socket.off("updatePlayers"); // 🛠 Entfernt doppelte Listener
