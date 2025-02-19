@@ -168,4 +168,20 @@ Wenn beim Einfügen der Daten ein Fehler auftritt, wird dieser in der Konsole an
 
 ---
 
+## Lizenzbedingungen für die Nutzung des Codes
+
+Der Code in diesem Repository ist ausschließlich für die Nutzung im Kontext des [ISEF01] Projekts an der [IU] bestimmt. Er darf nur von den Teilnehmern des Moduls verwendet werden und darf **nicht** für private oder kommerzielle Zwecke genutzt, weiterverkauft oder weiterverbreitet werden.
+
+### Nutzungsbedingungen:
+- **Erlaubte Nutzung**: Der Code darf nur innerhalb des Moduls [ISEF01] für die Abgabe des Projekts genutzt werden.
+- **Eingeschränkte Nutzung**: Jegliche Verwendung des Codes außerhalb des Moduls, einschließlich kommerzieller oder privater Nutzung, ist **nicht erlaubt**.
+- **Bearbeitung**: Der Code darf für den Zweck des Projekts verändert oder angepasst werden, jedoch **nicht für eine andere Nutzung** außerhalb des Moduls.
+- **Keine Weitergabe**: Der Code darf **nicht an Dritte weitergegeben** oder **öffentlich zugänglich gemacht** werden.
+
+### Urheberrecht:
+Der Code bleibt geistiges Eigentum des ursprünglichen Autors [Jan Asche] und ist durch das Urheberrecht geschützt. Jede Nutzung außerhalb des Projektkontexts stellt einen Verstoß gegen das Urheberrecht dar.
+
+### Hinweis:
+Indem du diesen Code verwendest, stimmst du zu, die oben genannten Lizenzbedingungen zu befolgen.
+
 
