@@ -21,19 +21,24 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
             name: "Java Grundlagen",
             questions: [
                 { 
-                    question: "Was ist ein primitiver Datentyp?", 
+                    question: "Was ist ein primitiver Datentyp in Java?", 
                     options: ["String", "int", "ArrayList"], 
                     correctIndex: 1 
                 },
                 { 
-                    question: "Welche Schleife gibt es in Java?", 
-                    options: ["for", "foreach", "while"], 
-                    correctIndex: 2 
-                },
+                    question: "Welche der folgenden Schleifenarten existiert in Java?", 
+                    options: ["for", "foreach", "do-while"], 
+                    correctIndex: 0 
+                },                
                 { 
                     question: "Wie erstellt man eine Klasse in Java?", 
                     options: ["class MyClass {}", "new MyClass()", "MyClass = class"], 
                     correctIndex: 0 
+                },
+                { 
+                    question: "Was ist der Zweck des 'public' Zugriffsmodifikators in Java?", 
+                    options: ["Erlaubt den Zugriff nur innerhalb der Klasse", "Erlaubt den Zugriff von überall", "Schränkt den Zugriff auf private Methoden ein"], 
+                    correctIndex: 1 
                 }
             ]
         },
@@ -41,12 +46,12 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
             name: "Python Grundlagen",
             questions: [
                 { 
-                    question: "Wie definiert man eine Funktion?", 
+                    question: "Wie definiert man eine Funktion in Python?", 
                     options: ["func", "def", "function"], 
                     correctIndex: 1 
                 },
                 { 
-                    question: "Welches Zeichen wird für Listen-Kommentare in Python verwendet?", 
+                    question: "Welches Zeichen wird für einzeilige Kommentare in Python verwendet?", 
                     options: ["#", "//", "--"], 
                     correctIndex: 0 
                 },
@@ -54,10 +59,16 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
                     question: "Wie erstellt man eine Liste in Python?", 
                     options: ["list = {}", "list = []", "list = ()"], 
                     correctIndex: 1 
+                },
+                { 
+                    question: "Was ist der Unterschied zwischen einer Liste und einem Tupel in Python?", 
+                    options: ["Tupel sind unveränderlich, Listen sind veränderlich", "Listen sind unveränderlich, Tupel sind veränderlich", "Es gibt keinen Unterschied"], 
+                    correctIndex: 0 
                 }
             ]
         }
     ];
+    
     
 
 async function seedDatabase() {

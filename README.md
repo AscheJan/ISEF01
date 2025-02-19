@@ -65,7 +65,55 @@ quiz-app/
    http://localhost:5000/
    ```
 
+
+
+## Initialisierung der Datenbank mit Beispiel-Daten
+
+Um die Datenbank mit Beispiel-Daten zu befüllen, kannst du das Script `seed.js` ausführen. Dieses Script verbindet sich mit der MongoDB-Datenbank und fügt Beispiel-Daten für Quiz-Decks hinzu.
+
+### Voraussetzungen
+
+Stelle sicher, dass du eine `.env`-Datei im Stammverzeichnis deines Projekts hast, die die Umgebungsvariable `MONGO_URI` enthält. Diese Variable muss die Verbindungs-URI für deine MongoDB-Datenbank beinhalten.
+
+### So führst du das Script aus:
+
+1. Navigiere zu dem Ordner, in dem sich das Script befindet:
+
+   ```bash
+   cd backend/scripts
+   ```
+
+2. Starte das Script mit Node.js:
+
+   ```bash
+   node seed.js
+   ```
+
+### Funktionsweise
+
+Das Script führt folgende Schritte aus:
+
+- Es lädt die Umgebungsvariablen aus der `.env`-Datei.
+- Es stellt eine Verbindung zur MongoDB-Datenbank unter der URI her, die in `MONGO_URI` angegeben ist.
+- Es löscht alle bestehenden Quiz-Decks in der Datenbank, um sicherzustellen, dass keine Duplikate eingefügt werden.
+- Es fügt dann die Beispiel-Decks für "Java Grundlagen" und "Python Grundlagen" in die Datenbank ein.
+- Am Ende schließt es die Verbindung zur Datenbank.
+
+#### Beispiel-Daten:
+
+- **Java Grundlagen**: Beinhaltet Fragen zu primitiven Datentypen, Schleifenarten, Klassen und Zugriffsmodifikatoren in Java.
+- **Python Grundlagen**: Beinhaltet Fragen zur Funktionsdefinition, Kommentaren, Listen und Tupeln in Python.
+
+### Fehlerbehandlung
+
+Wenn beim Einfügen der Daten ein Fehler auftritt, wird dieser in der Konsole angezeigt, und die Verbindung zur Datenbank wird geschlossen.
+
 ---
+
+
+---
+
+
 
 ## 📡 API-Endpunkte (REST-API)
 
