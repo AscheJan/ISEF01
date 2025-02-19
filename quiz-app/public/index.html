@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multiplayer Quiz</title>
     <script src="http://localhost:5000/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+
 </head>
 <body>
     <div class="container">
         <!-- Startbildschirm -->
         <div id="home" class="screen active">
+            <img src="assets/img/logo.png" alt="Quiz Icon" class="favicon-img">
             <h1>Multiplayer Quiz</h1>
             <input type="text" id="username" placeholder="Dein Name" class="input-field">
             <button onclick="selectDeck()" class="btn primary">Weiter</button>
