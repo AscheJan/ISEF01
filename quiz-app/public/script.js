@@ -338,7 +338,7 @@ socket.on("showLeaderboard", ({ players, host }) => {
 
 function restartGame() {
     if (!isHost) {
-        showNotification("❌ Nur der Host kann das Spiel neustarten!");
+        showNotification("error", "❌ Nur der Host kann das Spiel neustarten!");
         return;
     }
 
@@ -639,7 +639,7 @@ socket.on("deckChanged", ({ newDeckId, players }) => {
 
 function changeDeck() {
     if (!isHost) {
-        showNotification("❌ Nur der Host kann das Deck wechseln!");
+        showNotification("error", "Nur der Host kann das Deck wechseln!");
         return;
     }
 
@@ -724,7 +724,7 @@ showNotification("success", "Deine Änderungen wurden gespeichert!");
 
 document.getElementById("restartGameBtn").addEventListener("click", () => {
     if (!isHost) {
-        showNotification("❌ Nur der Host kann das Spiel neustarten!");
+        showNotification("error", "Nur der Host kann das Spiel neustarten!");
         return;
     }
 
