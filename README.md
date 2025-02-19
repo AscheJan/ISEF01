@@ -1,15 +1,14 @@
-# ISEF01
-# 📚 Online-Quizsystem
+# ISEF01 - 📚 Online-Quizsystem
 
 ## 📌 Projektbeschreibung
-Das **Online-Quizsystem** ist eine interaktive Webanwendung, die es Benutzern ermöglicht, Quizfragen zu beantworten und ihre Ergebnisse in einer Highscore-Liste zu vergleichen. Es wurde mit **Node.js, Express, MongoDB und Jest** entwickelt.
+Das **Online-Quizsystem** ist eine interaktive Webanwendung, die es den Benutzern ermöglicht, Quizfragen zu beantworten und ihre Ergebnisse in einer Highscore-Liste anzuzeigen. Das Quiz kann sowohl im **Singleplayer**- als auch im **Multiplayer-Modus** gespielt werden. 
+
 
 ---
 
 ## 🔧 Technologien & Architektur
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend:** Node.js, Express.js, MongoDB
-- **Testing:** Jest & Supertest
 - **Datenbank:** MongoDB Atlas oder lokale MongoDB
 - **Statische Daten:** Fragen werden aus der MongoDB-Datenbank geladen
 
@@ -17,20 +16,21 @@ Das **Online-Quizsystem** ist eine interaktive Webanwendung, die es Benutzern er
 ```
 quiz-app/
 │── backend/
-│   │── config/            # Datenbank-Konfiguration
-│   │── models/            # Datenbank-Modelle
-│   │── routes/            # API-Routen
-│   │── scripts/           # Test cards mongo
-│   │── socket/            # socket game Logik
-│   │── server.js          # Startet den Server
+│   │── config/            # Enthält die Konfigurationen für die Datenbankverbindung
+│   │── models/            # Mongoose-Datenbankmodelle (z. B. für Quiz-Decks, Benutzer)
+│   │── routes/            # Definiert die API-Routen für das Quiz (z. B. für Quizfragen, Highscores)
+│   │── scripts/           # Skripte zum Testen und Seed-Daten für die MongoDB (z. B. `seed.js`)
+│   │── socket/            # Logik für die Echtzeit-Kommunikation im Multiplayer-Modus (Socket.IO)
+│   │── server.js          # Startet den Node.js-Server und verbindet alle Routen und Middleware
 │── frontend/
-│   │── index.html         # Quiz-Oberfläche
-│   │── style.css          # Styling
-│   │── script.js          # Client-seitige Logik
-│── README.md              # Dokumentation
-│── package.json           # Abhängigkeiten & Skripte
-│── .gitignore             # npm-dir und .env nicht gepushed wird
-│── .env                   # Umgebungsvariablen
+│   │── index.html         # Haupt-HTML-Datei für die Quiz-Oberfläche
+│   │── style.css          # CSS-Datei für das Styling der Benutzeroberfläche
+│   │── script.js          # JavaScript-Datei für die client-seitige Logik (z. B. Quiz-Interaktionen)
+│── README.md              # Dokumentation des Projekts (Installationshinweise, Funktionsweise, etc.)
+│── package.json           # Listet alle npm-Abhängigkeiten und Skripte für das Projekt
+│── .gitignore             # Verhindert, dass `node_modules` und `.env` in das Git-Repository aufgenommen werden
+│── .env                   # Datei für Umgebungsvariablen (z. B. MongoDB-Verbindungs-URI, geheime Schlüssel)
+
 ```
 
 ---
@@ -38,8 +38,11 @@ quiz-app/
 ## 🚀 Installation & Setup
 ### 🔹 Voraussetzungen
 - **Node.js** installiert (empfohlen: Version 16+)
-- **MongoDB Atlas oder lokale MongoDB**
-- **NPM** (Node Package Manager)
+  - Um Node.js zu installieren, folge [dieser Anleitung](https://nodejs.org/en/download/package-manager/) für dein Linux-System.
+- **MongoDB Atlas oder lokale MongoDB** (falls MongoDB lokal verwendet wird, stelle sicher, dass der MongoDB-Dienst läuft)
+  - Anleitung zur Installation von MongoDB: https://docs.mongodb.com/manual/installation/
+- **NPM** (Node Package Manager), wird normalerweise mit Node.js installiert
+
 
 ### 🔹 Setup
 1. **Projekt klonen & Abhängigkeiten installieren**
