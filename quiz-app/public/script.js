@@ -168,7 +168,7 @@ function updatePlayerList(players, host) {
         return;
     }
 
-    // 🛠 Spieler-Liste **vorher** leeren, um doppelte Einträge zu vermeiden
+    // Spieler-Liste vorab leeren, um doppelte Einträge zu vermeiden
     playerList.innerHTML = "";
 
     const addedPlayers = new Set(); // Set zur Speicherung von bereits hinzugefügten Spielern
@@ -185,12 +185,13 @@ function updatePlayerList(players, host) {
         }
     });
 
-    // ✅ Host sieht den "Spiel starten"-Button nur, wenn alle bereit sind
+    // Bereit-Status prüfen und "Spiel starten"-Button nur für den Host anzeigen
     const allReady = players.every(player => player.isReady);
     if (username === host) {
         document.getElementById("startGameBtn").style.display = allReady ? "block" : "none";
     }
 }
+
 
 
 
@@ -298,15 +299,26 @@ function toggleReady() {
 
 }
 
-
-
 socket.on("showLeaderboard", ({ players, host }) => {
     console.log("[DEBUG] Leaderboard erhalten:", players, "Host:", host, "User:", username);
 
     const leaderboardList = document.getElementById("leaderboardList");
-    leaderboardList.innerHTML = players.map(player => 
-        `<li>${player.username}: ${player.score} Punkte</li>`
-    ).join('');
+    leaderboardList.innerHTML = ""; // Leere das Leaderboard, bevor neue Spieler hinzugefügt werden
+
+    const addedPlayers = new Set(); // Set zur Speicherung von bereits hinzugefügten Spielern
+
+    // Spieler nach Punktzahl sortieren (von höchster zu niedrigster Punktzahl)
+    const sortedPlayers = players.sort((a, b) => b.score - a.score);
+
+    // Durchlaufe alle Spieler und füge sie nur einmal hinzu
+    sortedPlayers.forEach(player => {
+        if (!addedPlayers.has(player.username)) {
+            const listItem = document.createElement("li");
+            listItem.innerHTML = `${player.username}: ${player.score} Punkte`;
+            leaderboardList.appendChild(listItem);
+            addedPlayers.add(player.username); // Spieler zur Set-Liste hinzufügen
+        }
+    });
 
     if (!username) {
         console.error("[ERROR] username ist nicht definiert!");
@@ -333,8 +345,12 @@ socket.on("showLeaderboard", ({ players, host }) => {
         console.error("[ERROR] readyBtn nicht gefunden!");
     }
 
+    // Leaderboard anzeigen
     showScreen('leaderboard');
 });
+
+
+
 
 function restartGame() {
     if (!isHost) {
@@ -561,9 +577,9 @@ function selectAnswer(selectedIndex) {
     }
 
     // Antwort an Server senden
-    socket.emit("submitAnswer", { username, roomCode, answerIndex }); 
-
+    socket.emit("submitAnswer", { username, roomCode, answerIndex: selectedIndex }); // Verwende `selectedIndex` statt `answerIndex`
 }
+
 
 
 // Nächste Frage anzeigen
@@ -720,6 +736,109 @@ function hideNotification(notification) {
 // Beispielaufruf für eine Benachrichtigung
 showNotification("success", "Deine Änderungen wurden gespeichert!");
 
+
+
+// Leaderboard in Echtzeit aktualisieren
+socket.on("updateLeaderboard", (players) => {
+    updateLeaderboardUI(players);
+});
+
+// Leaderboard in Echtzeit aktualisieren
+socket.on("updateLeaderboard", (players) => {
+    updateLeaderboardUI(players);
+});
+
+// Leaderboard-Daten in HTML aktualisieren
+function updateLeaderboardUI(players) {
+    const leaderboardList = document.getElementById("leaderboardList");
+    leaderboardList.innerHTML = ""; // Zurücksetzen
+
+    // Spieler nach Punktzahl sortieren (absteigend: höchster Punktestand zuerst)
+    players.sort((a, b) => b.score - a.score);
+
+    players.forEach(player => {
+        const listItem = document.createElement("li");
+        listItem.textContent = `${player.username}: ${player.score} Punkte`;
+        leaderboardList.appendChild(listItem);
+    });
+}
+
+
+async function fetchLeaderboard(gameId) {
+    try {
+        const response = await fetch(`/leaderboard/${gameId}`);
+
+        if (!response.ok) {
+            throw new Error(`Fehler: ${response.status} ${response.statusText}`);
+        }
+
+        const leaderboard = await response.json();
+        updateLeaderboardUI(leaderboard);
+    } catch (error) {
+        console.error("Fehler beim Laden des Leaderboards:", error.message);
+    }
+}
+
+
+
+// **Automatische Backup-Aktualisierung**
+setInterval(() => {
+    if (roomCode) {
+        fetchLeaderboard(roomCode);
+    }
+}, 5000);
+
+
+// **Score-Update senden**
+function updatePlayerScore(newScore) {
+    const gameId = getCurrentGameId();  // Hole die aktuelle Spiel-ID
+    if (!gameId || !username) {
+        console.error("Fehler: Spiel-ID oder Benutzername nicht definiert!");
+        return;
+    }
+
+    fetch(`${API_URL}/api/games/updateScore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameId, username, score: newScore })
+    })
+    .catch(error => console.error("Fehler beim Aktualisieren des Scores:", error));
+}
+
+
+function getCurrentGameId() {
+    return roomCode; // Die aktuelle Spiel-ID ist in `roomCode` gespeichert
+}
+
+async function loadLeaderboard(gameId) {
+    if (!gameId) {
+        console.error("Fehler: Keine Spiel-ID übergeben.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/leaderboard/${gameId}`);
+        const leaderboard = await response.json();
+
+        const leaderboardList = document.getElementById("leaderboardList");
+        leaderboardList.innerHTML = ""; // Liste zurücksetzen
+
+        leaderboard.forEach(player => {
+            const li = document.createElement("li");
+            li.textContent = `${player.username}: ${player.score} Punkte`;
+            leaderboardList.appendChild(li);
+        });
+    } catch (error) {
+        console.error("Fehler beim Laden des Leaderboards:", error);
+    }
+}
+
+
+// Leaderboard nach Spielende laden
+document.getElementById("finishGame").addEventListener("click", () => {
+    const gameId = getCurrentGameId(); // Funktion muss noch implementiert werden
+    loadLeaderboard(gameId);
+});
 
 
 document.getElementById("restartGameBtn").addEventListener("click", () => {

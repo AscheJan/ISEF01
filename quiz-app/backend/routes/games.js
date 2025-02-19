@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Game = require("../models/Game");
-
+const io = require("../server").io;
 // Neues Spiel erstellen
 router.post("/", async (req, res) => {
     console.log("POST /api/games Body:", req.body); // Debugging
@@ -68,5 +68,6 @@ router.post("/join", async (req, res) => {
         res.status(500).json({ error: "Fehler beim Beitreten des Spiels." });
     }
 });
+
 
 module.exports = router;

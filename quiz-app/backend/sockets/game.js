@@ -147,7 +147,6 @@ io.on("connection", (socket) => {
     });
     
     
-    
     socket.on("joinRoom", async ({ username, roomCode }) => {
         try {
             const game = await Game.findById(roomCode);
@@ -156,12 +155,12 @@ io.on("connection", (socket) => {
                 return;
             }
     
-            // 🛠 Sicherstellen, dass Spieler nicht doppelt hinzugefügt wird
+            // Sicherstellen, dass der Spieler nur einmal hinzugefügt wird
             const existingPlayerIndex = game.players.findIndex(player => player.username === username);
-    
+        
             if (existingPlayerIndex !== -1) {
                 console.log(`[INFO] Spieler ${username} ist bereits im Raum ${roomCode}, aktualisiere Socket-ID.`);
-                game.players[existingPlayerIndex].socketId = socket.id;
+                game.players[existingPlayerIndex].socketId = socket.id;  // Socket-ID aktualisieren
             } else {
                 console.log(`[INFO] Neuer Spieler tritt bei: ${username}`);
                 game.players.push({ username, score: 0, isReady: false, socketId: socket.id });
@@ -169,16 +168,17 @@ io.on("connection", (socket) => {
     
             await game.save();
             socket.join(roomCode);
-            
-            // ✅ Sendet aktualisierte Spieler-Liste an alle
+    
+            // Sendet aktualisierte Spieler-Liste an alle
             io.to(roomCode).emit("updatePlayers", { players: game.players, host: game.host });
     
             socket.emit("showWaitingRoom", { roomCode, players: game.players, host: game.host });
-    
+        
         } catch (error) {
             console.error(`[ERROR] Fehler beim Beitritt: ${error.message}`);
         }
     });
+    
     
     
     
@@ -237,15 +237,20 @@ io.on("connection", (socket) => {
             const game = await Game.findById(roomCode);
             if (!game) return;
     
-            io.to(roomCode).emit("showLeaderboard", { 
-                players: game.players, 
-                host: game.players[0]?.username // Host ist der erste Spieler in der Liste
-            });
+            // Sortiere Spieler nach Punktestand in absteigender Reihenfolge
+            const sortedPlayers = game.players.sort((a, b) => b.score - a.score);
     
+            // Sende das sortierte Leaderboard an alle Spieler
+            io.to(roomCode).emit("showLeaderboard", {
+                players: sortedPlayers,
+                host: game.host
+            });
         } catch (error) {
             console.error(`[ERROR] Fehler beim Senden des Leaderboards: ${error.message}`);
         }
     });
+    
+    
     
     socket.on("submitAnswer", async ({ username, roomCode, answerIndex }) => {
         try {
@@ -254,7 +259,7 @@ io.on("connection", (socket) => {
                 return socket.emit("errorMessage", "❌ Fehler: Kein gültiger Raumcode!");
             }
     
-            // 🛠 Cache löschen, damit die neueste Version geladen wird
+            // 🛠 Cache löschen, um aktuelle Daten zu laden
             gameCache.delete(roomCode);
     
             const game = await getGame(roomCode);
@@ -273,16 +278,16 @@ io.on("connection", (socket) => {
     
             game.players.forEach(player => {
                 if (player.username === username && correct) {
-                    player.score += 10;
+                    player.score += 10; // Score erhöhen
                 }
             });
     
-            await game.save();
+            await game.save(); // WICHTIG: Spiel speichern!
     
-            // 🛠 Cache mit der neuesten Spielversion aktualisieren
+            // 🛠 Cache mit aktualisierter Version speichern
             gameCache.set(roomCode, game);
     
-            io.to(roomCode).emit("answerResult", { username, correct });
+            io.to(roomCode).emit("answerResult", { username, correct, score: game.players.find(p => p.username === username).score });
             console.log(`[DEBUG] Antwort von ${username} verarbeitet. Korrekt? ${correct}`);
         } catch (error) {
             console.error(`[ERROR] Fehler bei der Antwortverarbeitung: ${error.message}`);
@@ -290,6 +295,36 @@ io.on("connection", (socket) => {
     });
     
     
+    socket.on("updateScore", async ({ gameId, username, score }) => {
+        try {
+            if (!gameId) {
+                console.error("[ERROR] Kein gameId übergeben!");
+                return socket.emit("errorMessage", "❌ Fehler: Ungültige Spiel-ID!");
+            }
+    
+            // Cache löschen, um frische Daten zu laden
+            gameCache.delete(gameId);
+    
+            const game = await getGame(gameId);
+            if (!game) {
+                return socket.emit("errorMessage", "❌ Spiel nicht gefunden.");
+            }
+    
+            // Finde den Spieler und aktualisiere seinen Score
+            const player = game.players.find(p => p.username === username);
+            if (player) {
+                player.score = score;
+                await game.save();
+    
+                // 🔥 Echtzeit-Update an alle Spieler im Raum senden
+                io.to(gameId).emit("updateLeaderboard", game.players.sort((a, b) => a.username.localeCompare(b.username)));
+            }
+        } catch (error) {
+            console.error(`[ERROR] Fehler beim Aktualisieren des Scores: ${error.message}`);
+        }
+    });
+    
+
 
     socket.on("disconnect", async () => {
         console.log(chalk.gray(`[WS] Spieler getrennt: ${socket.id}`));
