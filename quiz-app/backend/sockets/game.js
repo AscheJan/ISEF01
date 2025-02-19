@@ -30,45 +30,47 @@ io.on("connection", (socket) => {
     });
 
     socket.on("restartGame", async ({ gameId }) => {
-        console.log("[DEBUG] restartGame-Event empfangen für Spiel:", gameId);
+        console.log("[DEBUG] Neustart-Event empfangen für Spiel:", gameId);
     
         try {
-            const game = await Game.findById(gameId);
+            const game = await Game.findById(gameId).populate("deckId");
             if (!game) {
                 console.log("[ERROR] Spiel nicht gefunden:", gameId);
                 socket.emit("errorMessage", "❌ Raum nicht gefunden.");
                 return;
             }
     
-            // 🔥 Host anhand von `socketId` erkennen
-            const host = game.players[0]; // Der erste Spieler ist der Host
-            if (!host || host.socketId !== socket.id) {
-                console.log("[ERROR] Spieler ist kein Host:", socket.id, "Erwartet:", host?.socketId);
-                socket.emit("errorMessage", "❌ Nur der Host kann das Spiel neustarten!");
-                return;
-            }
-    
-            // ✅ Spielstatus zurücksetzen
+            // ✅ Alle Spieler zurücksetzen (Bereit-Status & Punkte)
             game.players.forEach(player => {
                 player.isReady = false;
                 player.score = 0;
             });
+    
+            // ✅ Fragen-Index zurücksetzen
             game.currentQuestionIndex = 0;
+    
             await game.save();
     
-            console.log("[DEBUG] Spielstatus erfolgreich zurückgesetzt.");
+            // ✅ Neue Fragen senden, falls notwendig
+            const questions = game.deckId.questions || [];
+            console.log(`[DEBUG] Neue Fragen geladen: ${questions.length} Fragen verfügbar.`);
     
+            // ✅ Host-Information mitsenden
             io.to(gameId).emit("gameRestarted", { 
                 gameId: game._id, 
                 deckId: game.deckId, 
-                players: game.players 
+                players: game.players,
+                currentQuestionIndex: 0,
+                host: game.host,
+                questions // ✅ Fragen mitgeben
             });
     
-            console.log("[DEBUG] gameRestarted-Event gesendet an Raum:", gameId);
+            console.log("[DEBUG] Spiel erfolgreich neugestartet. Alle Spieler sind jetzt 'nicht bereit'.");
         } catch (error) {
             console.error(`[ERROR] Fehler beim Neustarten des Spiels: ${error.message}`);
         }
     });
+    
     
     
     
@@ -146,16 +148,27 @@ io.on("connection", (socket) => {
         try {
             const game = await getGame(roomCode);
             if (!game) return socket.emit("errorMessage", "Raum nicht gefunden.");
+    
+            // ✅ Aktualisiere den Spieler-Status
             game.players.forEach(player => {
                 if (player.username === username) player.isReady = isReady;
             });
+    
             await game.save();
-            io.to(roomCode).emit("updateReadyStatus", game.players);
-            if (game.players.every(p => p.isReady)) io.to(roomCode).emit("allPlayersReady", { canStart: true });
+    
+            // ✅ Host-Info mitgeben!
+            io.to(roomCode).emit("updateReadyStatus", { players: game.players, host: game.host });
+    
+            // Falls alle bereit sind, das Event senden
+            if (game.players.every(p => p.isReady)) {
+                io.to(roomCode).emit("allPlayersReady", { canStart: true });
+            }
+    
         } catch (error) {
             console.error(`[ERROR] Fehler beim Setzen des Bereit-Status: ${error.message}`);
         }
     });
+    
 
     socket.on("kickPlayer", async ({ hostUsername, roomId, targetUsername }) => {
         try {
@@ -194,23 +207,47 @@ io.on("connection", (socket) => {
         }
     });
     
-
-    socket.on("submitAnswer", async ({ username, gameId, answerIndex }) => {
+    socket.on("submitAnswer", async ({ username, roomCode, answerIndex }) => {
         try {
-            const game = await getGame(roomCode);
-            if (!game) return socket.emit("errorMessage", "Raum nicht gefunden.");
+            if (!roomCode) {
+                console.error("[ERROR] Kein gültiger Raumcode übergeben!");
+                return socket.emit("errorMessage", "❌ Fehler: Kein gültiger Raumcode!");
+            }
+    
+            const game = await getGame(roomCode); // ✅ `roomCode` korrekt verwendet
+            if (!game) {
+                console.error(`[ERROR] Spiel nicht gefunden: ${roomCode}`);
+                return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
+            }
+    
+            // ✅ Frage aus dem Spiel laden
             const question = game.deckId.questions[game.currentQuestionIndex];
-            if (!question) return;
+            if (!question) {
+                console.error("[ERROR] Keine gültige Frage gefunden!");
+                return;
+            }
+    
             const correct = Number(answerIndex) === Number(question.correctIndex);
+    
+            // ✅ Punkte aktualisieren
             game.players.forEach(player => {
-                if (player.username === username && correct) player.score += 10;
+                if (player.username === username && correct) {
+                    player.score += 10; // Punkte vergeben
+                }
             });
+    
             await game.save();
-            io.to(gameId).emit("answerResult", { username, correct });
+    
+            // ✅ Ergebnis an alle Spieler senden
+            io.to(roomCode).emit("answerResult", { username, correct });
+    
+            console.log(`[DEBUG] Antwort von ${username} verarbeitet. Korrekt? ${correct}`);
+    
         } catch (error) {
             console.error(`[ERROR] Fehler bei der Antwortverarbeitung: ${error.message}`);
         }
     });
+    
 
     socket.on("disconnect", async () => {
         console.log(chalk.gray(`[WS] Spieler getrennt: ${socket.id}`));

@@ -42,7 +42,7 @@
             <!-- "Bereit"-Button für Spieler -->
             <div id="waitingRoom">
                 <ul id="waitingPlayerList"></ul>
-                <button id="readyBtn" class="btn secondary" onclick="toggleReady()">✅ Bereit</button>
+
                 <h2 id="readyMessage" class="waiting-animation">Warten auf andere Spieler...</h2>
             </div>
 
@@ -51,8 +51,8 @@
                 <h3>Wähle ein Deck:</h3>
                 <select id="deckListInRoom" class="input-field"></select>
                 <button onclick="changeDeck()" class="btn secondary">📚 Deck wechseln</button>
-                <h2 id="readyMessage" class="waiting-animation">Warten auf andere Spieler...</h2>
             </div>
+            
 
             <!-- Spiel starten nur, wenn alle bereit sind -->
             <button id="startGameBtn" onclick="startMultiplayerGame()" class="btn primary" style="display: none;">
@@ -76,7 +76,7 @@
             <ul id="leaderboardList"></ul>
             <ul id="playerControlList" class="player-list"></ul>
             <div class="button-group">
-                <button onclick="restartGame()" class="btn primary">🔄 Spiel neustarten</button>
+                <button id="restartGameBtn" class="btn secondary">🔄 Spiel neustarten</button>
                 <button onclick="openDeckSelection()" class="btn secondary">📚 Neues Deck wählen</button>
             </div>
         </div>

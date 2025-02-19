@@ -160,7 +160,6 @@ socket.on("playerReady", async ({ roomCode, username, isReady }) => {
         console.error(`[ERROR] Fehler beim Setzen des Bereit-Status: ${error.message}`);
     }
 });
-
 function updatePlayerList(players, host) {
     const playerList = document.getElementById("waitingPlayerList");
     if (!playerList) {
@@ -168,34 +167,54 @@ function updatePlayerList(players, host) {
         return;
     }
 
-    playerList.innerHTML = ""; // ✅ Verhindert doppelte Einträge vor dem Neuladen
-
-    // 🛠 Doppelte Spieler vermeiden, indem wir ein Set nutzen
-    const uniquePlayers = new Set();
+    playerList.innerHTML = ""; // 🛠 Nur die UI wird aktualisiert, keine Spieler entfernt
 
     players.forEach(player => {
-        if (!uniquePlayers.has(player.username)) {
-            uniquePlayers.add(player.username);
-
-            const listItem = document.createElement("li");
-            listItem.innerText = `${player.username} ${player.isReady ? "✅" : "❌"}`;
-
-            // Host markieren
-            if (player.username === host) {
-                listItem.innerText += " (Host)";
-                listItem.style.fontWeight = "bold";
-            }
-
-            playerList.appendChild(listItem);
-        }
+        const listItem = document.createElement("li");
+        listItem.innerHTML = `
+            <span>${player.username} ${player.isReady ? "✅" : "❌"} ${player.username === host ? "(Host)" : ""}</span>
+            ${player.username === username ? `<button class="btn ${player.isReady ? "btn-danger" : "btn-secondary"}" onclick="toggleReady()" id="readyBtn">${player.isReady ? "❌ Nicht bereit" : "✅ Bereit"}</button>` : ""}
+        `;
+        playerList.appendChild(listItem);
     });
+
+    // ✅ Host sieht den "Spiel starten"-Button nur, wenn alle bereit sind
+    const allReady = players.every(player => player.isReady);
+    if (username === host) {
+        document.getElementById("startGameBtn").style.display = allReady ? "block" : "none";
+    }
 }
 
-// Nutze updatePlayerList mit dem Host als Parameter
-socket.on("updatePlayers", ({ players, host }) => {
+// 🎯 Wird aufgerufen, wenn sich der Bereitschaftsstatus eines Spielers ändert
+socket.on("updateReadyStatus", (players) => {
+    const host = players.find(p => p.username === username)?.host;
     updatePlayerList(players, host);
 });
 
+
+
+socket.on("updateReadyStatus", ({ players, host }) => {
+    updatePlayerList(players, host); // ✅ Host wird jetzt mitgegeben
+
+    const allReady = players.length > 0 && players.every(player => player.isReady);
+    
+    console.log(`[DEBUG] Alle Spieler bereit: ${allReady}, Host: ${host}`);
+
+    // "Warten auf andere Spieler" Nachricht anzeigen/verbergen
+    const readyMessage = document.getElementById("readyMessage");
+    if (readyMessage) {
+        readyMessage.style.display = allReady ? "none" : "block";
+    }
+
+    // ✅ "Bereit"-Button für ALLE sichtbar lassen, auch für den Host!
+    const readyBtn = document.getElementById("readyBtn");
+    if (readyBtn) {
+        readyBtn.style.display = "block";  // Immer anzeigen!
+    }
+
+    // ✅ "Spiel starten"-Button nur für den Host sichtbar, wenn alle bereit sind
+    document.getElementById("startGameBtn").style.display = (allReady && username === host) ? "block" : "none";
+});
 
 
 
@@ -314,54 +333,100 @@ socket.on("showLeaderboard", ({ players, host }) => {
     showScreen('leaderboard');
 });
 
-
-
-
-socket.on("updateReadyStatus", (players) => {
-    updatePlayerList(players);
-
-    const allReady = players.length > 0 && players.every(player => player.isReady);
-    
-    console.log(`[DEBUG] Alle Spieler bereit: ${allReady}`);
-
-    // "Warten auf andere Spieler" ausblenden, wenn alle bereit sind
-    const readyMessage = document.getElementById("readyMessage");
-    if (readyMessage) {
-        readyMessage.style.display = allReady ? "none" : "block";
-    }
-
-    if (isHost) {
-        startGameBtn.style.display = allReady ? "block" : "none";
-    } else {
-        startGameBtn.style.display = "none";
-    }
-});
-
-socket.on("gameRestarted", ({ gameId, deckId, players }) => {
-    console.log("[DEBUG] gameRestarted-Event empfangen:", gameId, "Deck:", deckId); // 🛠 Debugging
-
-    if (!gameId) {
-        console.error("[ERROR] gameRestarted enthält keine gültige gameId!");
+function restartGame() {
+    if (!isHost) {
+        showNotification("❌ Nur der Host kann das Spiel neustarten!");
         return;
     }
 
+    console.log("[DEBUG] Neustart-Button wurde gedrückt."); 
+
+    // ✅ Backend informieren
+    socket.emit("restartGame", { gameId: roomCode });
+
+    // ✅ UI zurücksetzen
+    showScreen('waitingRoom');
+    document.getElementById("startGameBtn").style.display = "none"; // Erst nach Bereit-Status sichtbar
+
+    // ✅ "Bereit"-Button für ALLE sicherstellen
+    let readyBtn = document.getElementById("readyBtn");
+
+    if (!readyBtn) {
+        console.warn("[WARN] 'Bereit'-Button nicht gefunden, wird neu erstellt!");
+
+        readyBtn = document.createElement("button");
+        readyBtn.id = "readyBtn";
+        readyBtn.className = "btn secondary";
+        readyBtn.innerText = "✅ Bereit";
+        readyBtn.onclick = toggleReady;
+
+        const waitingRoom = document.getElementById("waitingRoom");
+        if (waitingRoom) {
+            waitingRoom.appendChild(readyBtn);
+            console.log("[DEBUG] 'Bereit'-Button wurde neu hinzugefügt!");
+        } else {
+            console.error("[ERROR] 'waitingRoom' nicht gefunden!");
+        }
+    } else {
+        readyBtn.style.display = "block"; 
+        readyBtn.disabled = false;  // Falls deaktiviert, wieder aktivieren
+        readyBtn.innerText = "✅ Bereit";
+        console.log("[DEBUG] 'Bereit'-Button sichtbar gemacht.");
+    }
+
+    // ✅ „Warten auf andere Spieler“-Text anzeigen
+    const readyMessage = document.getElementById("readyMessage");
+    if (readyMessage) {
+        readyMessage.innerText = "Bitte erneut auf 'Bereit' klicken!";
+        readyMessage.style.display = "block";
+    }
+
+    // ✅ Antworten-Container leeren (falls Quiz schon gestartet war)
+    optionsGrid.innerHTML = "";
+
+    showNotification("🔄 Spiel wird neugestartet...");
+}
+
+// 🎯 Server sendet zurück, dass das Spiel neugestartet wurde
+socket.on("gameRestarted", ({ gameId, deckId, players, host, questions }) => {
+    console.log("[DEBUG] Spiel wurde neugestartet:", gameId, "Deck:", deckId, "Fragen:", questions.length);
+
+    // ✅ Spielstatus-Variablen zurücksetzen
     roomCode = gameId;
     selectedDeck = deckId;
+    currentQuestionIndex = 0;
+    score = 0;
+    answerSelected = false;
     
-    // Warteraum anzeigen
+    // ✅ Neue Fragen setzen
+    if (questions && questions.length > 0) {
+        console.log("[DEBUG] Fragenliste aktualisiert!");
+        fetchQuestions(deckId);
+    } else {
+        console.warn("[WARN] Keine neuen Fragen erhalten!");
+    }
+
+    // ✅ UI zurücksetzen
     showScreen('waitingRoom');
-    updatePlayerList(players);
+    updatePlayerList(players, host);
 
-    // "Bereit"-Status zurücksetzen
-    document.getElementById("readyMessage").innerText = "Bitte erneut auf 'Bereit' klicken!";
-    document.getElementById("readyMessage").style.display = "block";
-    document.getElementById("readyBtn").style.display = "block";
+    // ✅ "Nächste Frage"-Button wieder sichtbar machen
+    const nextQuestionBtn = document.getElementById("nextQuestion");
+    if (nextQuestionBtn) {
+        nextQuestionBtn.style.display = "block";  // ✅ Button sichtbar!
+    } else {
+        console.error("[ERROR] 'nextQuestion' Button nicht gefunden!");
+    }
 
-    // Host-Kontrolle sichtbar machen
-    document.getElementById("hostDeckSelection").style.display = isHost ? "block" : "none";
-    
+    // ✅ Sicherstellen, dass das Quiz nicht als „beendet“ angezeigt wird
+    finishGameBtn.style.display = 'none';
+
     console.log("[DEBUG] Spiel erfolgreich neugestartet und UI aktualisiert.");
 });
+
+
+
+
 
 
 socket.on("deckChanged", ({ newDeckId, players }) => {
@@ -433,14 +498,20 @@ socket.on('gameStarted', ({ gameId, deckId }) => {
     roomCode = gameId;
     selectedDeck = deckId;
 
-    const readyBtn = document.getElementById("readyBtn"); // Falls nicht global definiert
-
+    const readyBtn = document.getElementById("readyBtn"); 
     if (readyBtn) {
-        readyBtn.remove(); // Entferne den "Bereit"-Button, wenn er existiert
+        readyBtn.remove(); // Entferne den "Bereit"-Button
+    }
+
+    // ✅ "Nächste Frage"-Button sichtbar machen
+    const nextQuestionBtn = document.getElementById("nextQuestion");
+    if (nextQuestionBtn) {
+        nextQuestionBtn.style.display = "block";
     }
 
     startGame(deckId);
 });
+
 
 
 // Spiel starten
@@ -467,21 +538,34 @@ async function fetchQuestions(deckId) {
 
 // Frage anzeigen
 function displayQuestion() {
-    if (currentQuestionIndex >= questions.length) {
-        finishGameBtn.style.display = 'block';
-        nextQuestionBtn.style.display = 'none';
+    console.log(`[DEBUG] Zeige Frage ${currentQuestionIndex + 1} von ${questions.length}`);
+
+    // ✅ Falls das Spiel neugestartet wurde, aber Fragen nicht geladen sind, erneute Anfrage stellen
+    if (questions.length === 0) {
+        console.warn("[WARN] Keine Fragen geladen, lade neu...");
+        fetchQuestions(selectedDeck);
         return;
     }
 
-    answerSelected = false; // 💡 Setzt den Status zurück, damit die nächste Antwort wieder wählbar ist.
+    // ✅ Wenn es noch Fragen gibt, zeige sie an
+    if (currentQuestionIndex < questions.length) {
+        answerSelected = false;
 
-    const question = questions[currentQuestionIndex];
-    questionText.innerText = question.question;
+        const question = questions[currentQuestionIndex];
+        questionText.innerText = question.question;
 
-    optionsGrid.innerHTML = question.options.map((option, index) => 
-        `<button class="option-btn" onclick="selectAnswer(${index})">${option}</button>`
-    ).join('');
+        optionsGrid.innerHTML = question.options.map((option, index) => 
+            `<button class="option-btn" onclick="selectAnswer(${index})">${option}</button>`
+        ).join('');
+
+        finishGameBtn.style.display = 'none'; // 🚀 Spielabschließen-Button verstecken
+    } else {
+        console.warn("[WARN] Alle Fragen beantwortet!"); 
+        finishGameBtn.style.display = 'block'; 
+        nextQuestionBtn.style.display = 'none';
+    }
 }
+
 
 
 // Antwort wählen
@@ -502,7 +586,8 @@ function selectAnswer(selectedIndex) {
     }
 
     // Antwort an Server senden
-    socket.emit("submitAnswer", { username, gameId: roomCode, answerIndex: selectedIndex });
+    socket.emit("submitAnswer", { username, roomCode, answerIndex }); 
+
 }
 
 
@@ -599,6 +684,20 @@ function showNotification(message, type = "success") {
 function closeNotification() {
     document.getElementById("notificationModal").style.display = "none";
 }
+
+
+document.getElementById("restartGameBtn").addEventListener("click", () => {
+    if (!isHost) {
+        showNotification("❌ Nur der Host kann das Spiel neustarten!");
+        return;
+    }
+
+    console.log("[DEBUG] Neustart-Button wurde gedrückt.");
+    socket.emit("restartGame", { gameId: roomCode });
+
+    showNotification("🔄 Spiel wird neugestartet...");
+});
+
 
 document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("roomCodeModal").style.display = "none";
