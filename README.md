@@ -111,9 +111,6 @@ Wenn beim Einfügen der Daten ein Fehler auftritt, wird dieser in der Konsole an
 ---
 
 
----
-
-
 
 ## 📡 API-Endpunkte (REST-API)
 
