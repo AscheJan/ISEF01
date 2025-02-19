@@ -1,0 +1,334 @@
+/* 🎨 Farben */
+:root {
+    --primary-color: #6c5ce7;
+    --secondary-color: #00cec9;
+    --bg-color: #f5f6fa;
+    --text-color: #2d3436;
+    --button-hover: #5a49d6;
+    --button-secondary: #74b9ff;
+    --border-radius: 8px;
+}
+
+/* 🌍 Allgemeine Stile */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* 🎭 Screens */
+.screen {
+    display: none;
+    background: white;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.screen.active {
+    display: block;
+}
+
+/* 🖋️ Typografie */
+h1, h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+h3 {
+    margin-top: 20px;
+    font-size: 1.1rem;
+}
+
+@keyframes fadePulse {
+    0% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.03); }
+    100% { opacity: 0.6; transform: scale(1); }
+}
+
+.waiting-animation {
+    animation: fadePulse 2.5s infinite ease-in-out;
+    color: #5a0dab; /* Modernes, tiefes Lila */
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 12px rgba(90, 13, 171, 0.3), 0 0 4px rgba(255, 255, 255, 0.2); /* Dezenter Glow */
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+
+
+
+
+/* 🎮 Eingabefelder */
+.input-field {
+    width: 90%;
+    max-width: 400px;
+    padding: 12px;
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    margin-bottom: 15px;
+    outline: none;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.input-field:focus {
+    border-color: var(--button-hover);
+}
+
+/* 🎨 Buttons */
+.btn {
+    display: inline-block;
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: 0.3s;
+    border: none;
+}
+
+.btn.danger {
+    background: #d63031;
+    color: white;
+}
+
+.btn.danger:hover {
+    background: #c0392b;
+}
+
+.option-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 2px solid var(--primary-color);
+    background: white;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 8px;
+}
+
+.option-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.option-btn.selected {
+    background: var(--primary-color);
+    color: white;
+    border: 2px solid var(--button-hover);
+}
+
+.primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.primary:hover {
+    background: var(--button-hover);
+}
+
+.secondary {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.secondary:hover {
+    background: var(--button-secondary);
+}
+
+/* 📌 Button Gruppe */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* 🔘 Quiz-Optionen */
+.options-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.options-grid button {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--primary-color);
+    background: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.options-grid button:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* 🏆 Leaderboard */
+#leaderboardList {
+    list-style: none;
+    padding: 0;
+    font-size: 1.1rem;
+}
+
+#leaderboardList li {
+    padding: 10px;
+    background: var(--bg-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 5px;
+}
+
+/* 🎮 Raumcode-Anzeige */
+.room-code {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-top: 10px;
+}
+
+/* 🏅 Spieler-Liste */
+.player-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+}
+
+.player-list li {
+    padding: 8px;
+    background: var(--bg-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.player-list .kick-btn {
+    background: #d63031;
+    color: white;
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    border: none;
+}
+
+.player-list .kick-btn:hover {
+    background: #c0392b;
+}
+
+/* 🌟 Modal-Overlay */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 💎 Modal-Inhalt */
+.modal-content {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 350px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* ❌ Schließen-Button */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* 📌 Sanfte Einblendung */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Benachrichtigungs-Modal */
+.notification-modal {
+    display: none; /* Standardmäßig versteckt */
+    position: fixed;
+    left: 50%;
+    top: 20%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    text-align: center;
+    z-index: 1000;
+}
+
+/* Inhalte des Modals */
+.notification-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* OK-Button */
+.close-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    background-color: #45a049;
+}
+
+/* Fehler- und Erfolgsfarben */
+.notification-modal.success {
+    border-left: 5px solid #4CAF50;
+}
+
+.notification-modal.error {
+    border-left: 5px solid #f44336;
+}
+
+.footer {
+    text-align: center;
+    font-size: 14px;
+    color: #777;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: transparent;
+    z-index: -1;
+}

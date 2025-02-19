@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Quiz</title>
+    <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Startbildschirm -->
+        <div id="home" class="screen active">
+            <h1>Multiplayer Quiz</h1>
+            <input type="text" id="username" placeholder="Dein Name" class="input-field">
+            <button onclick="selectDeck()" class="btn primary">Weiter</button>
+        </div>
+    
+        <!-- Deck Auswahl & Spielmodus -->
+        <div id="deckSelection" class="screen">
+            <h2>Wähle ein Deck</h2>
+            <select id="deckList" class="input-field"></select>
+            <p id="roomCodeDisplay" class="room-code" style="display: none;"></p>
+            <ul id="playerList" class="player-list"></ul>
+    
+            <div class="button-group">
+                <button onclick="createGame()" class="btn primary">Raum erstellen</button>
+                <button onclick="joinExistingGame()" class="btn secondary">Spiel beitreten</button>
+                <button onclick="startSingleplayer()" class="btn tertiary">🎮 Allein spielen</button>
+            </div>
+        </div>
+
+    
+        <!-- Multiplayer Warteraum -->
+        <div id="waitingRoom" class="screen">
+            <h2>Warte auf weitere Spieler...</h2>
+
+            <p id="roomCodeDisplay" class="room-code">Raumcode: <span id="roomCodeText"></span></p>
+
+            <h3>Spieler im Raum:</h3>
+            <ul id="waitingPlayerList" class="player-list"></ul>
+
+            <!-- "Bereit"-Button für Spieler -->
+            <div id="waitingRoom">
+                <ul id="waitingPlayerList"></ul>
+                <button id="readyBtn" class="btn secondary" onclick="toggleReady()">✅ Bereit</button>
+                <h2 id="readyMessage" class="waiting-animation">Warten auf andere Spieler...</h2>
+            </div>
+
+            <!-- Nur Host kann ein Deck auswählen -->
+            <div id="hostDeckSelection" style="display: none;">
+                <h3>Wähle ein Deck:</h3>
+                <select id="deckListInRoom" class="input-field"></select>
+                <button onclick="changeDeck()" class="btn secondary">📚 Deck wechseln</button>
+                <h2 id="readyMessage" class="waiting-animation">Warten auf andere Spieler...</h2>
+            </div>
+
+            <!-- Spiel starten nur, wenn alle bereit sind -->
+            <button id="startGameBtn" onclick="startMultiplayerGame()" class="btn primary" style="display: none;">
+                🚀 Spiel starten
+            </button>
+        </div>
+
+    
+        <!-- Quiz Bereich -->
+        <div id="quiz" class="screen">
+            <h2 id="question" class="question-text"></h2>
+            <div id="options" class="options-grid"></div>
+            <button id="nextQuestion" onclick="nextQuestion()" class="btn primary">Nächste Frage</button>
+            <button id="finishGame" onclick="finishGame()" class="btn danger" style="display: none;">🏁 Spiel abschließen</button>
+            <ul id="leaderboard" class="leaderboard-list"></ul>
+        </div>
+    
+        <!-- Leaderboard & Host-Kontrolle -->
+        <div id="leaderboardSection" class="screen">
+            <h2>🏆 Leaderboard</h2>
+            <ul id="leaderboardList"></ul>
+            <ul id="playerControlList" class="player-list"></ul>
+            <div class="button-group">
+                <button onclick="restartGame()" class="btn primary">🔄 Spiel neustarten</button>
+                <button onclick="openDeckSelection()" class="btn secondary">📚 Neues Deck wählen</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 🌟 Raumcode-Eingabe Modal -->
+    <div id="roomCodeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeRoomCodeModal()">&times;</span>
+            <h2>Raum beitreten</h2>
+            <p>Gib den Raumcode ein:</p>
+            <input type="text" id="roomCodeInput" class="input-field" placeholder="Raumcode hier eingeben">
+            <button class="btn primary" onclick="submitRoomCode()">🔗 Beitreten</button>
+        </div>
+    </div>
+
+
+    <p id="readyMessage" style="display: none;"></p>
+
+
+    <!-- Benachrichtigungs-Modal -->
+    <div id="notificationModal" class="notification-modal">
+        <div class="notification-content">
+            <span id="notificationMessage"></span>
+            <button onclick="closeNotification()" class="close-btn">OK</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 Multiplayer Quiz | Entwickelt von Jan Asche</p>
+    </footer>
+
+    
+    <script src="script.js"></script>        
+</body>
+</html>
