@@ -18,11 +18,10 @@ Das **Online-Quizsystem** ist eine interaktive Webanwendung, die es Benutzern er
 quiz-app/
 │── backend/
 │   │── config/            # Datenbank-Konfiguration
-│   │── controllers/       # API-Logik
 │   │── models/            # Datenbank-Modelle
 │   │── routes/            # API-Routen
-│   │── test/              # Testfälle für API-Endpunkte
-│   │── app.js             # Express-App
+│   │── scripts/           # Test cards mongo
+│   │── socket/            # socket game Logik
 │   │── server.js          # Startet den Server
 │── frontend/
 │   │── index.html         # Quiz-Oberfläche
@@ -30,7 +29,7 @@ quiz-app/
 │   │── script.js          # Client-seitige Logik
 │── README.md              # Dokumentation
 │── package.json           # Abhängigkeiten & Skripte
-│── jest.config.js         # Jest-Testkonfiguration
+│── .gitignore             # npm-dir und .env nicht gepushed wird
 │── .env                   # Umgebungsvariablen
 ```
 
@@ -69,68 +68,55 @@ quiz-app/
 ---
 
 ## 📡 API-Endpunkte (REST-API)
-| Methode | Route | Beschreibung |
-|---------|-------|--------------|
-| **GET** | `/api/questions` | Holt alle Fragen aus der Datenbank |
-| **POST** | `/api/questions` | Erstellt eine neue Frage |
-| **DELETE** | `/api/questions/:id` | Löscht eine Frage |
-| **GET** | `/api/highscores` | Holt die Highscore-Liste |
-| **POST** | `/api/highscores` | Speichert einen neuen Highscore |
 
-### **📌 Beispiel-Request**
-📍 **`GET /api/questions`**
-```json
-[
-    {
-        "question": "Was ist die Hauptstadt von Deutschland?",
-        "options": ["Berlin", "München", "Hamburg", "Köln"],
-        "correctOption": 0,
-        "creator": "Admin"
-    }
-]
-```
+| Methode  | Route                          | Beschreibung                                                  |
+|----------|--------------------------------|---------------------------------------------------------------|
+| **GET**  | `/api/questions`               | Holt alle Fragen aus der Datenbank                             |
+| **POST** | `/api/questions`               | Erstellt eine neue Frage                                       |
+| **DELETE**| `/api/questions/:id`          | Löscht eine Frage aus der Datenbank                            |
+| **GET**  | `/api/decks`                   | Holt alle verfügbaren Decks                                   |
+| **POST** | `/api/decks`                   | Erstellt ein neues Deck                                        |
+| **DELETE**| `/api/decks/:id`              | Löscht ein Deck                                                |
+| **GET**  | `/api/games`                   | Holt alle laufenden oder abgeschlossenen Spiele                |
+| **POST** | `/api/games`                   | Startet ein neues Spiel                                        |
+| **PUT**  | `/api/games/:id`               | Aktualisiert den Status eines Spiels (z.B. Start, Neustart)    |
+| **GET**  | `/api/players`                 | Holt die Spieler für ein bestimmtes Spiel                      |
+| **POST** | `/api/players`                 | Fügt einen neuen Spieler zu einem laufenden Spiel hinzu        |
+| **DELETE**| `/api/players/:id`            | Entfernt einen Spieler aus einem laufenden Spiel               |
+| **GET**  | `/api/highscores`              | Holt die Highscore-Liste für ein bestimmtes Deck oder Spiel   |
+| **POST** | `/api/highscores`              | Speichert einen neuen Highscore                                |
+
 
 ---
 
 ## 🎮 Funktionalitäten & Screenshots
-✔ **Quiz starten & Fragen beantworten**  
-✔ **Richtige/Falsche Antworten werden farblich markiert**  
-✔ **Punktevergabe & Bestenliste (Highscore)**  
-✔ **Fragenverwaltung über die API**  
-✔ **Tests mit Jest & Supertest**  
 
-*(Hier können Screenshots eingefügt werden.)*
+### Echtzeit-Synchronisation mit WebSockets (Socket.io)
+- **Raumerstellung & Beitritt**: 
+  - Der Host kann Räume erstellen.
+  - Spieler können mit einem einzigartigen Code einem Raum beitreten.
 
----
+- **Deck-Auswahl durch den Host**: 
+  - Der Host hat die Möglichkeit, das Deck zu wechseln.
+  - Alle Spieler müssen sich nach einem Deck-Wechsel neu bereit machen.
 
-## ✅ Tests & Testabdeckung
-Das System verwendet **Jest & Supertest** für automatisierte API-Tests.
+- **Spieler-Statusverwaltung**: 
+  - Der Status `isReady` wird auf `false` gesetzt, wenn das Spiel neu gestartet oder das Deck gewechselt wird.
 
-### **🔹 Tests ausführen**
-```sh
-npm test
-```
+- **Live-Spielerliste**: 
+  - Der Host kann in Echtzeit sehen, welche Spieler bereit sind (Ja/Nein).
 
-**Beispiel-Test für `GET /api/questions`**
-```javascript
-test("GET /api/questions sollte eine Liste zurückgeben", async () => {
-    const res = await request(server).get("/api/questions");
-    expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body)).toBeTruthy();
-});
-```
+- **Spielstart nur, wenn alle bereit sind**: 
+  - Der "Spiel starten"-Button erscheint erst, wenn alle Spieler den Status „bereit“ haben.
 
----
+- **Antwortabgabe & Punkte**: 
+  - Antworten der Spieler werden verarbeitet und die Punkte für jedes Quiz gespeichert.
 
-## 🚨 Bekannte Probleme & Lösungen
-### ❌ **Port-Fehler (`EADDRINUSE`)**
-🔹 **Lösung:** Beende den alten Server mit:
-```sh
-kill -9 $(lsof -t -i :5000)
-```
-  
-### ❌ **Datenbankverbindung schlägt fehl**
-🔹 **Lösung:** Stelle sicher, dass **MongoDB läuft** (`mongod` starten).
+- **Leaderboard für jeden Raum**: 
+  - Am Ende des Spiels wird eine Rangliste für alle Spieler im Raum angezeigt.
+
+- **Spiel-Neustart im selben Raum**: 
+  - Spieler bleiben verbunden, und das Quiz wird zurückgesetzt, ohne den Raum zu verlassen.
 
 ---
 
