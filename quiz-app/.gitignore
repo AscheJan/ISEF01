@@ -1,0 +1,5 @@
+# Ignore .env file
+.env
+
+# Weitere Dateien und Verzeichnisse, die ignoriert werden sollen
+node_modules/
