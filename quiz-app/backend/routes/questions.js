@@ -15,6 +15,31 @@ router.post("/", async (req, res) => {
     }
 });
 
+// 📌 Neue Route zum Hinzufügen einer Frage zu einem bestimmten Deck
+router.post("/:deckId", async (req, res) => {
+    try {
+        const { deckId } = req.params;
+        const { question, options, correctIndex } = req.body;
+
+        // 🔍 Stelle sicher, dass das Deck existiert
+        const deck = await Deck.findById(deckId);
+        if (!deck) {
+            return res.status(404).json({ error: "Deck nicht gefunden" });
+        }
+
+        // 🏗 Neue Frage erstellen und ins Deck hinzufügen
+        const newQuestion = { question, options, correctIndex };
+        deck.questions.push(newQuestion);
+        await deck.save();
+
+        res.status(201).json({ message: "Frage erfolgreich hinzugefügt", newQuestion });
+    } catch (error) {
+        console.error("❌ Fehler beim Hinzufügen der Frage:", error);
+        res.status(500).json({ error: "Fehler beim Speichern der Frage" });
+    }
+});
+
+
 // 📌 Fragen eines bestimmten Decks abrufen
 router.get("/:deckId", async (req, res) => {
     try {
@@ -29,64 +54,66 @@ router.get("/:deckId", async (req, res) => {
 });
 
 
-// Route zum Löschen einer Frage
-router.delete('/deleteQuestion', async (req, res) => {
-    const { roomCode, questionId, hostSocketId } = req.body;
-
+// 📌 Route zum Löschen einer Frage innerhalb eines Decks (JEDER Benutzer kann löschen)
+router.delete("/:deckId/:questionId", async (req, res) => {
     try {
-        const game = await Game.findById(roomCode);
-        if (!game) return res.status(404).json({ message: 'Raum nicht gefunden.' });
+        const { deckId, questionId } = req.params;
 
-        // Stelle sicher, dass nur der Host Fragen löschen kann
-        if (game.hostSocketId !== hostSocketId) {
-            return res.status(403).json({ message: 'Nur der Host kann Fragen löschen.' });
+        // 🔍 Stelle sicher, dass das Deck existiert
+        const deck = await Deck.findById(deckId);
+        if (!deck) {
+            return res.status(404).json({ error: "Deck nicht gefunden" });
         }
 
-        const deck = await Deck.findById(game.deckId);
+        // 🔎 Finde die Frage im Deck und entferne sie
         const questionIndex = deck.questions.findIndex(q => q._id.toString() === questionId);
-        if (questionIndex === -1) return res.status(404).json({ message: 'Frage nicht gefunden.' });
+        if (questionIndex === -1) {
+            return res.status(404).json({ error: "Frage nicht gefunden" });
+        }
 
-        // Lösche die Frage
-        deck.questions.splice(questionIndex, 1);
-        await deck.save();
+        deck.questions.splice(questionIndex, 1); // ❌ Frage aus dem Array entfernen
+        await deck.save(); // 📌 Speichern
 
-        // Sende die aktualisierte Liste der Fragen an alle Spieler
-        io.to(roomCode).emit('updateQuestions', deck.questions);
-        res.status(200).json({ message: 'Frage erfolgreich gelöscht.' });
+        res.status(200).json({ message: "Frage erfolgreich gelöscht" });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Fehler beim Löschen der Frage.' });
+        console.error("❌ Fehler beim Löschen der Frage:", error);
+        res.status(500).json({ error: "Fehler beim Löschen der Frage" });
     }
 });
 
-// Route zum Bearbeiten einer Frage
-router.put('/editQuestion', async (req, res) => {
-    const { roomCode, questionId, updatedQuestionData, hostSocketId } = req.body;
 
+// 📌 Route zum Bearbeiten einer Frage innerhalb eines Decks (JEDER Benutzer kann bearbeiten)
+router.put("/:deckId/:questionId", async (req, res) => {
     try {
-        const game = await Game.findById(roomCode);
-        if (!game) return res.status(404).json({ message: 'Raum nicht gefunden.' });
+        const { deckId, questionId } = req.params;
+        const { question, options, correctIndex } = req.body; // 👈 HostSocketId entfernt!
 
-        // Stelle sicher, dass nur der Host Fragen bearbeiten kann
-        if (game.hostSocketId !== hostSocketId) {
-            return res.status(403).json({ message: 'Nur der Host kann Fragen bearbeiten.' });
+        // 🔍 Stelle sicher, dass das Deck existiert
+        const deck = await Deck.findById(deckId);
+        if (!deck) {
+            return res.status(404).json({ error: "Deck nicht gefunden" });
         }
 
-        const deck = await Deck.findById(game.deckId);
-        const questionIndex = deck.questions.findIndex(q => q._id.toString() === questionId);
-        if (questionIndex === -1) return res.status(404).json({ message: 'Frage nicht gefunden.' });
+        // 🔎 Finde die Frage im Deck
+        const questionToUpdate = deck.questions.id(questionId);
+        if (!questionToUpdate) {
+            return res.status(404).json({ error: "Frage nicht gefunden" });
+        }
 
-        // Aktualisiere die Frage
-        deck.questions[questionIndex] = { ...deck.questions[questionIndex], ...updatedQuestionData };
+        // 🛠 Aktualisiere die Frage mit den neuen Werten
+        questionToUpdate.question = question || questionToUpdate.question;
+        questionToUpdate.options = options || questionToUpdate.options;
+        questionToUpdate.correctIndex = correctIndex !== undefined ? correctIndex : questionToUpdate.correctIndex;
+
+        // 📌 Speichere das aktualisierte Deck
         await deck.save();
 
-        // Sende die aktualisierte Liste der Fragen an alle Spieler
-        io.to(roomCode).emit('updateQuestions', deck.questions);
-        res.status(200).json({ message: 'Frage erfolgreich bearbeitet.' });
+        res.status(200).json({ message: "Frage erfolgreich aktualisiert", updatedQuestion: questionToUpdate });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Fehler beim Bearbeiten der Frage.' });
+        console.error("❌ Fehler beim Bearbeiten der Frage:", error);
+        res.status(500).json({ error: "Fehler beim Bearbeiten der Frage" });
     }
 });
+
 
 module.exports = router;

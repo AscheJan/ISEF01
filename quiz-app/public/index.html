@@ -67,6 +67,35 @@
             </button>
         </div>
 
+        <!-- 📌 Modal für die Frage-Bearbeitung (versteckt, bis geöffnet) -->
+        <div id="editQuestionModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeEditModal()">&times;</span>
+                <h2>Frage bearbeiten</h2>
+
+                <label for="editQuestionInput">Frage:</label>
+                <input type="text" id="editQuestionInput" class="input-field">
+
+                <label for="editOption1">Option 1:</label>
+                <input type="text" id="editOption1" class="input-field">
+
+                <label for="editOption2">Option 2:</label>
+                <input type="text" id="editOption2" class="input-field">
+
+                <label for="editOption3">Option 3:</label>
+                <input type="text" id="editOption3" class="input-field">
+
+                <label for="editOption4">Option 4:</label>
+                <input type="text" id="editOption4" class="input-field">
+
+                <label for="editCorrectIndex">Richtige Antwort (0-3):</label>
+                <input type="number" id="editCorrectIndex" min="0" max="3" class="input-field">
+
+                <button class="btn primary" onclick="saveEditedQuestion()">💾 Speichern</button>
+            </div>
+        </div>
+
+
         <!-- Quiz Bereich -->
         <div id="quiz" class="screen">
             <h2 id="question" class="question-text"></h2>
