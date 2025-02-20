@@ -404,7 +404,7 @@ io.on("connection", (socket) => {
 
 
     socket.on("disconnect", async () => {
-        console.log(chalk.gray(`[WS] Spieler getrennt: ${socket.id}`));
+        console.log(`[WS] Spieler getrennt: ${socket.id}`);
     
         const game = await Game.findOne({ "players.socketId": socket.id });
         if (!game) return;
@@ -412,24 +412,26 @@ io.on("connection", (socket) => {
         // Spieler aus dem Spiel entfernen
         game.players = game.players.filter(p => p.socketId !== socket.id);
     
-        // 🛠 Falls der Host das Spiel verlässt, neuen Host bestimmen
+        // ✅ Falls der Host das Spiel verlässt, neuen Host bestimmen oder Spiel beenden
         if (game.host === socket.id) {
             if (game.players.length > 0) {
-                // ✅ Setze den ersten verbleibenden Spieler als neuen Host
-                game.host = game.players[0].socketId;
-                console.log(chalk.yellow(`[INFO] Neuer Host für Raum ${game._id}: ${game.host}`));
+                const newHost = game.players[0]; // Nächster Spieler in der Liste wird neuer Host
+                game.host = newHost.socketId; // Weist den Host neu zu
+                
+                console.log(`[INFO] Neuer Host für Raum ${game._id}: ${game.host}`);
     
-                // 📌 Dem neuen Host die Kontrolle geben
-                io.to(game.host).emit("newHostAssigned", {
+                // ✅ Informiere den neuen Host
+                io.to(newHost.socketId).emit("newHostAssigned", { 
                     newHost: game.host,
                     roomCode: game._id,
                     players: game.players,
                     deckId: game.deckId
                 });
     
+                // ✅ Sende aktualisierte Spielerdaten an alle
+                io.to(game._id.toString()).emit("updatePlayers", { players: game.players, host: game.host });
             } else {
-                // ❌ Kein Spieler mehr übrig → Spiel löschen
-                console.log(chalk.red(`[ROOM] Keine Spieler mehr, lösche Spiel ${game._id}`));
+                console.log(`[ROOM] Keine Spieler mehr, lösche Spiel ${game._id}`);
                 await game.deleteOne();
                 return;
             }
@@ -438,7 +440,7 @@ io.on("connection", (socket) => {
         await game.save();
         io.to(game._id.toString()).emit("updatePlayers", { players: game.players, host: game.host });
     });
-    
+        
     
 });
 };

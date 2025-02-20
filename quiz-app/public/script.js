@@ -58,10 +58,19 @@ async function loadDecks() {
     }
 }
 
+function updateUsernameDisplay() {
+    const usernameText = document.getElementById("usernameText");
+    if (usernameText) {
+        usernameText.innerText = localStorage.getItem("username") || "Gast";
+    }
+}
+
 // Weiter zur Deck-Auswahl
 function selectDeck() {
     username = usernameInput.value.trim();
     if (!username) return showNotification("error", "Bitte gib deinen Namen ein!");
+    localStorage.setItem("username", username); // 🌟 Speichert den Namen im Browser
+    updateUsernameDisplay(); // 🌟 Setzt den Namen in der UI
     showScreen('deckSelection');
     loadDecks();
     selectedDeck = document.getElementById("deckList").value;
@@ -569,6 +578,7 @@ socket.on("newHostAssigned", ({ newHost, roomCode, players, deckId }) => {
     showScreen("waitingRoom");
     updatePlayerList(players, newHost);
 });
+
 
 
 
@@ -1408,4 +1418,5 @@ socket.on("updatePlayers", ({ players, host }) => {
 document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("roomCodeModal").style.display = "none";
     const readyMessage = document.getElementById("readyMessage");
+    document.addEventListener("DOMContentLoaded", updateUsernameDisplay);
 });

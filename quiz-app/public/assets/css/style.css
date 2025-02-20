@@ -84,20 +84,44 @@ h3 {
     max-width: 90%;
     width: 600px; /* Standard-Breite für größere Screens */
     
-    /* Zentriert auf der Seite */
+    /* Zentrierung mit Abstand nach oben/unten */
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    
-    /* Responsiveness */
-    min-height: 100px;
+    margin: 20px auto; /* Abstand oben & unten */
+
+    /* Scrollen ermöglichen, falls Inhalt zu groß */
+    max-height: 80vh; /* Begrenzte Höhe für bessere Übersicht */
+    overflow-y: auto; /* Vertikales Scrollen aktivieren */
 }
 
+/* Aktiv-Klasse für Anzeige */
 .screen.active {
     display: block;
 }
 
+/* 🌟 Mobile Optimierung */
+@media (max-width: 600px) {
+    .screen {
+        width: 95%;
+        padding: 20px;
+        max-height: 85vh; /* Etwas mehr Höhe auf mobilen Geräten */
+    }
+}
+
+
+.username-box {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    z-index: 1000;
+}
 
 
 .waiting-animation {
