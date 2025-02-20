@@ -36,7 +36,7 @@ app.use('/api/highscore', highscoreRoutes);
 // Route, um das Leaderboard zu laden
 app.get('/leaderboard/:gameId', async (req, res) => {
     const { gameId } = req.params;
-    console.log(`[DEBUG] Abrufen des Leaderboards für Spiel-ID: ${gameId}`);
+    //console.log(`[DEBUG] Abrufen des Leaderboards für Spiel-ID: ${gameId}`);
 
     try {
         // Überprüfe, ob der gameId-Parameter korrekt übergeben wurde
@@ -71,7 +71,7 @@ app.get('/leaderboard/:gameId', async (req, res) => {
         // Spieler aus Map extrahieren und nach Punktzahl sortieren
         const leaderboard = Array.from(playerMap.values()).sort((a, b) => b.score - a.score);
 
-        console.log("[DEBUG] Leaderboard:", leaderboard);
+       // console.log("[DEBUG] Leaderboard:", leaderboard);
 
         return res.json(leaderboard);
     } catch (error) {

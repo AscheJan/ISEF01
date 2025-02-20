@@ -67,6 +67,19 @@
             </button>
         </div>
 
+        <!-- 📌 Modal für neues Deck -->
+        <div id="createDeckModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeCreateDeckModal()">&times;</span>
+                <h2>Neues Deck erstellen</h2>
+                <input type="text" id="deckName" placeholder="Deck-Name eingeben" />
+
+                <button class="btn primary" onclick="saveNewDeck()">Speichern</button>
+            </div>
+        </div>
+
+
+
         <!-- 📌 Modal für das Löschen einer Frage -->
         <div id="deleteQuestionModal" class="modal" style="display: none;">
             <div class="modal-content">

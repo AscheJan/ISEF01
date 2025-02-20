@@ -240,11 +240,16 @@ io.on("connection", (socket) => {
             // Sortiere Spieler nach Punktestand in absteigender Reihenfolge
             const sortedPlayers = game.players.sort((a, b) => b.score - a.score);
     
-            // Sende das sortierte Leaderboard an alle Spieler
+            // ✅ Punkte bleiben gespeichert!
+            await game.save();
+    
+            // Sende das Leaderboard an alle Spieler
             io.to(roomCode).emit("showLeaderboard", {
                 players: sortedPlayers,
                 host: game.host
             });
+    
+            console.log(`[DEBUG] Spiel beendet! Leaderboard aktualisiert.`);
         } catch (error) {
             console.error(`[ERROR] Fehler beim Senden des Leaderboards: ${error.message}`);
         }
@@ -268,6 +273,12 @@ io.on("connection", (socket) => {
                 return socket.emit("errorMessage", "❌ Raum nicht gefunden.");
             }
     
+            const player = game.players.find(player => player.username === username);
+            if (!player) {
+                console.error(`[ERROR] Spieler ${username} nicht gefunden!`);
+                return socket.emit("errorMessage", "❌ Spieler nicht gefunden.");
+            }
+    
             const question = game.deckId.questions[game.currentQuestionIndex];
             if (!question) {
                 console.error("[ERROR] Keine gültige Frage gefunden!");
@@ -276,23 +287,29 @@ io.on("connection", (socket) => {
     
             const correct = Number(answerIndex) === Number(question.correctIndex);
     
-            game.players.forEach(player => {
-                if (player.username === username && correct) {
-                    player.score += 10; // Score erhöhen
-                }
-            });
+            if (correct) {
+                player.score += 10; // ✅ Score nur erhöhen, wenn Antwort richtig ist
+            }
     
             await game.save(); // WICHTIG: Spiel speichern!
     
             // 🛠 Cache mit aktualisierter Version speichern
             gameCache.set(roomCode, game);
     
-            io.to(roomCode).emit("answerResult", { username, correct, score: game.players.find(p => p.username === username).score });
-            console.log(`[DEBUG] Antwort von ${username} verarbeitet. Korrekt? ${correct}`);
+            // ✅ Score NUR an den Spieler senden, der geantwortet hat
+            io.to(player.socketId).emit("answerResult", { 
+                username, 
+                correct, 
+                newScore: player.score 
+            });
+    
+            console.log(`[DEBUG] Antwort von ${username} verarbeitet. Korrekt? ${correct}, Neuer Score: ${player.score}`);
         } catch (error) {
             console.error(`[ERROR] Fehler bei der Antwortverarbeitung: ${error.message}`);
         }
     });
+    
+    
     
     
     socket.on("updateScore", async ({ gameId, username, score }) => {
@@ -392,15 +409,28 @@ io.on("connection", (socket) => {
         const game = await Game.findOne({ "players.socketId": socket.id });
         if (!game) return;
     
-        // Spieler entfernen
+        // Spieler aus dem Spiel entfernen
         game.players = game.players.filter(p => p.socketId !== socket.id);
-        
-        // Falls der Host das Spiel verlässt, neuen Host setzen
+    
+        // 🛠 Falls der Host das Spiel verlässt, neuen Host bestimmen
         if (game.host === socket.id) {
             if (game.players.length > 0) {
-                game.host = game.players[0].username;  // ✅ Der nächste Spieler wird zum Host
+                // ✅ Setze den ersten verbleibenden Spieler als neuen Host
+                game.host = game.players[0].socketId;
+                console.log(chalk.yellow(`[INFO] Neuer Host für Raum ${game._id}: ${game.host}`));
+    
+                // 📌 Dem neuen Host die Kontrolle geben
+                io.to(game.host).emit("newHostAssigned", {
+                    newHost: game.host,
+                    roomCode: game._id,
+                    players: game.players,
+                    deckId: game.deckId
+                });
+    
             } else {
-                await game.deleteOne();  // ✅ Löscht das Spiel, falls keine Spieler mehr übrig sind
+                // ❌ Kein Spieler mehr übrig → Spiel löschen
+                console.log(chalk.red(`[ROOM] Keine Spieler mehr, lösche Spiel ${game._id}`));
+                await game.deleteOne();
                 return;
             }
         }

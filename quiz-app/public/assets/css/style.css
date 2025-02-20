@@ -367,6 +367,52 @@ h3 {
     }
 }
 
+/* 📌 Wrapper für das Eingabefeld – sorgt für symmetrische Abstände */
+.input-container {
+    display: flex;
+    justify-content: center; /* Zentriert das Eingabefeld horizontal */
+    width: 100%;
+}
+
+/* 📌 Grundlegendes Styling für das Eingabefeld */
+#deckName {
+    width: 100%;
+    max-width: 250px;
+    padding: 12px 16px; /* Gleicher Abstand links & rechts */
+    font-size: 1rem;
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* ✅ Hover-Effekt */
+#deckName:hover {
+    border-color: var(--button-hover);
+}
+
+/* ✅ Fokus-Effekt */
+#deckName:focus {
+    border-color: var(--button-hover);
+    box-shadow: 0 0 8px rgba(108, 92, 231, 0.3);
+}
+
+/* 🚨 Fehlerzustand, wenn kein Text eingegeben wurde */
+#deckName.error {
+    border-color: #d63031 !important; /* Kräftiges Rot für Fehler */
+    background-color: #ffecec; /* Leicht rötlicher Hintergrund */
+}
+
+/* 📱 Mobile-Optimierung */
+@media screen and (max-width: 600px) {
+    #deckName {
+        max-width: 100%;
+        font-size: 0.9rem;
+    }
+}
+
+
+
 /* 📌 Fragenliste */
 #questionsList {
     list-style: none;

@@ -141,6 +141,13 @@ async function loadQuestionsForDeck(deckId) {
         addQuestionBtn.classList.add("btn", "primary");
         addQuestionBtn.onclick = () => openAddModal(deckId);
         questionsList.appendChild(addQuestionBtn);
+
+        // 📌 Button für das Erstellen eines neuen Decks
+        const addDeckBtn = document.createElement('button');
+        addDeckBtn.innerHTML = "📂 Neues Deck erstellen";
+        addDeckBtn.classList.add("btn", "secondary");
+        addDeckBtn.onclick = openCreateDeckModal;
+        questionsList.appendChild(addDeckBtn);
         
 
         console.log("✅ Fragen erfolgreich geladen:", questions.length);
@@ -149,6 +156,50 @@ async function loadQuestionsForDeck(deckId) {
     }
 }
 
+// 📌 Modal für "Neues Deck erstellen" anzeigen
+function openCreateDeckModal() {
+    document.getElementById("createDeckModal").style.display = "flex";
+}
+
+// 📌 Modal für "Neues Deck erstellen" schließen
+function closeCreateDeckModal() {
+    document.getElementById("createDeckModal").style.display = "none";
+}
+
+// 📌 Speichern eines neuen Decks
+async function saveNewDeck() {
+    const deckName = document.getElementById("deckName").value.trim();
+    if (!deckName) {
+        showNotification("error", "Bitte gib einen Namen für das neue Deck ein!");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/decks', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: deckName })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Fehler beim Erstellen des Decks: ${errorText}`);
+        }
+
+        console.log("✅ Neues Deck erfolgreich erstellt!");
+        showNotification("success", "Neues Deck wurde erstellt!");
+
+        closeCreateDeckModal();
+
+        // 📌 Direkt alle Decks neu laden (Hauptliste und Warteraum)
+        await loadDecks();
+        await loadDecksInRoom();
+
+    } catch (error) {
+        console.error("❌ Fehler beim Erstellen des Decks:", error);
+        showNotification("error", `Fehler: ${error.message}`);
+    }
+}
 
 
 
@@ -483,24 +534,63 @@ socket.on("updateReadyStatus", ({ players }) => {
     document.getElementById("startGameBtn").style.display = (allReady && isHost) ? "block" : "none";
 });
 
+socket.on("newHostAssigned", ({ newHost, roomCode, players, deckId }) => {
+    console.log(`🔄 Neuer Host: ${newHost}`);
 
+    // ✅ Setze den neuen Host im Frontend
+    isHost = (socket.id === newHost); 
+
+    if (isHost) {
+        showNotification("info", "🎉 Du bist jetzt der Host!");
+
+        // ✅ Alle Host-Rechte aktivieren
+        document.getElementById("startGameBtn").style.display = "block"; 
+        document.getElementById("hostDeckSelection").style.display = "block";
+        document.getElementById("hostQuestionEditing").style.display = "block";
+
+        console.log("[DEBUG] Neuer Host-Modus AKTIV!");
+
+        // ✅ Falls der neue Host kein Deck ausgewählt hat, lade es
+        if (!selectedDeck) {
+            selectedDeck = deckId;
+            loadQuestionsForDeck(deckId);
+        }
+
+    } else {
+        showNotification("info", "Der Host hat sich geändert.");
+
+        // 🚫 Gäste dürfen nichts verwalten
+        document.getElementById("startGameBtn").style.display = "none";
+        document.getElementById("hostDeckSelection").style.display = "none";
+        document.getElementById("hostQuestionEditing").style.display = "none";
+    }
+
+    // ✅ Warteraum & Spieler-Liste aktualisieren
+    showScreen("waitingRoom");
+    updatePlayerList(players, newHost);
+});
 
 
 
 socket.on("roomJoined", ({ roomCode: joinedRoomCode, players, host }) => {
-    console.log("[DEBUG] Spieler-Liste beim Beitritt:", players); // Debugging-Ausgabe
+    console.log(`[DEBUG] Beigetreten in Raum ${joinedRoomCode}, Host: ${host}`);
 
     roomCode = joinedRoomCode;  
     document.getElementById("roomCodeText").innerText = roomCode;
     roomCodeDisplay.style.display = 'block';
 
-    updatePlayerList(players); // ✅ Aktualisieren der Liste
+    // ✅ Prüfe, ob der aktuelle Spieler der Host ist
+    isHost = (socket.id === host);
 
-    const isHostPlayer = (username === host);
-    document.getElementById("startGameBtn").style.display = "none";
+    // ✅ Aktualisiere UI für Host & Gäste
+    document.getElementById("startGameBtn").style.display = isHost ? "block" : "none";
+    document.getElementById("hostDeckSelection").style.display = isHost ? "block" : "none";
+    document.getElementById("hostQuestionEditing").style.display = isHost ? "block" : "none";
 
-    setupReadyButton(); 
+    updatePlayerList(players, host);
+    showScreen('waitingRoom');
 });
+
 
 socket.on("joinRoom", async ({ username, roomCode }) => {
     try {
@@ -562,6 +652,27 @@ function toggleReady() {
     showNotification(isReady ? "success" : "error", isReady ? "Du bist bereit! ✅" : "Du bist nicht mehr bereit! ❌");
 
 }
+
+socket.on("answerResult", ({ username, correct, newScore }) => {
+    console.log(`[DEBUG] ${username} hat geantwortet. Korrekt? ${correct}, Neuer Score: ${newScore}`);
+
+    // Nur den Score für den richtigen User updaten
+    if (username === localStorage.getItem("username")) {
+        score = newScore; // 🏆 Setze den neuen Score NUR für den aktuellen User
+        document.getElementById("playerScore").innerText = `Punkte: ${score}`;
+    }
+
+    // Zeige Feedback nur für den Spieler, der die Antwort gegeben hat
+    if (username === localStorage.getItem("username")) {
+        if (correct) {
+            showNotification("success", "✅ Richtig! +10 Punkte");
+        } else {
+            showNotification("error", "❌ Falsch! Keine Punkte");
+        }
+    }
+});
+
+
 
 socket.on("showLeaderboard", ({ players, host }) => {
     console.log("[DEBUG] Leaderboard erhalten:", players, "Host:", host, "User:", username);
@@ -716,18 +827,39 @@ socket.on("allPlayersReady", ({ canStart }) => {
 
 
 
-// Decks im Warteraum laden
+// 📌 Decks im Warteraum neu laden
 async function loadDecksInRoom() {
     try {
         const response = await fetch('/api/decks');
+        if (!response.ok) {
+            throw new Error("Fehler beim Laden der Decks");
+        }
+
         const decks = await response.json();
-        document.getElementById("deckListInRoom").innerHTML = decks.map(deck => 
-            `<option value="${deck._id}">${deck.name}</option>`
-        ).join('');
+        const deckDropdown = document.getElementById("deckListInRoom");
+
+        if (!deckDropdown) {
+            console.error("❌ Fehler: Deck-Liste im Raum nicht gefunden!");
+            return;
+        }
+
+        // Alte Einträge entfernen
+        deckDropdown.innerHTML = "";
+
+        // Neue Decks in das Dropdown einfügen
+        decks.forEach(deck => {
+            const option = document.createElement("option");
+            option.value = deck._id;
+            option.textContent = deck.name;
+            deckDropdown.appendChild(option);
+        });
+
+        console.log("✅ Deck-Liste im Warteraum aktualisiert!");
     } catch (error) {
-        console.error('Fehler beim Laden der Decks:', error);
+        console.error("❌ Fehler beim Laden der Decks im Raum:", error);
     }
 }
+
 
 // Spiel starten (nur Host)
 function startMultiplayerGame() {
@@ -822,8 +954,7 @@ function displayQuestion() {
 }
 
 
-
-// Antwort wählen
+// 📌 Antwort wählen und Punkte aktualisieren
 function selectAnswer(selectedIndex) {
     if (answerSelected) return;
     answerSelected = true;
@@ -835,14 +966,19 @@ function selectAnswer(selectedIndex) {
     // Die geklickte Antwort markieren
     document.querySelectorAll(".option-btn")[selectedIndex].classList.add("selected");
 
-    // Score nur erhöhen, wenn die Antwort korrekt ist
-    if (selectedIndex === questions[currentQuestionIndex].correctIndex) {
-        score++;
+    // Überprüfe, ob die Antwort korrekt ist
+    let isCorrect = selectedIndex === questions[currentQuestionIndex].correctIndex;
+    
+    if (isCorrect) {
+        score += 10; // ✅ Erhöhe den Punktestand um 10 Punkte
     }
 
     // Antwort an Server senden
-    socket.emit("submitAnswer", { username, roomCode, answerIndex: selectedIndex }); // Verwende `selectedIndex` statt `answerIndex`
+    socket.emit("submitAnswer", { username, roomCode, answerIndex: selectedIndex, isCorrect });
+
+    console.log(`🔢 Neuer Punktestand: ${score}`);
 }
+
 
 
 
@@ -852,11 +988,34 @@ function nextQuestion() {
     displayQuestion();
 }
 
-// Spiel abschließen
+// 📌 Spiel abschließen und Leaderboard anzeigen
 function finishGame() {
-    showScreen('leaderboard');
+    showScreen("leaderboard");
+
+    // Punktestand an den Server senden (falls nicht gespeichert)
+    socket.emit("saveFinalScore", { username, roomCode, score });
+
     leaderboardList.innerHTML = `<li>${username}: ${score} Punkte</li>`;
+
+    console.log("🏁 Spiel beendet! Finale Punktzahl:", score);
 }
+
+socket.on("saveFinalScore", async ({ username, roomCode, score }) => {
+    try {
+        const game = await Game.findById(roomCode);
+        if (!game) return;
+
+        const player = game.players.find(player => player.username === username);
+        if (player) {
+            player.score = score;
+            await game.save();
+        }
+    } catch (error) {
+        console.error("Fehler beim Speichern der Endpunktzahl:", error);
+    }
+});
+
+
 
 // Zurück zur Deck-Auswahl
 function goToDeckSelection() {
@@ -899,7 +1058,10 @@ socket.on("deckChanged", ({ newDeckId, players }) => {
     console.log(`[DEBUG] Neues Deck gewählt: ${newDeckId}`);
 
     selectedDeck = newDeckId;  // Speichert das neue Deck
-
+    // ✅ Falls der neue Host das Deck noch nicht geladen hat
+    if (isHost) {
+        loadQuestionsForDeck(newDeckId);
+    }
     // ✅ Bleibt im Warteraum
     showScreen('waitingRoom');
 
@@ -1007,23 +1169,12 @@ function hideNotification(notification) {
 }
 
 
-
-// Leaderboard in Echtzeit aktualisieren
-socket.on("updateLeaderboard", (players) => {
-    updateLeaderboardUI(players);
-});
-
-// Leaderboard in Echtzeit aktualisieren
-socket.on("updateLeaderboard", (players) => {
-    updateLeaderboardUI(players);
-});
-
-// Leaderboard-Daten in HTML aktualisieren
+// 📌 Leaderboard aktualisieren
 function updateLeaderboardUI(players) {
     const leaderboardList = document.getElementById("leaderboardList");
-    leaderboardList.innerHTML = ""; // Zurücksetzen
+    leaderboardList.innerHTML = ""; // Liste zurücksetzen
 
-    // Spieler nach Punktzahl sortieren (absteigend: höchster Punktestand zuerst)
+    // Sortiere Spieler nach Score (höchste zuerst)
     players.sort((a, b) => b.score - a.score);
 
     players.forEach(player => {
@@ -1031,7 +1182,15 @@ function updateLeaderboardUI(players) {
         listItem.textContent = `${player.username}: ${player.score} Punkte`;
         leaderboardList.appendChild(listItem);
     });
+
+    console.log("🏆 Leaderboard aktualisiert!");
 }
+
+// 📌 Leaderboard in Echtzeit aktualisieren, wenn der Server neue Daten sendet
+socket.on("updateLeaderboard", (players) => {
+    updateLeaderboardUI(players);
+});
+
 
 
 async function fetchLeaderboard(gameId) {
