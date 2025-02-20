@@ -58,7 +58,7 @@
             <div id="hostQuestionEditing" style="display: none;">
                 <h3>Fragen bearbeiten</h3>
                 <ul id="questionsList"></ul>
-                <button onclick="addNewQuestion()" class="btn secondary">Frage hinzufügen</button>
+
             </div>
 
             <!-- Spiel starten nur, wenn alle bereit sind -->
@@ -66,6 +66,47 @@
                 🚀 Spiel starten
             </button>
         </div>
+
+        <!-- 📌 Modal für das Löschen einer Frage -->
+        <div id="deleteQuestionModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeDeleteModal()">&times;</span>
+                <h2>Frage löschen</h2>
+                <p>Möchtest du diese Frage wirklich löschen?</p>
+                <button class="btn danger" onclick="confirmDeleteQuestion()">🗑 Löschen</button>
+                <button class="btn" onclick="closeDeleteModal()">Abbrechen</button>
+            </div>
+        </div>
+
+
+        <!-- 📌 Modal für das Hinzufügen einer neuen Frage -->
+        <div id="addQuestionModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeAddModal()">&times;</span>
+                <h2>Neue Frage hinzufügen</h2>
+
+                <label for="addQuestionInput">Frage:</label>
+                <input type="text" id="addQuestionInput" class="input-field">
+
+                <label for="addOption1">Option 1:</label>
+                <input type="text" id="addOption1" class="input-field">
+
+                <label for="addOption2">Option 2:</label>
+                <input type="text" id="addOption2" class="input-field">
+
+                <label for="addOption3">Option 3:</label>
+                <input type="text" id="addOption3" class="input-field">
+
+                <label for="addOption4">Option 4:</label>
+                <input type="text" id="addOption4" class="input-field">
+
+                <label for="addCorrectIndex">Richtige Antwort (0-3):</label>
+                <input type="number" id="addCorrectIndex" min="0" max="3" class="input-field">
+
+                <button class="btn primary" onclick="saveNewQuestion()">➕ Hinzufügen</button>
+            </div>
+        </div>
+
 
         <!-- 📌 Modal für die Frage-Bearbeitung (versteckt, bis geöffnet) -->
         <div id="editQuestionModal" class="modal" style="display: none;">

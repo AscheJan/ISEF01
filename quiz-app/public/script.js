@@ -67,7 +67,7 @@ function selectDeck() {
     selectedDeck = document.getElementById("deckList").value;
 
     if (!selectedDeck) {
-        showNotification('error', '❌ Bitte wähle ein Deck aus!');
+        showNotification('error', 'Bitte wähle ein Deck aus!');
         return;
     }
 
@@ -104,64 +104,178 @@ socket.on('roomCreated', ({ roomId, deckId, players, host }) => {
     loadQuestionsForDeck(deckId); // Lade die Fragen für das Deck
 });
 
+
 // 📌 Funktion zum Laden der Fragen für das ausgewählte Deck
 async function loadQuestionsForDeck(deckId) {
     if (!deckId) {
-        console.error("❌ Fehler: Kein gültiges Deck ausgewählt!");
+        console.error("Fehler: Kein gültiges Deck ausgewählt!");
         return;
     }
 
     try {
         const response = await fetch(`/api/questions/${deckId}`);
         if (!response.ok) {
-            throw new Error(`❌ Fehler: ${response.status} ${response.statusText}`);
+            throw new Error(`Fehler: ${response.status} ${response.statusText}`);
         }
 
         const questions = await response.json();
+
         const questionsList = document.getElementById("questionsList");
+        questionsList.innerHTML = ''; // Liste zurücksetzen
 
-        // Liste zurücksetzen
-        questionsList.innerHTML = '';
-
-        // Dynamisch Fragen-Elemente erstellen
+        // Fragen mit Bearbeiten- und Löschen-Button anzeigen
         questions.forEach((question) => {
-            const questionItem = document.createElement("li");
-
-            // Frage-Text hinzufügen
-            const questionText = document.createElement("span");
-            questionText.textContent = question.question;
-            questionItem.appendChild(questionText);
-
-            // Button-Container erstellen
-            const actionContainer = document.createElement("div");
-            actionContainer.classList.add("question-actions");
-
-            // Bearbeiten-Button
-            const editButton = document.createElement("button");
-            editButton.classList.add("btn", "small", "edit-btn");
-            editButton.innerHTML = "✏️";
-            editButton.onclick = () => openEditModal(deckId, question);
-
-            // Löschen-Button
-            const deleteButton = document.createElement("button");
-            deleteButton.classList.add("btn", "small", "danger", "delete-btn");
-            deleteButton.innerHTML = "🗑";
-            deleteButton.onclick = () => deleteQuestion(deckId, question._id);
-
-            // Buttons in Container packen
-            actionContainer.appendChild(editButton);
-            actionContainer.appendChild(deleteButton);
-            questionItem.appendChild(actionContainer);
-
-            // Element in die Liste einfügen
+            const questionItem = document.createElement('li');
+            questionItem.id = `question-${question._id}`; // 📌 Setze eine eindeutige ID
+            questionItem.innerHTML = `
+                ${question.question}
+                <button onclick="openEditModal('${deckId}', ${JSON.stringify(question).replace(/"/g, '&quot;')})" class="btn small">✏️ Bearbeiten</button>
+                <button onclick="openDeleteModal('${deckId}', '${question._id}')" class="btn small danger">🗑 Löschen</button>
+            `;
             questionsList.appendChild(questionItem);
         });
 
-        console.log(`✅ ${questions.length} Fragen erfolgreich geladen.`);
+        // 📌 Button für das Hinzufügen einer neuen Frage
+        const addQuestionBtn = document.createElement('button');
+        addQuestionBtn.innerHTML = "➕ Frage hinzufügen";
+        addQuestionBtn.classList.add("btn", "primary");
+        addQuestionBtn.onclick = () => openAddModal(deckId);
+        questionsList.appendChild(addQuestionBtn);
+        
+
+        console.log("✅ Fragen erfolgreich geladen:", questions.length);
     } catch (error) {
         console.error('❌ Fehler beim Laden der Fragen:', error);
     }
 }
+
+
+
+
+
+let deleteDeckId = "";
+let deleteQuestionId = "";
+
+// 📌 Modal für das Löschen einer Frage öffnen
+function openDeleteModal(deckId, questionId) {
+    deleteDeckId = deckId;
+    deleteQuestionId = questionId;
+
+    // 📌 Modal sichtbar machen
+    document.getElementById("deleteQuestionModal").style.display = "flex";
+}
+
+// 📌 Modal für das Löschen einer Frage schließen
+function closeDeleteModal() {
+    document.getElementById("deleteQuestionModal").style.display = "none";
+
+    // Variablen zurücksetzen
+    deleteDeckId = "";
+    deleteQuestionId = "";
+}
+// 📌 Bestätigung des Löschvorgangs
+async function confirmDeleteQuestion() {
+    if (!deleteDeckId || !deleteQuestionId) {
+        console.error("❌ Fehler: Ungültige Deck- oder Frage-ID!");
+        return;
+    }
+
+    console.log(`🗑 Lösche Frage: /api/questions/${deleteDeckId}/${deleteQuestionId}`);
+
+    try {
+        const response = await fetch(`/api/questions/${deleteDeckId}/${deleteQuestionId}`, {
+            method: "DELETE"
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Fehler beim Löschen: ${errorText}`);
+        }
+
+        console.log("✅ Frage erfolgreich gelöscht!");
+        showNotification("success", "Frage erfolgreich gelöscht!");
+
+        // 📌 Direkt aus der UI entfernen, ohne die gesamte Liste neu zu laden
+        const questionItem = document.getElementById(`question-${deleteQuestionId}`);
+        if (questionItem) {
+            questionItem.remove();
+        }
+
+        closeDeleteModal();
+    } catch (error) {
+        console.error("❌ Fehler beim Löschen der Frage:", error);
+        showNotification("error", `Fehler beim Löschen der Frage: ${error.message}`);
+    }
+}
+
+
+
+let currentDeckId = "";
+
+// 📌 Modal für das Hinzufügen einer neuen Frage öffnen
+function openAddModal(deckId) {
+    currentDeckId = deckId;
+
+    // Setze die Eingabefelder auf leer
+    document.getElementById("addQuestionInput").value = "";
+    document.getElementById("addOption1").value = "";
+    document.getElementById("addOption2").value = "";
+    document.getElementById("addOption3").value = "";
+    document.getElementById("addOption4").value = "";
+    document.getElementById("addCorrectIndex").value = "";
+
+    // 📌 Modal sichtbar machen
+    document.getElementById("addQuestionModal").style.display = "flex";
+}
+
+// 📌 Modal für das Hinzufügen einer neuen Frage schließen
+function closeAddModal() {
+    document.getElementById("addQuestionModal").style.display = "none";
+}
+
+// 📌 Speichern der neuen Frage
+async function saveNewQuestion() {
+    if (!currentDeckId) {
+        console.error("❌ Fehler: Kein Deck ausgewählt!");
+        showNotification("error", "Bitte wähle ein Deck aus!");
+        return;
+    }
+
+    const newQuestionData = {
+        question: document.getElementById("addQuestionInput").value,
+        options: [
+            document.getElementById("addOption1").value,
+            document.getElementById("addOption2").value,
+            document.getElementById("addOption3").value,
+            document.getElementById("addOption4").value,
+        ],
+        correctIndex: parseInt(document.getElementById("addCorrectIndex").value, 10),
+    };
+
+    console.log(`🔄 Sende neue Frage an: /api/questions/${currentDeckId}`, newQuestionData);
+
+    try {
+        const response = await fetch(`/api/questions/${currentDeckId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newQuestionData),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Fehler beim Hinzufügen: ${errorText}`);
+        }
+
+        console.log("✅ Neue Frage erfolgreich hinzugefügt!");
+        showNotification("success", "Frage erfolgreich hinzugefügt!");
+        closeAddModal();
+        loadQuestionsForDeck(currentDeckId); // 🔄 Aktualisiere die Fragenliste
+    } catch (error) {
+        console.error("❌ Fehler beim Hinzufügen der Frage:", error);
+        showNotification("error", `Fehler beim Hinzufügen der Frage: ${error.message}`);
+    }
+}
+
 
 
 
@@ -701,7 +815,7 @@ function displayQuestion() {
 
         finishGameBtn.style.display = 'none'; // 🚀 Spielabschließen-Button verstecken
     } else {
-        console.warn("[WARN] Alle Fragen beantwortet!"); 
+        showNotification("succes"," Alle Fragen beantwortet!"); 
         finishGameBtn.style.display = 'block'; 
         nextQuestionBtn.style.display = 'none';
     }
@@ -1027,114 +1141,6 @@ function updateReadyMessage(players) {
 }
 
 
-// 📌 Funktion zum Hinzufügen einer neuen Frage
-async function addNewQuestion() {
-    if (!selectedDeck) {
-        console.error("❌ Fehler: Kein Deck ausgewählt!");
-        showNotification("error", "Bitte wähle ein Deck aus!");
-        return;
-    }
-
-    const newQuestionText = prompt("Gib die neue Frage ein:");
-    if (!newQuestionText) return;
-
-    // 🏗 Optionen für die Frage sammeln (bis zu 4 Antwortmöglichkeiten)
-    const options = [];
-    for (let i = 0; i < 4; i++) {
-        const option = prompt(`Option ${i + 1}:`);
-        if (!option) return; // Falls eine Option leer bleibt, Abbruch
-        options.push(option);
-    }
-
-    const correctIndex = parseInt(prompt("Welche Option ist korrekt? (0-3)"), 10);
-
-    if (isNaN(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
-        showNotification("error", "❌ Ungültige Antwortnummer!");
-        return;
-    }
-
-    const newQuestionData = {
-        question: newQuestionText,
-        options,
-        correctIndex
-    };
-
-    console.log(`🔄 Sende neue Frage an: ${API_URL}/api/questions/${selectedDeck}`, newQuestionData);
-
-    try {
-        const response = await fetch(`${API_URL}/api/questions/${selectedDeck}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newQuestionData),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Fehler beim Speichern: ${errorText}`);
-        }
-
-        console.log("✅ Frage erfolgreich hinzugefügt!");
-        showNotification("success", "Frage erfolgreich hinzugefügt!");
-        loadQuestionsForDeck(selectedDeck); // 🔄 Fragenliste aktualisieren
-    } catch (error) {
-        console.error("❌ Fehler beim Hinzufügen der Frage:", error);
-        showNotification("error", `Fehler beim Hinzufügen der Frage: ${error.message}`);
-    }
-}
-
-
-// 📌 Funktion zum Bearbeiten einer Frage
-async function editQuestion(questionId) {
-    if (!selectedDeck) {
-        console.error("❌ Fehler: Kein Deck ausgewählt!");
-        showNotification("error", "Bitte wähle ein Deck aus!");
-        return;
-    }
-
-    // 🏗 Nutzer gibt die neue Frage ein
-    const editedQuestionText = prompt("Bearbeite die Frage:");
-    if (!editedQuestionText) return;
-
-    // 🏗 Nutzer bearbeitet die Antwortoptionen
-    const editedOptions = [];
-    for (let i = 0; i < 4; i++) {
-        editedOptions.push(prompt(`Option ${i + 1}:`));
-    }
-
-    const editedCorrectIndex = parseInt(prompt("Welche Option ist korrekt? (0-3)"), 10);
-    if (isNaN(editedCorrectIndex) || editedCorrectIndex < 0 || editedCorrectIndex >= editedOptions.length) {
-        showNotification("error", "❌ Ungültige Antwortnummer!");
-        return;
-    }
-
-    const updatedQuestionData = {
-        question: editedQuestionText,
-        options: editedOptions,
-        correctIndex: editedCorrectIndex
-    };
-
-    console.log(`🔄 Sende Update an: ${API_URL}/api/questions/${selectedDeck}/${questionId}`, updatedQuestionData);
-
-    try {
-        const response = await fetch(`${API_URL}/api/questions/${selectedDeck}/${questionId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedQuestionData),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Fehler beim Bearbeiten: ${errorText}`);
-        }
-
-        console.log("✅ Frage erfolgreich bearbeitet!");
-        showNotification("success", "Frage erfolgreich bearbeitet!");
-        loadQuestionsForDeck(selectedDeck); // 🔄 Aktualisiere die Fragenliste
-    } catch (error) {
-        console.error("❌ Fehler beim Bearbeiten der Frage:", error);
-        showNotification("error", `Fehler beim Bearbeiten der Frage: ${error.message}`);
-    }
-}
 
 
 
@@ -1201,57 +1207,6 @@ async function loadQuestions() {
     }
 }
 
-// 📌 Funktion zum Bearbeiten einer Frage
-async function editQuestion(deckId, questionId) {
-    if (!deckId || !questionId) {
-        console.error("❌ Fehler: Ungültige Deck- oder Frage-ID!");
-        return;
-    }
-
-    // 🏗 Nutzer gibt die neue Frage ein
-    const editedQuestionText = prompt("Bearbeite die Frage:");
-    if (!editedQuestionText) return;
-
-    // 🏗 Nutzer bearbeitet die Antwortoptionen
-    const editedOptions = [];
-    for (let i = 0; i < 4; i++) {
-        editedOptions.push(prompt(`Option ${i + 1}:`));
-    }
-
-    const editedCorrectIndex = parseInt(prompt("Welche Option ist korrekt? (0-3)"), 10);
-    if (isNaN(editedCorrectIndex) || editedCorrectIndex < 0 || editedCorrectIndex >= editedOptions.length) {
-        showNotification("error", "❌ Ungültige Antwortnummer!");
-        return;
-    }
-
-    const updatedQuestionData = {
-        question: editedQuestionText,
-        options: editedOptions,
-        correctIndex: editedCorrectIndex
-    };
-
-    console.log(`🔄 Sende Update an: /api/questions/${deckId}/${questionId}`, updatedQuestionData);
-
-    try {
-        const response = await fetch(`/api/questions/${deckId}/${questionId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedQuestionData),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Fehler beim Bearbeiten: ${errorText}`);
-        }
-
-        console.log("✅ Frage erfolgreich bearbeitet!");
-        showNotification("success", "Frage erfolgreich bearbeitet!");
-        loadQuestionsForDeck(deckId); // 🔄 Aktualisiere die Fragenliste
-    } catch (error) {
-        console.error("❌ Fehler beim Bearbeiten der Frage:", error);
-        showNotification("error", `Fehler beim Bearbeiten der Frage: ${error.message}`);
-    }
-}
 
 // 📌 Funktion zum Löschen einer Frage
 async function deleteQuestion(deckId, questionId) {
@@ -1284,36 +1239,6 @@ async function deleteQuestion(deckId, questionId) {
     }
 }
 
-
-
-// Frage hinzufügen
-function addQuestion() {
-    const questionText = prompt('Gib die Frage ein:');
-    if (questionText) {
-        const options = [];
-        for (let i = 0; i < 4; i++) {
-            const option = prompt(`Option ${i + 1}:`);
-            options.push(option);
-        }
-        const correctIndex = prompt('Welche Option ist korrekt? (0-3)');
-
-        fetch('/api/addQuestion', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                roomCode,
-                questionData: { text: questionText, options, correctIndex },
-                hostSocketId
-            })
-        }).then(response => {
-            if (response.ok) {
-                loadQuestions();  // Lade die Fragen neu
-            } else {
-                alert('Fehler beim Hinzufügen der Frage');
-            }
-        });
-    }
-}
 
 
 socket.off("updatePlayers"); // 🛠 Entfernt doppelte Listener
