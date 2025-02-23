@@ -1,634 +1,112 @@
-/* 🎨 Farben */
-:root {
-    --primary-color: #6c5ce7;
-    --secondary-color: #00cec9;
-    --bg-color: #f5f6fa;
-    --text-color: #2d3436;
-    --button-hover: #5a49d6;
-    --button-secondary: #74b9ff;
-    --border-radius: 8px;
-}
-
-/* Animierte Punkte */
-@keyframes dots {
-    0% { content: "."; }
-    33% { content: ".."; }
-    66% { content: "..."; }
-    100% { content: "."; }
-}
-
-/* Sanftes Ein- & Ausblenden */
-@keyframes fadeInOut {
-    0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
-}
-
-/* 🌀 Animationen */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-/* 🌍 Allgemeine Stile */
+/* Allgemeine Stile */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    font-family: 'Poppins', sans-serif;
+    background: #f8f9fa;
+    color: #333;
+    text-align: center;
     margin: 0;
+    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
 
-/* 🖋️ Typografie */
-h1, h2 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-h3 {
-    margin-top: 20px;
-    font-size: 1.1rem;
-}
-
-.favicon-img {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 20px;
-    border-radius: 50%; /* Rundes Bild */
-    object-fit: cover;
-}
-
-
-.container {
+/* Container-Styling */
+div {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 6px 6px 15px rgba(0, 0, 0, 0.1), 
+                -6px -6px 15px rgba(255, 255, 255, 0.7);
     width: 90%;
     max-width: 400px;
-    text-align: center;
+    transition: 0.3s ease-in-out;
 }
 
-.screen {
-    display: none;
-    background: white;
-    padding: 30px;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-
-    /* Maximale Breite und Zentrierung */
-    max-width: 90%;
-    width: 600px; /* Standard-Breite für größere Screens */
-    
-    /* Zentrierung mit Abstand nach oben/unten */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: 20px auto; /* Abstand oben & unten */
-
-    /* Scrollen ermöglichen, falls Inhalt zu groß */
-    max-height: 80vh; /* Begrenzte Höhe für bessere Übersicht */
-    overflow-y: auto; /* Vertikales Scrollen aktivieren */
-}
-
-/* Aktiv-Klasse für Anzeige */
-.screen.active {
-    display: block;
-}
-
-/* 🌟 Mobile Optimierung */
-@media (max-width: 600px) {
-    .screen {
-        width: 95%;
-        padding: 20px;
-        max-height: 85vh; /* Etwas mehr Höhe auf mobilen Geräten */
-    }
-}
-
-
-.username-box {
-    position: fixed;
-    top: 10px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 8px 15px;
+/* Eingabefelder */
+input {
+    width: 90%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
     border-radius: 10px;
     font-size: 16px;
-    z-index: 1000;
-}
-
-
-.waiting-animation {
-    font-size: 1.5rem;
-    font-weight: bold;
+    background: #ffffff;
+    color: #333;
     text-align: center;
-    color: #ffcc00; /* Gold für bessere Sichtbarkeit */
-    animation: fadeInOut 1.5s infinite ease-in-out;
-}
-
-
-
-#dots::after {
-    content: "...";
-    display: inline-block;
-    animation: dots 1.5s infinite;
-}
-
-
-
-.hidden {
-    display: none;
-}
-
-
-
-
-
-
-/* 🎮 Eingabefelder */
-.input-field {
-    width: 90%;
-    max-width: 400px;
-    padding: 12px;
-    border: 2px solid var(--primary-color);
-    border-radius: var(--border-radius);
-    font-size: 1rem;
-    margin-bottom: 15px;
     outline: none;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
+    box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.1), 
+                inset -4px -4px 10px rgba(255, 255, 255, 0.7);
 }
 
-.input-field:focus {
-    border-color: var(--button-hover);
+input::placeholder {
+    color: #aaa;
 }
 
-/* 🎨 Buttons */
-.btn {
-    display: inline-block;
+/* Buttons */
+button {
     width: 100%;
     padding: 12px;
-    font-size: 1rem;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: 0.3s;
+    margin: 10px 0;
     border: none;
-}
-
-.btn.danger {
-    background: #d63031;
-    color: white;
-}
-
-.btn.danger:hover {
-    background: #c0392b;
-}
-
-.option-btn {
-    width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-    border: 2px solid var(--primary-color);
-    background: white;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
-    border-radius: 8px;
-}
-
-.option-btn:hover {
-    background: var(--primary-color);
+    background: #4CAF50;
     color: white;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1), 
+                -4px -4px 10px rgba(255, 255, 255, 0.7);
+    transition: 0.3s ease-in-out;
 }
 
-.option-btn.selected {
-    background: var(--primary-color);
-    color: white;
-    border: 2px solid var(--button-hover);
+button:hover {
+    background: #45a049;
+    transform: scale(1.05);
 }
 
-.primary {
-    background: var(--primary-color);
-    color: white;
+/* Fehler- und Statusmeldungen */
+p#error, p#registerError {
+    color: #e74c3c;
+    font-weight: bold;
 }
 
-.primary:hover {
-    background: var(--button-hover);
-}
-
-.secondary {
-    background: var(--secondary-color);
-    color: white;
-}
-
-.secondary:hover {
-    background: var(--button-secondary);
-}
-
-/* 📌 Button Gruppe */
-.button-group {
+/* Quiz-Bereich */
+#quiz {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-/* 🔘 Quiz-Optionen */
-.options-grid {
-    display: grid;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.options-grid button {
-    width: 100%;
-    padding: 10px;
-    font-size: 1rem;
-    border-radius: var(--border-radius);
-    border: 2px solid var(--primary-color);
-    background: white;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.options-grid button:hover {
-    background: var(--primary-color);
-    color: white;
-}
-
-/* 🏆 Leaderboard */
-#leaderboardList {
-    list-style: none;
-    padding: 0;
-    font-size: 1.1rem;
-}
-
-#leaderboardList li {
-    padding: 10px;
-    background: var(--bg-color);
-    border-radius: var(--border-radius);
-    margin-bottom: 5px;
-}
-
-/* 🎮 Raumcode-Anzeige */
-.room-code {
-    font-weight: bold;
-    color: var(--primary-color);
-    margin-top: 10px;
-}
-
-/* 🏅 Spieler-Liste */
-.player-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 15px;
-}
-
-.player-list li {
-    padding: 8px;
-    background: var(--bg-color);
-    border-radius: var(--border-radius);
-    margin-bottom: 5px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.player-list .kick-btn {
-    background: #d63031;
-    color: white;
-    padding: 5px 10px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    border: none;
-}
-
-.player-list .kick-btn:hover {
-    background: #c0392b;
-}
-/* 🌟 Modal-Overlay */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(6px);
-    display: flex;
     align-items: center;
-    justify-content: center;
-    transition: opacity 0.3s ease-in-out;
 }
 
-/* 💎 Modal-Inhalt */
-.modal-content {
-    background: #fff;
-    padding: 1.5rem;
-    border-radius: 12px;
-    width: min(90%, 400px);
-    max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    position: relative;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-/* ❌ Schließen-Button */
-.close-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    font-size: 22px;
-    cursor: pointer;
-    border: none;
-    background: none;
-    color: #555;
-    transition: color 0.2s;
-}
-
-.close-btn:hover {
-    color: #222;
-}
-
-
-#hostQuestionEditing {
+#options button {
     width: 90%;
-    max-width: 600px;
-    margin: 20px auto;
-    background: var(--bg-color);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
+    background: #3498db;
 }
 
-
-/* ➕ Frage hinzufügen-Button */
-.btn.secondary {
-    background: var(--secondary-color);
-    color: white;
-    padding: 12px;
-    font-size: 1rem;
-    margin-top: 15px;
-    width: 100%;
-    border-radius: var(--border-radius);
+#options button:hover {
+    background: #2980b9;
 }
 
-.btn.secondary:hover {
-    background: var(--button-secondary);
-}
-
-/* 📱 Mobile Anpassungen */
-@media screen and (max-width: 600px) {
-    #hostQuestionEditing {
-        max-width: 100%;
-        padding: 15px;
-    }
-}
-
-/* 📌 Wrapper für das Eingabefeld – sorgt für symmetrische Abstände */
-.input-container {
+/* Leaderboard */
+#leaderboard {
     display: flex;
-    justify-content: center; /* Zentriert das Eingabefeld horizontal */
-    width: 100%;
-}
-
-/* 📌 Grundlegendes Styling für das Eingabefeld */
-#deckName {
-    width: 100%;
-    max-width: 250px;
-    padding: 12px 16px; /* Gleicher Abstand links & rechts */
-    font-size: 1rem;
-    border: 2px solid var(--primary-color);
-    border-radius: var(--border-radius);
-    outline: none;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-/* ✅ Hover-Effekt */
-#deckName:hover {
-    border-color: var(--button-hover);
-}
-
-/* ✅ Fokus-Effekt */
-#deckName:focus {
-    border-color: var(--button-hover);
-    box-shadow: 0 0 8px rgba(108, 92, 231, 0.3);
-}
-
-/* 🚨 Fehlerzustand, wenn kein Text eingegeben wurde */
-#deckName.error {
-    border-color: #d63031 !important; /* Kräftiges Rot für Fehler */
-    background-color: #ffecec; /* Leicht rötlicher Hintergrund */
-}
-
-/* 📱 Mobile-Optimierung */
-@media screen and (max-width: 600px) {
-    #deckName {
-        max-width: 100%;
-        font-size: 0.9rem;
-    }
-}
-
-
-
-/* 📌 Fragenliste */
-#questionsList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background: var(--bg-color);
-    border-radius: var(--border-radius);
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-#questionsList li {
-    display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #e1e1e1;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
 }
 
-#questionsList li:last-child {
-    border-bottom: none;
+#leaderboard h1 {
+    font-size: 24px;
 }
 
-#questionsList li:hover {
-    background-color: #f8f9fa;
-}
-
-/* ✅ Feste Breite für Frage-Text */
-#questionsList li span {
-    flex: 1;
-    min-width: 250px; /* Verhindert zu schmale Darstellung */
-    max-width: 300px; /* Stellt sicher, dass die Frage nicht zu breit wird */
-    overflow-wrap: break-word; /* Lässt den Text umbrechen */
-    word-wrap: break-word;
-    text-align: left; /* Links ausrichten für besseren Lesefluss */
-}
-
-/* 🎯 Buttons als kompakte Box */
-.question-actions {
-    display: flex;
-    gap: 8px;
-}
-
-/* 🖊 Bearbeiten-Button */
-.edit-btn {
-    background: var(--primary-color);
-    color: white;
-    padding: 8px 10px;
-    border-radius: var(--border-radius);
-    transition: background 0.3s;
-    width: 100px; /* Feste Breite */
-    text-align: center;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-
-.edit-btn:hover {
-    background: var(--button-hover);
-}
-
-/* 🗑 Löschen-Button */
-.delete-btn {
-    background: #d63031;
-    color: white;
-    padding: 8px 10px;
-    border-radius: var(--border-radius);
-    transition: background 0.3s;
-    width: 100px; /* Feste Breite */
-    text-align: center;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-
-.delete-btn:hover {
-    background: #c0392b;
-}
-
-/* 📱 Mobile Anpassungen */
-@media screen and (max-width: 600px) {
-    #questionsList li {
-        flex-direction: column;
-        align-items: flex-start;
+/* Responsive Design */
+@media (max-width: 600px) {
+    div {
+        width: 95%;
+        padding: 1.5rem;
     }
 
-    #questionsList li span {
-        max-width: 100%;
-        text-align: left;
+    input, button {
+        font-size: 14px;
     }
-
-    .question-actions {
-        width: 100%;
-        justify-content: space-between;
-        margin-top: 10px;
-    }
-
-    .edit-btn,
-    .delete-btn {
-        width: 48%;
-    }
-}
-
-
-
-/* 🌟 Benachrichtigungs-Modal (Rechts oben, angepasst an dein Farbschema) */
-.notification-modal {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--bg-color);
-    border-radius: var(--border-radius);
-    padding: 16px 20px;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-    width: 320px;
-    text-align: left;
-    z-index: 1050;
-    
-    /* Standardmäßig versteckt */
-    opacity: 0;
-    transform: translateX(20px);
-    visibility: hidden;
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0.3s;
-}
-
-/* 🎨 Fehler- und Erfolgsfarben */
-.notification-modal.success {
-    border-left: 5px solid var(--primary-color);
-}
-
-.notification-modal.error {
-    border-left: 5px solid var(--button-hover);
-}
-
-/* 📝 Inhalte des Modals */
-.notification-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--text-color);
-    font-size: 1rem;
-}
-
-/* ✅ Icon für visuelle Unterstützung */
-.notification-icon {
-    font-size: 22px;
-    color: var(--primary-color);
-}
-
-/* ❌ Schließen-Button */
-.notification-close {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    font-size: 20px;
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: var(--text-color);
-    transition: color 0.2s ease;
-}
-
-.notification-close:hover {
-    color: var(--primary-color);
-}
-
-/* 🌀 Animation für sichtbare Benachrichtigung */
-.show-notification {
-    opacity: 1;
-    transform: translateX(0);
-    visibility: visible;
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-}
-
-
-.footer {
-    text-align: center;
-    font-size: 14px;
-    color: #777;
-    padding: 10px;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: transparent;
-    z-index: -1;
 }

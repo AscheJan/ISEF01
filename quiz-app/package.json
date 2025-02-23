@@ -1,21 +1,25 @@
 {
-  "name": "onlinequizz",
+  "name": "quiz-app",
   "version": "1.0.0",
-  "description": "## 📌 Projektbeschreibung Das **Online-Quizsystem** ist eine interaktive Webanwendung, die es Benutzern ermöglicht, Quizfragen zu beantworten und ihre Ergebnisse in einer Highscore-Liste zu vergleichen. Es wurde mit **Node.js, Express, MongoDB und Jest** entwickelt.",
   "main": "index.js",
   "scripts": {
-    "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "dev": "NODE_ENV=development nodemon backend/server.js",
+    "production": "NODE_ENV=production node backend/server.js"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
+  "description": "",
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "chalk": "^4.1.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "http": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.1",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

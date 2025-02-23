@@ -3,201 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer Quiz</title>
-    <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+    <title>Quiz-App - Anmeldung</title>
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
-
+    <script defer src="/socket.io/socket.io.js"></script>
+    <script defer src="assets/js/main.js" defer></script>
 </head>
 <body>
-    <div class="container">
-        <div id="usernameDisplay" class="username-box">
-            👤 <span id="usernameText">Gast</span>
-        </div>
+    <div id="home">
+        <h1>Willkommen zur Quiz-App</h1>
+        <p>Bitte melde dich an oder registriere dich, um am Quiz teilzunehmen.</p>
+        <input type="text" id="username" placeholder="Benutzername">
+        <input type="password" id="password" placeholder="Passwort">
+        <button onclick="login()">Anmelden</button>
+        <button onclick="showRegister()">Registrieren</button>
+        <p id="error" style="color: red;"></p>
+    </div>
+
+    <div id="register" style="display:none;">
+        <h1>Registrierung</h1>
+        <input type="text" id="newUsername" placeholder="Benutzername">
+        <input type="password" id="newPassword" placeholder="Passwort">
+        <button onclick="register()">Registrieren</button>
+        <button onclick="showLogin()">Zurück zur Anmeldung</button>
+        <p id="registerError" style="color: red;"></p>
+    </div>
+
+    <div id="dashboard" style="display:none;">
+        <h1>Dashboard</h1>
+        <p>Willkommen, <span id="displayUsername"></span>!</p>
+        <button onclick="createGame()">Spiel starten</button>
+        <input type="text" id="joinRoomId" placeholder="Raumcode eingeben">
+        <button onclick="joinRoom()">Raum beitreten</button>
+
         
-        <!-- Startbildschirm -->
-        <div id="home" class="screen active">
-            <img src="assets/img/logo.png" alt="Quiz Icon" class="favicon-img">
-            <h1>Multiplayer Quiz</h1>
-            <input type="text" id="username" placeholder="Dein Name" class="input-field">
-            <button onclick="selectDeck()" class="btn primary">Weiter</button>
-        </div>
+        <button onclick="logout()">Abmelden</button>
+    </div>
     
-        <!-- Deck Auswahl & Spielmodus -->
-        <div id="deckSelection" class="screen">
-            <h2>Wähle ein Deck</h2>
-            <select id="deckList" class="input-field"></select>
-            <p id="roomCodeDisplay" class="room-code" style="display: none;"></p>
-            <ul id="playerList" class="player-list"></ul>
+    <div id="lobby" style="display:none;">
+        <h1>Warteraum</h1>
+        <p>Raumcode: <span id="roomCode"></span></p>
     
-            <div class="button-group">
-                <button onclick="createGame()" class="btn primary">🎮 Spielen</button>
-                <button onclick="joinExistingGame()" class="btn secondary">Spiel beitreten</button>
-            </div>
-        </div>
-
-        <!-- Multiplayer Warteraum -->
-        <div id="waitingRoom" class="screen">
-            <h2>Warte auf weitere Spieler...</h2>
-
-            <p id="roomCodeDisplay" class="room-code">Raumcode: <span id="roomCodeText"></span></p>
-
-            <h3>Spieler im Raum:</h3>
-            <ul id="waitingPlayerList" class="player-list"></ul>
-
-            <!-- "Bereit"-Button für Spieler -->
-            <div id="waitingRoom">
-                <ul id="waitingPlayerList"></ul>
-                <h2 id="readyMessage" class="waiting-animation hidden">Warten auf andere Spieler<span id="dots">...</span></h2>
-            </div>
-
-            <!-- Nur Host kann ein Deck auswählen -->
-            <div id="hostDeckSelection" style="display: none;">
-                <h3>Wähle ein Deck:</h3>
-                <select id="deckListInRoom" class="input-field"></select>
-                <button onclick="changeDeck()" class="btn secondary">📚 Deck wechseln</button>
-            </div>
-
-            <!-- Section for managing questions -->
-            <div id="hostQuestionEditing" style="display: none;">
-                <h3>Fragen bearbeiten</h3>
-                <ul id="questionsList"></ul>
-
-            </div>
-
-            <!-- Spiel starten nur, wenn alle bereit sind -->
-            <button id="startGameBtn" onclick="startMultiplayerGame()" class="btn primary" style="display: none;">
-                🚀 Spiel starten
-            </button>
-        </div>
-
-        <!-- 📌 Modal für neues Deck -->
-        <div id="createDeckModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close" onclick="closeCreateDeckModal()">&times;</span>
-                <h2>Neues Deck erstellen</h2>
-                <input type="text" id="deckName" placeholder="Deck-Name eingeben" />
-
-                <button class="btn primary" onclick="saveNewDeck()">Speichern</button>
-            </div>
-        </div>
-
-
-
-        <!-- 📌 Modal für das Löschen einer Frage -->
-        <div id="deleteQuestionModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeDeleteModal()">&times;</span>
-                <h2>Frage löschen</h2>
-                <p>Möchtest du diese Frage wirklich löschen?</p>
-                <button class="btn danger" onclick="confirmDeleteQuestion()">🗑 Löschen</button>
-                <button class="btn" onclick="closeDeleteModal()">Abbrechen</button>
-            </div>
-        </div>
-
-
-        <!-- 📌 Modal für das Hinzufügen einer neuen Frage -->
-        <div id="addQuestionModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeAddModal()">&times;</span>
-                <h2>Neue Frage hinzufügen</h2>
-
-                <label for="addQuestionInput">Frage:</label>
-                <input type="text" id="addQuestionInput" class="input-field">
-
-                <label for="addOption1">Option 1:</label>
-                <input type="text" id="addOption1" class="input-field">
-
-                <label for="addOption2">Option 2:</label>
-                <input type="text" id="addOption2" class="input-field">
-
-                <label for="addOption3">Option 3:</label>
-                <input type="text" id="addOption3" class="input-field">
-
-                <label for="addOption4">Option 4:</label>
-                <input type="text" id="addOption4" class="input-field">
-
-                <label for="addCorrectIndex">Richtige Antwort (0-3):</label>
-                <input type="number" id="addCorrectIndex" min="0" max="3" class="input-field">
-
-                <button class="btn primary" onclick="saveNewQuestion()">➕ Hinzufügen</button>
-            </div>
-        </div>
-
-
-        <!-- 📌 Modal für die Frage-Bearbeitung (versteckt, bis geöffnet) -->
-        <div id="editQuestionModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeEditModal()">&times;</span>
-                <h2>Frage bearbeiten</h2>
-
-                <label for="editQuestionInput">Frage:</label>
-                <input type="text" id="editQuestionInput" class="input-field">
-
-                <label for="editOption1">Option 1:</label>
-                <input type="text" id="editOption1" class="input-field">
-
-                <label for="editOption2">Option 2:</label>
-                <input type="text" id="editOption2" class="input-field">
-
-                <label for="editOption3">Option 3:</label>
-                <input type="text" id="editOption3" class="input-field">
-
-                <label for="editOption4">Option 4:</label>
-                <input type="text" id="editOption4" class="input-field">
-
-                <label for="editCorrectIndex">Richtige Antwort (0-3):</label>
-                <input type="number" id="editCorrectIndex" min="0" max="3" class="input-field">
-
-                <button class="btn primary" onclick="saveEditedQuestion()">💾 Speichern</button>
-            </div>
-        </div>
-
-
-        <!-- Quiz Bereich -->
-        <div id="quiz" class="screen">
-            <h2 id="question" class="question-text"></h2>
-            <div id="options" class="options-grid"></div>
-            <button id="nextQuestion" onclick="nextQuestion()" class="btn primary">Nächste Frage</button>
-            <button id="finishGame" onclick="finishGame()" class="btn danger" style="display: none;">🏁 Spiel abschließen</button>
-            <ul id="leaderboard" class="leaderboard-list"></ul>
-        </div>
+        <h3>Deck auswählen:</h3>
+        <select id="selectDeck">
+            <option value="">-- Wähle ein Deck --</option>
+        </select>
     
-        <!-- Leaderboard & Host-Kontrolle -->
-        <div id="leaderboardSection" class="screen">
-            <h2>🏆 Leaderboard</h2>
-            <ul id="leaderboardList"></ul>
-            <ul id="playerControlList" class="player-list"></ul>
-            <div class="button-group">
-                <button id="restartGameBtn" class="btn secondary">🔄 Spiel neustarten</button>
-            </div>
-        </div>
+        <h3>Spieler:</h3>
+        <ul id="playerList"></ul>
+    
+        <button id="readyButton" onclick="toggleReady()">Bereit</button>
+        <p id="status"></p>
+    </div>
+    
+
+    <div id="adminPanel" style="display:none;">
+        <h1>Administratorbereich</h1>
+        <button onclick="openAdminModal()">Decks verwalten & Fragen erstellen</button>
+        <button onclick="openReportedQuestionsModal()">Gemeldete Fragen</button>
+    </div>
+    
+    <!-- Modal für gemeldete Fragen -->
+    <div id="reportedQuestionsModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:8px; box-shadow:0px 4px 6px rgba(0, 0, 0, 0.1); width: 400px; max-height: 80vh; overflow-y: auto;">
+        <h2>Gemeldete Fragen</h2>
+        <ul id="reportedQuestionsList"></ul>
+        <button onclick="closeReportedQuestionsModal()">Schließen</button>
+    </div>
+    
+    
+    <!-- Modal für Deck-Verwaltung und Fragen-Erstellung -->
+    <div id="adminModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:8px; box-shadow:0px 4px 6px rgba(0, 0, 0, 0.1); width: 400px; max-height: 80vh; overflow-y: auto;">
+        <button onclick="closeAdminModal()">Schließen</button>
+        <h2>Decks verwalten & Fragen hinzufügen</h2>
+        
+        <!-- Neues Deck erstellen -->
+        <input type="text" id="deckName" placeholder="Deck-Name eingeben">
+        <button onclick="createDeck()">Deck erstellen</button>
+        
+        <h3>Bestehende Decks</h3>
+        <ul id="deckList"></ul>
+        
+        <h3>Fragen zu Deck hinzufügen</h3>
+        <label for="selectDeck">Deck auswählen:</label>
+        <select id="selectDeck">
+            <option value="">-- Deck auswählen --</option>
+        </select>
+
+        <h3>Neue Frage hinzufügen</h3>
+        <input type="text" id="questionText" placeholder="Fragetext eingeben">
+        <input type="text" id="option1" placeholder="Antwort 1">
+        <input type="text" id="option2" placeholder="Antwort 2">
+        <input type="text" id="option3" placeholder="Antwort 3">
+        <input type="text" id="option4" placeholder="Antwort 4">
+        <input type="number" id="correctOption" placeholder="Index der richtigen Antwort (0-3)">
+        <button onclick="addQuestion()">Frage hinzufügen</button>
+
+        <h3>Fragen verwalten</h3>
+        <ul id="questionList"></ul>
     </div>
 
-    <!-- 🌟 Raumcode-Eingabe Modal -->
-    <div id="roomCodeModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeRoomCodeModal()">&times;</span>
-            <h2>Raum beitreten</h2>
-            <p>Gib den Raumcode ein:</p>
-            <input type="text" id="roomCodeInput" class="input-field" placeholder="Raumcode hier eingeben">
-            <button class="btn primary" onclick="submitRoomCode()">🔗 Beitreten</button>
+    <!-- Modal für Frage bearbeiten -->
+    <div id="editQuestionModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px; width: 400px; max-width: 90%; overflow: hidden;">
+        <h2>Frage bearbeiten</h2>
+        
+        <input type="hidden" id="editQuestionId">
+    
+        <label for="editQuestionText">Fragetext:</label>
+        <input type="text" id="editQuestionText" placeholder="Neue Frage eingeben" required>
+    
+        <label for="editOption1">Antwort 1:</label>
+        <input type="text" id="editOption1" placeholder="Antwort 1" required>
+    
+        <label for="editOption2">Antwort 2:</label>
+        <input type="text" id="editOption2" placeholder="Antwort 2" required>
+    
+        <label for="editOption3">Antwort 3:</label>
+        <input type="text" id="editOption3" placeholder="Antwort 3" required>
+    
+        <label for="editOption4">Antwort 4:</label>
+        <input type="text" id="editOption4" placeholder="Antwort 4" required>
+    
+        <label for="editCorrectOption">Korrekte Antwort (Index 0-3):</label>
+        <input type="number" id="editCorrectOption" min="0" max="3" required>
+    
+        <div style="margin-top: 10px; display: flex; gap: 10px;">
+            <button onclick="editQuestion()">💾 Speichern</button>
+            <button onclick="closeEditQuestionModal()">❌ Abbrechen</button>
         </div>
     </div>
+    
 
-    <!-- Benachrichtigungs-Modal -->
-    <div id="notificationModal" class="notification-modal">
-        <div class="notification-content">
-            <span id="notificationMessage"></span>
-            <button onclick="closeNotification()" class="close-btn">OK</button>
-        </div>
-    </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>© 2025 Multiplayer Quiz | Entwickelt von Jan Asche</p>
-    </footer>
-
-    <script src="script.js"></script>        
 </body>
 </html>
