@@ -8,144 +8,160 @@
     <script defer src="assets/js/main.js" defer></script>
 </head>
 <body>
-    <div id="home">
-        <h1>Willkommen zur Quiz-App</h1>
-        <p>Bitte melde dich an oder registriere dich, um am Quiz teilzunehmen.</p>
-        <input type="text" id="username" placeholder="Benutzername">
-        <input type="password" id="password" placeholder="Passwort">
-        <button onclick="login()">Anmelden</button>
-        <button onclick="showRegister()">Registrieren</button>
-        <p id="error" style="color: red;"></p>
-    </div>
-
-    <div id="register" style="display:none;">
-        <h1>Registrierung</h1>
-        <input type="text" id="newUsername" placeholder="Benutzername">
-        <input type="password" id="newPassword" placeholder="Passwort">
-        <button onclick="register()">Registrieren</button>
-        <button onclick="showLogin()">Zurück zur Anmeldung</button>
-        <p id="registerError" style="color: red;"></p>
-    </div>
-    <div id="dashboard" style="display:none;">
-        <h1>Dashboard</h1>
-        <p>Willkommen, <span id="displayUsername"></span>!</p>
-        <button onclick="createGame()">Spiel starten</button>
-        <button onclick="logout()">Abmelden</button>
-    </div>
-    
-    <div id="lobby">
-        <h1>Warteraum</h1>
-        <p>Raumcode: <span id="roomCode">H4RG23</span></p>
-    
-        <h3>Deck auswählen:</h3>
-        <select id="selectDeck">
-            <option value="">-- Lade Decks... --</option>
-        </select>
-    
-        <h3>Spielmodus wählen:</h3>
-        <div id="gameModeSelection">
-            <button onclick="selectGameMode('classic')" data-mode="classic">🔵 Klassisch</button>
-            <button onclick="selectGameMode('timeattack')" data-mode="timeattack">⏳ Zeitangriff</button>
+    <div id="gameContainer">
+        <div id="home">
+            <h1>Willkommen zur Quiz-App</h1>
+            <p>Bitte melde dich an oder registriere dich, um am Quiz teilzunehmen.</p>
+            <input type="text" id="username" placeholder="Benutzername">
+            <input type="password" id="password" placeholder="Passwort">
+            <button onclick="login()">Anmelden</button>
+            <button onclick="showRegister()">Registrieren</button>
+            <p id="error" style="color: red;"></p>
         </div>
-    
-        <button id="readyButton" style="display:none;">Bereit</button>
-        <p id="status">Bitte wähle ein Deck und einen Spielmodus.</p>
-    </div>
-    
-    <div id="quizContainer" style="display:none;">
-        <h1>Quiz</h1>
-        <p id="questionText"></p>
-        <div id="answerOptions"></div>
-        <button id="nextQuestionButton" style="display:none;">Nächste Frage</button>
-    
-        <!-- Punktestand -->
-        <p id="scoreDisplay">🏆 Punktestand: 0</p>
-    </div>
-    
-    <!-- 🚨 Modal zum Melden einer Frage -->
-    <div id="reportModal" style="display:none;">
-        <h2>Frage melden</h2>
-        <p>Gib bitte den Grund für die Meldung an:</p>
-        <textarea id="reportReason" placeholder="Grund für die Meldung..."></textarea>
-        <button id="submitReport">Meldung absenden</button>
-        <button onclick="closeReportModal()">Abbrechen</button>
-    </div>
-    
-    
-    
 
-    <div id="adminPanel" style="display:none;">
-        <h1>Administratorbereich</h1>
-        <button onclick="openAdminModal()">Decks verwalten & Fragen erstellen</button>
-        <button onclick="openReportedQuestionsModal()">Gemeldete Fragen</button>
-    </div>
-    
-    <!-- Modal für gemeldete Fragen -->
-    <div id="reportedQuestionsModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:8px; box-shadow:0px 4px 6px rgba(0, 0, 0, 0.1); width: 400px; max-height: 80vh; overflow-y: auto;">
-        <h2>Gemeldete Fragen</h2>
-        <ul id="reportedQuestionsList"></ul>
-        <button onclick="closeReportedQuestionsModal()">Schließen</button>
-    </div>
-    
-    
-    <!-- Modal für Deck-Verwaltung und Fragen-Erstellung -->
-    <div id="adminModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:8px; box-shadow:0px 4px 6px rgba(0, 0, 0, 0.1); width: 400px; max-height: 80vh; overflow-y: auto;">
-        <button onclick="closeAdminModal()">Schließen</button>
-        <h2>Decks verwalten & Fragen hinzufügen</h2>
+        <div id="register" style="display:none;">
+            <h1>Registrierung</h1>
+            <input type="text" id="newUsername" placeholder="Benutzername">
+            <input type="password" id="newPassword" placeholder="Passwort">
+            <button onclick="register()">Registrieren</button>
+            <button onclick="showLogin()">Zurück zur Anmeldung</button>
+            <p id="registerError" style="color: red;"></p>
+        </div>
+        <div id="dashboard" style="display:none;">
+            <h1>Dashboard</h1>
+            <p>Willkommen, <span id="displayUsername"></span>!</p>
+            <button onclick="createGame()">Spiel starten</button>
+            <button onclick="logout()">Abmelden</button>
+        </div>
         
-        <!-- Neues Deck erstellen -->
-        <input type="text" id="deckName" placeholder="Deck-Name eingeben">
-        <button onclick="createDeck()">Deck erstellen</button>
+        <div id="lobby">
+            <h1>Warteraum</h1>
+            <p>Raumcode: <span id="roomCode">H4RG23</span></p>
         
-        <h3>Bestehende Decks</h3>
-        <ul id="deckList"></ul>
+            <h3>Deck auswählen:</h3>
+            <select id="selectDeck">
+                <option value="">-- Lade Decks... --</option>
+            </select>
         
-        <h3>Fragen zu Deck hinzufügen</h3>
-        <label for="selectDeck">Deck auswählen:</label>
-        <select id="selectDeck">
-            <option value="">-- Deck auswählen --</option>
-        </select>
+            <h3>Spielmodus wählen:</h3>
+            <div id="gameModeSelection">
+                <button onclick="selectGameMode('classic')" data-mode="classic">🔵 Klassisch</button>
+                <button onclick="selectGameMode('timeattack')" data-mode="timeattack">⏳ Zeitangriff</button>
+            </div>
+        
+            <button id="readyButton" style="display:none;">Bereit</button>
+            <p id="status">Bitte wähle ein Deck und einen Spielmodus.</p>
+        </div>
+        
+        <!-- ✅ QUIZ-ANSICHT -->
+        <div id="quizContainer" style="display: none;">
+            <h2>🧠 Quiz läuft...</h2>
+            <p id="scoreDisplay">🏆 Punktestand: 0</p>
+        
+            <!-- ✅ Hier wird die Frage angezeigt -->
+            <div id="question-container">
+                <h3 id="questionText">Frage wird geladen...</h3>
+                <div id="answerOptions"></div>
+            </div>
+        
+            <button onclick="displayQuestion()">➡️ Nächste Frage</button>
+        </div>
+        
+        <!-- ✅ QUIZ BEENDET -->
+        <div id="finalScreen" style="display: none;">
+            <h2>🎉 Quiz beendet!</h2>
+            <p id="finalScore"></p>
+            <div id="leaderboard"></div> <!-- Leaderboard wird hier geladen -->
+            <button onclick="location.reload()">🔄 Neues Spiel</button>
+        </div>
+        
+        
+        
+        <!-- 🚨 Modal zum Melden einer Frage -->
+        <div id="reportModal" style="display:none;">
+            <h2>Frage melden</h2>
+            <p>Gib bitte den Grund für die Meldung an:</p>
+            <textarea id="reportReason" placeholder="Grund für die Meldung..."></textarea>
+            <button id="submitReport">Meldung absenden</button>
+            <button onclick="closeReportModal()">Abbrechen</button>
+        </div>
+        
+        
+        
 
-        <h3>Neue Frage hinzufügen</h3>
-        <input type="text" id="questionText" placeholder="Fragetext eingeben">
-        <input type="text" id="option1" placeholder="Antwort 1">
-        <input type="text" id="option2" placeholder="Antwort 2">
-        <input type="text" id="option3" placeholder="Antwort 3">
-        <input type="text" id="option4" placeholder="Antwort 4">
-        <input type="number" id="correctOption" placeholder="Index der richtigen Antwort (0-3)">
-        <button onclick="addQuestion()">Frage hinzufügen</button>
-
-        <h3>Fragen verwalten</h3>
-        <ul id="questionList"></ul>
-    </div>
-
-    <!-- Modal für Frage bearbeiten -->
-    <div id="editQuestionModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px; width: 400px; max-width: 90%; overflow: hidden;">
-        <h2>Frage bearbeiten</h2>
+        <div id="adminPanel" style="display:none;">
+            <h1>Administratorbereich</h1>
+            <button onclick="openAdminModal()">Decks verwalten & Fragen erstellen</button>
+            <button onclick="openReportedQuestionsModal()">Gemeldete Fragen</button>
+        </div>
         
-        <input type="hidden" id="editQuestionId">
-    
-        <label for="editQuestionText">Fragetext:</label>
-        <input type="text" id="editQuestionText" placeholder="Neue Frage eingeben" required>
-    
-        <label for="editOption1">Antwort 1:</label>
-        <input type="text" id="editOption1" placeholder="Antwort 1" required>
-    
-        <label for="editOption2">Antwort 2:</label>
-        <input type="text" id="editOption2" placeholder="Antwort 2" required>
-    
-        <label for="editOption3">Antwort 3:</label>
-        <input type="text" id="editOption3" placeholder="Antwort 3" required>
-    
-        <label for="editOption4">Antwort 4:</label>
-        <input type="text" id="editOption4" placeholder="Antwort 4" required>
-    
-        <label for="editCorrectOption">Korrekte Antwort (Index 0-3):</label>
-        <input type="number" id="editCorrectOption" min="0" max="3" required>
-    
-        <div style="margin-top: 10px; display: flex; gap: 10px;">
-            <button onclick="editQuestion()">💾 Speichern</button>
-            <button onclick="closeEditQuestionModal()">❌ Abbrechen</button>
+        <!-- Modal für gemeldete Fragen -->
+        <div id="reportedQuestionsModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:8px; box-shadow:0px 4px 6px rgba(0, 0, 0, 0.1); width: 400px; max-height: 80vh; overflow-y: auto;">
+            <h2>Gemeldete Fragen</h2>
+            <ul id="reportedQuestionsList"></ul>
+            <button onclick="closeReportedQuestionsModal()">Schließen</button>
+        </div>
+        
+        
+        <!-- Modal für Deck-Verwaltung und Fragen-Erstellung -->
+        <div id="adminModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:8px; box-shadow:0px 4px 6px rgba(0, 0, 0, 0.1); width: 400px; max-height: 80vh; overflow-y: auto;">
+            <button onclick="closeAdminModal()">Schließen</button>
+            <h2>Decks verwalten & Fragen hinzufügen</h2>
+            
+            <!-- Neues Deck erstellen -->
+            <input type="text" id="deckName" placeholder="Deck-Name eingeben">
+            <button onclick="createDeck()">Deck erstellen</button>
+            
+            <h3>Bestehende Decks</h3>
+            <ul id="deckList"></ul>
+            
+            <h3>Fragen zu Deck hinzufügen</h3>
+            <label for="selectDeck">Deck auswählen:</label>
+            <select id="selectDeck">
+                <option value="">-- Deck auswählen --</option>
+            </select>
+
+            <h3>Neue Frage hinzufügen</h3>
+            <input type="text" id="questionText" placeholder="Fragetext eingeben">
+            <input type="text" id="option1" placeholder="Antwort 1">
+            <input type="text" id="option2" placeholder="Antwort 2">
+            <input type="text" id="option3" placeholder="Antwort 3">
+            <input type="text" id="option4" placeholder="Antwort 4">
+            <input type="number" id="correctOption" placeholder="Index der richtigen Antwort (0-3)">
+            <button onclick="addQuestion()">Frage hinzufügen</button>
+
+            <h3>Fragen verwalten</h3>
+            <ul id="questionList"></ul>
+        </div>
+
+        <!-- Modal für Frage bearbeiten -->
+        <div id="editQuestionModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px; width: 400px; max-width: 90%; overflow: hidden;">
+            <h2>Frage bearbeiten</h2>
+            
+            <input type="hidden" id="editQuestionId">
+        
+            <label for="editQuestionText">Fragetext:</label>
+            <input type="text" id="editQuestionText" placeholder="Neue Frage eingeben" required>
+        
+            <label for="editOption1">Antwort 1:</label>
+            <input type="text" id="editOption1" placeholder="Antwort 1" required>
+        
+            <label for="editOption2">Antwort 2:</label>
+            <input type="text" id="editOption2" placeholder="Antwort 2" required>
+        
+            <label for="editOption3">Antwort 3:</label>
+            <input type="text" id="editOption3" placeholder="Antwort 3" required>
+        
+            <label for="editOption4">Antwort 4:</label>
+            <input type="text" id="editOption4" placeholder="Antwort 4" required>
+        
+            <label for="editCorrectOption">Korrekte Antwort (Index 0-3):</label>
+            <input type="number" id="editCorrectOption" min="0" max="3" required>
+        
+            <div style="margin-top: 10px; display: flex; gap: 10px;">
+                <button onclick="editQuestion()">💾 Speichern</button>
+                <button onclick="closeEditQuestionModal()">❌ Abbrechen</button>
+            </div>
         </div>
     </div>
     

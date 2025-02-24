@@ -5,6 +5,7 @@ const http = require('http');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
+const scoreRoutes = require('./routes/score');
 const path = require('path');
 
 const app = express();
@@ -19,6 +20,7 @@ connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/scores', scoreRoutes);
 
 // Statische Dateien bereitstellen
 app.use(express.static(path.join(__dirname, '../public')));
@@ -27,5 +29,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
+
+
+
 
 server.listen(5000, () => console.log('Server läuft auf Port 5000'));

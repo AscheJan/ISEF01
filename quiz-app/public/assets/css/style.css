@@ -12,21 +12,230 @@ body {
     height: 100vh;
 }
 
-/* 📦 Container-Styling */
-.container {
-    background: #ffffff;
-    padding: 2rem;
-    width: 90%;
-    max-width: 400px;
+/* Game-Container */
+#gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    padding: 20px;
     border-radius: 12px;
-    box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.1),
-                -8px -8px 20px rgba(255, 255, 255, 0.6);
-    transition: all 0.3s ease-in-out;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    width: 600px;
+    max-width: 100%;
+    margin: auto;
 }
 
-.container:hover {
-    transform: scale(1.02);
+/* Inhalt innerhalb des Game-Containers */
+#gameContainer > div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
 }
+
+/* Titel und Text */
+#gameContainer h1, #gameContainer h2, #gameContainer h3 {
+    margin-bottom: 10px;
+    color: #333;
+    text-align: center;
+}
+
+/* Eingabefelder */
+#gameContainer input {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+/* Buttons */
+#gameContainer button {
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Start- und Zurücksetzen-Buttons */
+#startGame {
+    background-color: #007bff;
+    color: white;
+}
+
+#startGame:hover {
+    background-color: #0056b3;
+}
+
+#resetGame {
+    background-color: #dc3545;
+    color: white;
+}
+
+#resetGame:hover {
+    background-color: #b52a37;
+}
+
+/* Responsive Anpassung für kleine Bildschirme */
+@media (max-width: 480px) {
+    #gameContainer {
+        width: 90%;
+    }
+
+    #gameContainer > div {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Lobby-Container */
+#lobby {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    width: 500px;
+    max-width: 100%;
+    margin: auto;
+    text-align: center;
+}
+
+/* Titel */
+#lobby h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* Raumcode-Anzeige */
+#roomCode {
+    font-weight: bold;
+    font-size: 18px;
+    color: #007bff;
+    background: #e9f5ff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+/* Dropdown-Menü für Deckauswahl */
+#selectDeck {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* Pfeil-Styling für das Dropdown */
+#selectDeck {
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+/* Fokus- und Hover-Effekte */
+#selectDeck:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+/* Spielmodus-Auswahl */
+#gameModeSelection {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+/* Spielmodus-Buttons */
+#gameModeSelection button {
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out, transform 0.1s;
+}
+
+/* Klassischer Modus */
+#gameModeSelection button[data-mode="classic"] {
+    background-color: #007bff;
+    color: white;
+}
+
+#gameModeSelection button[data-mode="classic"]:hover {
+    background-color: #0056b3;
+}
+
+/* Zeitangriff-Modus */
+#gameModeSelection button[data-mode="timeattack"] {
+    background-color: #ff9800;
+    color: white;
+}
+
+#gameModeSelection button[data-mode="timeattack"]:hover {
+    background-color: #e68900;
+}
+
+/* Bereit-Button */
+#readyButton {
+    background-color: #28a745;
+    color: white;
+    padding: 12px 16px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+    margin-top: 10px;
+}
+
+#readyButton:hover {
+    background-color: #218838;
+}
+
+/* Status-Text */
+#status {
+    font-size: 14px;
+    color: #555;
+    margin-top: 10px;
+}
+
+/* Responsive Anpassung für kleine Bildschirme */
+@media (max-width: 480px) {
+    #lobby {
+        width: 90%;
+    }
+
+    #gameModeSelection {
+        flex-direction: column;
+    }
+}
+
 
 /* ✍️ Eingabefelder */
 input {
@@ -72,55 +281,268 @@ button {
     transition: all 0.3s ease-in-out;
 }
 
-button:hover {
-    background: linear-gradient(135deg, #45a049, #3e8e41);
-    transform: scale(1.05);
-}
-
-/* ⚠️ Fehler- und Statusmeldungen */
-p#error, p#registerError {
-    color: #e74c3c;
-    font-weight: bold;
-}
-
-/* 🎯 Quiz-Bereich */
-#quiz {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#options button {
+/*Warteraum*/
+#selectDeck {
     width: 100%;
-    background: #3498db;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    appearance: none; /* Entfernt das Standard-Dropdown-Design */
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-#options button:hover {
-    background: #2980b9;
+/* Pfeil-Styling für das Dropdown */
+#selectDeck {
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
 }
 
-/* 🏆 Leaderboard */
-#leaderboard {
+/* Fokus- und Hover-Effekte */
+#selectDeck:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+/* Stil für die Optionen */
+#selectDeck option {
+    font-size: 14px;
+    background: #fff;
+    padding: 10px;
+}
+
+/* Anpassung für Mobile */
+@media (max-width: 480px) {
+    #selectDeck {
+        font-size: 16px;
+    }
+}
+
+/* Modal Styling */
+#adminModal {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    width: 420px;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+/* Titel */
+#adminModal h2, #adminModal h3 {
+    margin-bottom: 12px;
+    color: #333;
+}
+
+/* Eingabefelder und Dropdown */
+#adminModal input, #adminModal select {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+#adminModal input:focus, #adminModal select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+/* Buttons mit fester Breite */
+#adminModal button {
+    width: 200px; /* Feste Breite */
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+    display: block; /* Zentriert durch margin auto */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Schließen-Button */
+#adminModal button:first-of-type {
+    background-color: #dc3545;
+    color: white;
+}
+
+#adminModal button:first-of-type:hover {
+    background-color: #b52a37;
+}
+
+/* Standard-Buttons */
+#adminModal button:not(:first-of-type) {
+    background-color: #007bff;
+    color: white;
+}
+
+#adminModal button:not(:first-of-type):hover {
+    background-color: #0056b3;
+}
+
+/* Bestehende Decks Liste */
+#deckList, #questionList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Einzelne Deck-Elemente */
+#deckList li, #questionList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 8px;
+    margin: 4px 0;
+    border-radius: 6px;
+}
+
+/* Löschen-Button für Decks */
+#deckList li button, #questionList li button {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 80px; /* Feste Breite für kleine Buttons */
+}
+
+#deckList li button:hover, #questionList li button:hover {
+    background: #b52a37;
+}
+
+/* Responsive Anpassung */
+@media (max-width: 480px) {
+    #adminModal {
+        width: 90%;
+    }
+
+    #adminModal button {
+        width: 100%; /* Volle Breite auf kleineren Geräten */
+    }
+}
+
+/* Home-Container */
+#home {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    max-width: 90%;
+    margin: auto;
+    text-align: center;
 }
 
-#leaderboard h1 {
+/* Titel */
+#home h1 {
     font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
 }
 
-/* 📲 Responsive Design */
-@media (max-width: 600px) {
-    .container {
-        width: 95%;
-        padding: 1.5rem;
+/* Beschreibungstext */
+#home p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+/* Eingabefelder */
+#home input {
+    width: 100%;
+    padding: 12px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+#home input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+/* Buttons */
+#home button {
+    width: 200px; /* Feste Breite */
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+/* Anmelden-Button */
+#home button:first-of-type {
+    background-color: #007bff;
+    color: white;
+}
+
+#home button:first-of-type:hover {
+    background-color: #0056b3;
+}
+
+/* Registrieren-Button */
+#home button:last-of-type {
+    background-color: #28a745;
+    color: white;
+}
+
+#home button:last-of-type:hover {
+    background-color: #218838;
+}
+
+/* Fehlermeldung */
+#error {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+/* Responsive Anpassung für kleine Bildschirme */
+@media (max-width: 480px) {
+    #home {
+        width: 90%;
     }
 
-    input, button {
-        font-size: 14px;
+    #home button {
+        width: 100%; /* Volle Breite für mobile Geräte */
     }
 }
+
+
+
 
 /* 🔔 Benachrichtigungen */
 .notification {
