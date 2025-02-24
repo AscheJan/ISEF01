@@ -4,9 +4,7 @@ const cors = require('cors');
 const http = require('http');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
-const gameRoutes = require('./routes/game');
 const adminRoutes = require('./routes/admin');
-const { initializeSocket } = require('./socket');
 const path = require('path');
 
 const app = express();
@@ -18,11 +16,8 @@ app.use(cors());
 // Datenbankverbindung herstellen
 connectDB();
 
-// Socket.IO initialisieren
-initializeSocket(server);
 
 app.use('/api/auth', authRoutes);
-app.use('/api/game', gameRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Statische Dateien bereitstellen

@@ -1,7 +1,7 @@
-/* Allgemeine Stile */
+/* 🌍 Allgemeine Stile */
 body {
     font-family: 'Poppins', sans-serif;
-    background: #f8f9fa;
+    background: #f4f6f9;
     color: #333;
     text-align: center;
     margin: 0;
@@ -12,67 +12,78 @@ body {
     height: 100vh;
 }
 
-/* Container-Styling */
-div {
+/* 📦 Container-Styling */
+.container {
     background: #ffffff;
     padding: 2rem;
-    border-radius: 16px;
-    box-shadow: 6px 6px 15px rgba(0, 0, 0, 0.1), 
-                -6px -6px 15px rgba(255, 255, 255, 0.7);
     width: 90%;
     max-width: 400px;
-    transition: 0.3s ease-in-out;
+    border-radius: 12px;
+    box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.1),
+                -8px -8px 20px rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease-in-out;
 }
 
-/* Eingabefelder */
+.container:hover {
+    transform: scale(1.02);
+}
+
+/* ✍️ Eingabefelder */
 input {
-    width: 90%;
+    width: 100%;
     padding: 12px;
     margin: 10px 0;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 16px;
-    background: #ffffff;
+    background: #f9f9f9;
     color: #333;
     text-align: center;
     outline: none;
     box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.1), 
                 inset -4px -4px 10px rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease-in-out;
+}
+
+input:focus {
+    background: #ffffff;
+    box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.1), 
+                inset -2px -2px 8px rgba(255, 255, 255, 0.8);
 }
 
 input::placeholder {
     color: #aaa;
 }
 
-/* Buttons */
+/* 🎛️ Buttons */
 button {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     margin: 10px 0;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    background: #4CAF50;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
     color: white;
     box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1), 
                 -4px -4px 10px rgba(255, 255, 255, 0.7);
-    transition: 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
 button:hover {
-    background: #45a049;
+    background: linear-gradient(135deg, #45a049, #3e8e41);
     transform: scale(1.05);
 }
 
-/* Fehler- und Statusmeldungen */
+/* ⚠️ Fehler- und Statusmeldungen */
 p#error, p#registerError {
     color: #e74c3c;
     font-weight: bold;
 }
 
-/* Quiz-Bereich */
+/* 🎯 Quiz-Bereich */
 #quiz {
     display: flex;
     flex-direction: column;
@@ -80,7 +91,7 @@ p#error, p#registerError {
 }
 
 #options button {
-    width: 90%;
+    width: 100%;
     background: #3498db;
 }
 
@@ -88,7 +99,7 @@ p#error, p#registerError {
     background: #2980b9;
 }
 
-/* Leaderboard */
+/* 🏆 Leaderboard */
 #leaderboard {
     display: flex;
     flex-direction: column;
@@ -99,9 +110,9 @@ p#error, p#registerError {
     font-size: 24px;
 }
 
-/* Responsive Design */
+/* 📲 Responsive Design */
 @media (max-width: 600px) {
-    div {
+    .container {
         width: 95%;
         padding: 1.5rem;
     }
@@ -109,4 +120,48 @@ p#error, p#registerError {
     input, button {
         font-size: 14px;
     }
+}
+
+/* 🔔 Benachrichtigungen */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    opacity: 0.95;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ✨ Animation für Benachrichtigungen */
+.notification:hover {
+    opacity: 1;
+    transform: translateY(-3px);
+}
+
+/* 🔵 Info */
+.notification.info {
+    background-color: #007bff;
+}
+
+/* 🟢 Erfolg */
+.notification.success {
+    background-color: #28a745;
+}
+
+/* ⚠️ Warnung */
+.notification.warning {
+    background-color: #ffc107;
+    color: black;
+}
+
+/* ❌ Fehler */
+.notification.error {
+    background-color: #dc3545;
 }

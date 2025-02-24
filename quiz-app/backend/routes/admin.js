@@ -1,9 +1,9 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const ReportedQuestion = require('../models/ReportedQuestion');
 const Question = require('../models/Question');
 const QuizDeck = require('../models/QuizDeck');
-const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
-
+const User = require('../models/User');
 const router = express.Router();
 
 // Neues Deck erstellen (nur Admins)
@@ -84,9 +84,8 @@ router.post('/add-question', async (req, res) => {
 });
 
 
-
-// **Fragen eines Decks abrufen**
-router.get('/questions/:deckId',  async (req, res) => {
+// 📥 Fragen eines Decks abrufen
+router.get('/questions/:deckId', async (req, res) => {
     try {
         const { deckId } = req.params;
 
@@ -104,6 +103,7 @@ router.get('/questions/:deckId',  async (req, res) => {
         res.status(500).json({ message: 'Fehler beim Abrufen der Fragen' });
     }
 });
+
 
 // **Frage bearbeiten (Admin-Only)**
 router.put('/edit-question/:questionId', async (req, res) => {
@@ -187,25 +187,43 @@ router.delete('/delete-question/:questionId', async (req, res) => {
 // **1. Frage melden**
 router.post('/report-question', async (req, res) => {
     try {
-        const { questionId, quizDeckId, reportedBy, reason } = req.body;
+        let { questionId, quizDeckId, reportedBy, reason } = req.body;
 
+        // 🛠 Debugging: Alle empfangenen Daten ausgeben
+        console.log("🔍 Anfrage erhalten mit Daten:", req.body);
+
+        // ✅ Überprüfen, ob alle erforderlichen Felder vorhanden sind
         if (!questionId || !quizDeckId || !reportedBy || !reason) {
+            console.log("❌ Fehlende Daten:", { questionId, quizDeckId, reportedBy, reason });
             return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
         }
 
-        // Frage updaten: reports +1
-        await Question.findByIdAndUpdate(questionId, { $inc: { reports: 1 } });
+        // ✅ Falls reportedBy ein Benutzername ist, suche die User-ID
+        const user = await User.findOne({ username: reportedBy });
+        if (!user) {
+            console.log("❌ Benutzer nicht gefunden:", reportedBy);
+            return res.status(400).json({ message: 'Benutzer nicht gefunden' });
+        }
 
-        // Meldung speichern
-        const report = new ReportedQuestion({ questionId, quizDeckId, reportedBy, reason });
+        // ✅ Speichere das Report-Objekt mit der echten User-ID
+        const report = new ReportedQuestion({
+            questionId: new mongoose.Types.ObjectId(questionId),
+            quizDeckId: new mongoose.Types.ObjectId(quizDeckId),
+            reportedBy: user._id,  // 🔥 Speichere User-ID statt Username
+            reason
+        });
+
         await report.save();
+        console.log("✅ Frage erfolgreich gemeldet!");
+        res.json({ message: '✅ Frage wurde erfolgreich gemeldet!' });
 
-        res.json({ message: 'Frage wurde erfolgreich gemeldet' });
     } catch (error) {
-        console.error(error);
+        console.error('❌ Fehler beim Melden der Frage:', error);
         res.status(500).json({ message: 'Serverfehler beim Melden der Frage' });
     }
 });
+
+
 
 // **2. Alle gemeldeten Fragen abrufen**
 // Alle gemeldeten Fragen abrufen (nur Admins)
@@ -238,21 +256,23 @@ router.post('/validate-question', async (req, res) => {
             return res.status(404).json({ message: 'Meldung nicht gefunden' });
         }
 
-        if (action === 'delete') {
-            await Question.findByIdAndDelete(report.questionId);
+        // ❌ Nicht löschen, sondern nur den Status aktualisieren
+        if (action === 'resolve') {
+            report.status = 'resolved';
+            await report.save();
         } else if (action === 'update' && updatedQuestion) {
             await Question.findByIdAndUpdate(report.questionId, { questionText: updatedQuestion });
+            report.status = 'resolved';
+            await report.save();
         }
 
-        report.status = 'resolved';
-        await report.save();
-
-        res.json({ message: 'Frage wurde validiert und aktualisiert' });
+        res.json({ message: '✅ Meldung wurde bearbeitet und als erledigt markiert.' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Serverfehler beim Validieren der Frage' });
+        res.status(500).json({ message: '❌ Serverfehler beim Verarbeiten der Meldung.' });
     }
 });
+
 
 // **4. Gemeldete Fragen löschen (Admin-Option)**
 router.delete('/delete-reported-question/:id', async (req, res) => {
@@ -260,15 +280,16 @@ router.delete('/delete-reported-question/:id', async (req, res) => {
         const report = await ReportedQuestion.findById(req.params.id);
 
         if (!report) {
-            return res.status(404).json({ message: 'Meldung nicht gefunden' });
+            return res.status(404).json({ message: '❌ Meldung nicht gefunden' });
         }
 
         await ReportedQuestion.findByIdAndDelete(req.params.id);
-        res.json({ message: '✅ Meldung erfolgreich gelöscht' });
+        res.json({ message: '✅ Meldung erfolgreich gelöscht. Die Frage bleibt erhalten.' });
     } catch (error) {
         console.error('❌ Fehler beim Löschen der Meldung:', error);
-        res.status(500).json({ message: 'Fehler beim Löschen der Meldung' });
+        res.status(500).json({ message: '❌ Fehler beim Löschen der Meldung.' });
     }
 });
+
 
 module.exports = router;

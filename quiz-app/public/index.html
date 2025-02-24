@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz-App - Anmeldung</title>
     <link rel="stylesheet" href="assets/css/style.css">
-    <script defer src="/socket.io/socket.io.js"></script>
     <script defer src="assets/js/main.js" defer></script>
 </head>
 <body>
@@ -27,33 +26,52 @@
         <button onclick="showLogin()">Zurück zur Anmeldung</button>
         <p id="registerError" style="color: red;"></p>
     </div>
-
     <div id="dashboard" style="display:none;">
         <h1>Dashboard</h1>
         <p>Willkommen, <span id="displayUsername"></span>!</p>
         <button onclick="createGame()">Spiel starten</button>
-        <input type="text" id="joinRoomId" placeholder="Raumcode eingeben">
-        <button onclick="joinRoom()">Raum beitreten</button>
-
-        
         <button onclick="logout()">Abmelden</button>
     </div>
     
-    <div id="lobby" style="display:none;">
+    <div id="lobby">
         <h1>Warteraum</h1>
-        <p>Raumcode: <span id="roomCode"></span></p>
+        <p>Raumcode: <span id="roomCode">H4RG23</span></p>
     
         <h3>Deck auswählen:</h3>
         <select id="selectDeck">
-            <option value="">-- Wähle ein Deck --</option>
+            <option value="">-- Lade Decks... --</option>
         </select>
     
-        <h3>Spieler:</h3>
-        <ul id="playerList"></ul>
+        <h3>Spielmodus wählen:</h3>
+        <div id="gameModeSelection">
+            <button onclick="selectGameMode('classic')" data-mode="classic">🔵 Klassisch</button>
+            <button onclick="selectGameMode('timeattack')" data-mode="timeattack">⏳ Zeitangriff</button>
+        </div>
     
-        <button id="readyButton" onclick="toggleReady()">Bereit</button>
-        <p id="status"></p>
+        <button id="readyButton" style="display:none;">Bereit</button>
+        <p id="status">Bitte wähle ein Deck und einen Spielmodus.</p>
     </div>
+    
+    <div id="quizContainer" style="display:none;">
+        <h1>Quiz</h1>
+        <p id="questionText"></p>
+        <div id="answerOptions"></div>
+        <button id="nextQuestionButton" style="display:none;">Nächste Frage</button>
+    
+        <!-- Punktestand -->
+        <p id="scoreDisplay">🏆 Punktestand: 0</p>
+    </div>
+    
+    <!-- 🚨 Modal zum Melden einer Frage -->
+    <div id="reportModal" style="display:none;">
+        <h2>Frage melden</h2>
+        <p>Gib bitte den Grund für die Meldung an:</p>
+        <textarea id="reportReason" placeholder="Grund für die Meldung..."></textarea>
+        <button id="submitReport">Meldung absenden</button>
+        <button onclick="closeReportModal()">Abbrechen</button>
+    </div>
+    
+    
     
 
     <div id="adminPanel" style="display:none;">
