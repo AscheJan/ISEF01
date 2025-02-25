@@ -623,13 +623,11 @@ function stopCountdown() {
 function checkAnswer(selectedIndex, correctIndex) {
     clearInterval(gameState.timer); // ⏳ Stopp den Timer für die aktuelle Frage
 
-    // ✅ 1. Richtige Antwort
     if (selectedIndex === correctIndex) {
         gameState.score++;
         document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
-        gameState.currentQuestionIndex++;
     } else {
-        console.log("❌ Falsche Antwort!");
+        console.log("❌ Falsche Antwort! Nächste Frage wird geladen.");
 
         // 🔴 Überlebensmodus: Bei Fehler sofort beenden!
         if (gameState.selectedGameMode === "survival") {
@@ -647,6 +645,9 @@ function checkAnswer(selectedIndex, correctIndex) {
         }
     }
 
+    // 🔄 1. Nächste Frage laden, unabhängig von richtig oder falsch
+    gameState.currentQuestionIndex++;
+
     // 🔄 2. Endlosmodus: Falls alle Fragen durch sind → zurücksetzen und weiter
     if (gameState.selectedGameMode === "endless" && gameState.currentQuestionIndex >= gameState.questionSet.length) {
         console.log("🔄 Endlosmodus: Neustart der Fragen...");
@@ -662,6 +663,7 @@ function checkAnswer(selectedIndex, correctIndex) {
         endQuiz();
     }
 }
+
 
 
 
