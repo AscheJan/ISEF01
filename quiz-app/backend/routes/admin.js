@@ -189,16 +189,14 @@ router.post('/report-question', async (req, res) => {
     try {
         let { questionId, quizDeckId, reportedBy, reason } = req.body;
 
-        // 🛠 Debugging: Alle empfangenen Daten ausgeben
         console.log("🔍 Anfrage erhalten mit Daten:", req.body);
 
-        // ✅ Überprüfen, ob alle erforderlichen Felder vorhanden sind
         if (!questionId || !quizDeckId || !reportedBy || !reason) {
             console.log("❌ Fehlende Daten:", { questionId, quizDeckId, reportedBy, reason });
             return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
         }
 
-        // ✅ Falls reportedBy ein Benutzername ist, suche die User-ID
+        // ✅ Falls `reportedBy` ein Benutzername ist, suche die User-ID
         const user = await User.findOne({ username: reportedBy });
         if (!user) {
             console.log("❌ Benutzer nicht gefunden:", reportedBy);
@@ -209,7 +207,7 @@ router.post('/report-question', async (req, res) => {
         const report = new ReportedQuestion({
             questionId: new mongoose.Types.ObjectId(questionId),
             quizDeckId: new mongoose.Types.ObjectId(quizDeckId),
-            reportedBy: user._id,  // 🔥 Speichere User-ID statt Username
+            reportedBy: user._id,
             reason
         });
 
@@ -222,6 +220,7 @@ router.post('/report-question', async (req, res) => {
         res.status(500).json({ message: 'Serverfehler beim Melden der Frage' });
     }
 });
+
 
 
 

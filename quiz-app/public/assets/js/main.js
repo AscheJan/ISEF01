@@ -3,6 +3,27 @@ document.addEventListener("DOMContentLoaded", () => {
     
     initializeApp();
 
+    const selectDeckAdmin = document.getElementById("selectDeckAdmin");
+
+    if (!selectDeckAdmin) {
+        console.error("❌ Fehler: `selectDeckAdmin` wurde nicht gefunden!");
+        return;
+    }
+
+    console.log("📌 `selectDeckAdmin` wurde gefunden:", selectDeckAdmin);
+
+    selectDeckAdmin.addEventListener("change", function () {
+        const selectedDeck = selectDeckAdmin.value;
+        console.log("📌 Admin-Bereich: Gewähltes Deck:", selectedDeck);
+
+        if (!selectedDeck || selectedDeck === "") {
+            console.warn("⚠️ Kein Deck ausgewählt!");
+            return;
+        }
+
+        loadAdminQuestions();
+    });
+
     const readyButton = document.getElementById("readyButton");
     const statusText = document.getElementById("status"); // ✅ Korrekte Initialisierung
 
@@ -30,7 +51,13 @@ document.addEventListener("DOMContentLoaded", () => {
             stopCountdown();
         }
     });
+
+
+
+
 });
+
+
 
 
 // 🏗 **Initialisierung der App**
@@ -92,32 +119,6 @@ function handleReadyButton() {
 
 
 
-// Beispiel für submitReport (falls noch nicht definiert)
-async function submitReport() {
-    const reason = document.getElementById("reportReasonInput")?.value.trim();
-    if (!reason) {
-        showNotification("⚠️ Bitte gib einen Grund für die Meldung an!");
-        return;
-    }
-    // Hier kannst du den Report-API-Call einbauen...
-    try {
-        const response = await fetch("/api/admin/report-question", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ reason })
-        });
-        const data = await response.json();
-        console.log("📥 Antwort vom Server:", data);
-        if (!response.ok) {
-            showNotification(`❌ Fehler: ${data.message}`);
-            return;
-        }
-        showNotification("✅ Frage wurde gemeldet!");
-    } catch (error) {
-        console.error("❌ Fehler beim Melden der Frage:", error);
-    }
-}
-
 // ✅ **Zentrale Event-Listener**
 function setupEventListeners() {
     const selectDeckElement = document.getElementById("selectDeck");
@@ -140,7 +141,11 @@ function setupEventListeners() {
 
     // 🎯 "Bereit"-Button Funktion
     readyButton?.addEventListener("click", handleReadyButton);
+
+    
 }
+
+
 
 
 // Beispiel für handleEscapeKey
@@ -203,7 +208,11 @@ function fetchUserDataIfAuthenticated() {
 async function loadDeckOptions() {
     console.log("🔄 Lade Decks aus API...");
     const token = localStorage.getItem('token');
-    if (!token) return showNotification("⚠️ Bitte melde dich an.");
+    if (!token) {
+        console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
+        showNotification("Bitte melde dich erneut an.");
+        return;
+    }
 
     try {
         const response = await fetch('/api/admin/decks', {
@@ -211,28 +220,42 @@ async function loadDeckOptions() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!response.ok) throw new Error("Fehler beim Laden der Decks.");
+        if (!response.ok) throw new Error(`Fehler beim Laden der Decks: ${response.status}`);
 
         const data = await response.json();
-        const selectDeckLobby = document.querySelector('#lobby #selectDeck');
-        const selectDeckAdmin = document.querySelector('#adminModal #selectDeck');
+        console.log("✅ API Antwort:", data); // DEBUG: Gibt die API-Antwort aus
 
-        [selectDeckLobby, selectDeckAdmin].forEach(select => {
-            if (!select) return;
-            select.innerHTML = '<option value="">-- Deck auswählen --</option>';
-            data.decks.forEach(deck => {
-                const option = document.createElement('option');
-                option.value = deck._id;
-                option.innerText = deck.name;
-                select.appendChild(option);
-            });
+        if (!data.decks || data.decks.length === 0) {
+            console.warn("⚠️ Keine Decks gefunden.");
+            return;
+        }
+
+        // Das Admin-Dropdown finden
+        const selectDeckAdmin = document.getElementById("selectDeckAdmin");
+        if (!selectDeckAdmin) {
+            console.error("❌ Fehler: `selectDeckAdmin` nicht gefunden!");
+            return;
+        }
+
+        // Vorherige Optionen löschen
+        selectDeckAdmin.innerHTML = '<option value="">-- Deck auswählen --</option>';
+
+        // Decks in das Dropdown einfügen
+        data.decks.forEach(deck => {
+            const option = document.createElement('option');
+            option.value = deck._id;
+            option.innerText = deck.name;
+            selectDeckAdmin.appendChild(option);
         });
 
-        console.log("✅ Decks erfolgreich geladen.");
+        console.log("✅ Decks erfolgreich in `selectDeckAdmin` geladen.");
     } catch (error) {
-        console.error('❌ Fehler beim Laden der Decks:', error);
+        console.error("❌ Fehler beim Laden der Decks:", error);
+        showNotification(error.message);
     }
 }
+
+
 
 
 
@@ -272,23 +295,71 @@ async function loadDeckQuestions(deckId) {
 }
 
 
-// ✅ **Fragen in UI anzeigen**
-function displayQuestion() {
-    const questionContainer = document.getElementById("question-container");
-    if (!questionContainer) {
-        console.error("❌ Fehler: Element mit ID 'question-container' nicht gefunden!");
+
+// ✅ **Report-Modal öffnen**
+function openReportModal(questionId, quizDeckId) {
+    console.log("🔍 Melden-Modal geöffnet für Frage:", questionId);
+
+    const reportModal = document.getElementById("reportModal");
+    if (!reportModal) {
+        console.error("❌ Fehler: `reportModal` nicht gefunden!");
         return;
     }
 
-    if (gameState.questionSet.length === 0) {
-        questionContainer.innerHTML = "<p>⚠️ Keine Fragen verfügbar.</p>";
-        return;
-    }
-
-    // Beispiel für die Anzeige der ersten Frage
-    const firstQuestion = gameState.questionSet[0];
-    questionContainer.innerHTML = `<h2>${firstQuestion.questionText}</h2>`;
+    reportModal.style.display = "block";
+    document.getElementById("reportQuestionId").value = questionId;
+    document.getElementById("reportQuizDeckId").value = quizDeckId;
 }
+
+// ✅ **Frage melden**
+async function submitReport() {
+    console.log("📤 Sende Meldung...");
+
+    const questionId = document.getElementById("reportQuestionId").value.trim();
+    const quizDeckId = document.getElementById("reportQuizDeckId").value.trim();
+    const reason = document.getElementById("reportReason").value.trim();
+    const reportedBy = localStorage.getItem("username") || "Anonym";
+
+    if (!questionId || !quizDeckId || !reason) {
+        showNotification("⚠️ Bitte gib einen Grund für die Meldung an!", "warning");
+        return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+        showNotification("⚠️ Nicht angemeldet! Bitte melde dich an.", "warning");
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/admin/report-question", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ questionId, quizDeckId, reportedBy, reason })
+        });
+
+        const data = await response.json();
+        console.log("📥 Antwort vom Server:", data);
+
+        if (!response.ok) {
+            showNotification(`❌ Fehler: ${data.message}`, "error");
+            return;
+        }
+
+        showNotification("✅ Frage wurde gemeldet!", "success");
+        closeReportModal();
+        document.getElementById("reportReason").value = ""; // Eingabe leeren
+
+    } catch (error) {
+        console.error("❌ Fehler beim Melden der Frage:", error);
+        showNotification("❌ Fehler beim Melden der Frage.", "error");
+    }
+}
+
+
 
 
 // ✅ **Spielmodus wählen**
@@ -342,26 +413,45 @@ async function startQuiz() {
     await loadDeckQuestions(gameState.selectedDeck);
 }
 
-
-// ✅ **Frage anzeigen**
+// ✅ **Aktuelle Frage anzeigen**
 function displayQuestion() {
+    const questionContainer = document.getElementById("question-container");
+    if (!questionContainer) {
+        console.error("❌ Fehler: `question-container` nicht gefunden!");
+        return;
+    }
+
     if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
         endQuiz();
         return;
     }
 
     const currentQuestion = gameState.questionSet[gameState.currentQuestionIndex];
-    document.getElementById("questionText").innerText = currentQuestion.questionText;
-    document.getElementById("answerOptions").innerHTML = "";
+
+    // 🧹 Container leeren und neue Frage einfügen
+    questionContainer.innerHTML = `
+        <h2>${currentQuestion.questionText}</h2>
+        <div id="answerOptions"></div>
+        <button class="report-btn" onclick="openReportModal('${currentQuestion._id}', '${gameState.selectedDeck}')">
+            🚨 Frage melden
+        </button>
+    `;
+
+    // Antwortmöglichkeiten hinzufügen
+    const answerOptionsContainer = document.getElementById("answerOptions");
 
     currentQuestion.options.forEach((option, index) => {
         const btn = document.createElement("button");
         btn.innerText = option;
         btn.onclick = () => checkAnswer(index, currentQuestion.correctOptionIndex);
-        document.getElementById("answerOptions").appendChild(btn);
+        answerOptionsContainer.appendChild(btn);
     });
 }
 
+// ✅ **Report-Modal schließen**
+function closeReportModal() {
+    document.getElementById("reportModal").style.display = "none";
+}
 
 async function saveHighscore(deckId, score) {
     const userId = localStorage.getItem("username"); // Verwende die tatsächliche `userId`, nicht `username`
@@ -581,14 +671,6 @@ async function loadDeckOptions() {
             console.error("❌ Fehler beim Laden des Leaderboards:", error);
         }
     }
-
-
-        
-    
-        // 🛑 **Frage melden Modal öffnen**
-        function openReportModal() {
-            reportModal.style.display = "block";
-        }
     
  
 
@@ -732,6 +814,10 @@ async function loadDeckOptions() {
     window.location.href = "/login.html"; // 🔄 Sofortige Weiterleitung zur Login-Seite
 }
 
+ function showLogin(){
+    window.location.href = "/login.html";
+ }
+
   function hideElement(id) {
     const element = document.getElementById(id);
     if (element) element.style.display = 'none';
@@ -761,6 +847,8 @@ document.getElementById("selectDeck").addEventListener("change", function () {
     hideElement('dashboard');
     showElement('adminPanel');
   }
+
+  
   // Admin-Funktionen für Deck-Management und Fragenverwaltung
   async function openAdminModal() {
     const adminModal = document.getElementById('adminModal');
@@ -778,6 +866,9 @@ document.getElementById("selectDeck").addEventListener("change", function () {
         showNotification("Fehler beim Laden der Decks!");
     }
   }
+
+
+
   function closeAdminModal() {
     hideElement('adminModal');
   }
@@ -817,62 +908,66 @@ document.getElementById("selectDeck").addEventListener("change", function () {
   }
   
   // Decks laden und anzeigen
-  async function loadDecks() {
-    console.log("🔄 Lade Decks aus der API...");
+  async function loadDeckOptions() {
+    console.log("🔄 Lade Decks für das Admin-Panel und andere Bereiche...");
     const token = localStorage.getItem('token');
+
     if (!token) {
         console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
         showNotification("Bitte melde dich erneut an.");
         return;
     }
+
     try {
         const response = await fetch('/api/admin/decks', {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (response.status === 401) throw new Error('⚠️ Nicht autorisiert – Bitte erneut einloggen.');
-        if (response.status === 403) throw new Error('⛔ Zugriff verweigert – Nur Admins dürfen Decks verwalten.');
-        if (!response.ok) throw new Error(`❌ Fehler beim Abrufen der Decks – Status: ${response.status}`);
+
+        if (!response.ok) throw new Error(`Fehler beim Laden der Decks: ${response.status}`);
+
         const data = await response.json();
-        console.log("🟢 API-Antwort erhalten:", data);
-        const deckList = document.getElementById('deckList');
-        const selectDeck = document.getElementById('selectDeck');
-        if (!deckList || !selectDeck) {
-            console.error("❌ `deckList` oder `selectDeck` nicht gefunden. Abbruch.");
-            return;
-        }
-        // Vorhandene Einträge löschen
-        deckList.innerHTML = '';
-        selectDeck.innerHTML = '<option value="">-- Deck auswählen --</option>';
+        console.log("✅ API Antwort (Decks):", data); // DEBUG: Gibt die API-Antwort aus
+
         if (!data.decks || data.decks.length === 0) {
             console.warn("⚠️ Keine Decks gefunden.");
             return;
         }
-        // Decks zur Liste und Dropdown hinzufügen
-        data.decks.forEach(deck => {
-            const listItem = document.createElement('li');
-            listItem.innerText = deck.name;
-            listItem.addEventListener('click', () => loadDeckQuestions(deck._id));
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = "🗑 Löschen";
-            deleteButton.addEventListener('click', async (event) => {
-                event.stopPropagation(); // Verhindert, dass der Klick auch das Deck lädt
-                await deleteDeck(deck._id);
+
+        // 🔽 Alle relevanten Select-Elemente abrufen
+        const selectDeckAdmin = document.getElementById("selectDeckAdmin");
+        const selectDeckLobby = document.getElementById("selectDeck");
+        
+        const selectElements = [selectDeckAdmin, selectDeckLobby].filter(el => el !== null);
+
+        if (selectElements.length === 0) {
+            console.error("❌ Keine passenden <select>-Elemente gefunden!");
+            return;
+        }
+
+        // 🔄 Alle gefundenen <select>-Elemente aktualisieren
+        selectElements.forEach(select => {
+            select.innerHTML = '<option value="">-- Deck auswählen --</option>';
+
+            data.decks.forEach(deck => {
+                const option = document.createElement('option');
+                option.value = deck._id;
+                option.innerText = deck.name;
+                select.appendChild(option);
             });
-            listItem.appendChild(deleteButton);
-            deckList.appendChild(listItem);
-            // Dropdown-Option
-            const option = document.createElement('option');
-            option.value = deck._id;
-            option.innerText = deck.name;
-            selectDeck.appendChild(option);
+
+            console.log(`✅ Decks erfolgreich in ${select.id} geladen.`);
         });
-        console.log("✅ Decks erfolgreich in die Liste und das Dropdown eingefügt.");
+
     } catch (error) {
-        console.error('❌ Fehler beim Laden der Decks:', error);
+        console.error("❌ Fehler beim Laden der Decks:", error);
         showNotification(error.message);
     }
-  }
+}
+
+
+
+
   // Deck löschen
   function deleteDeck(deckId) {
     if (!confirm('Möchtest du dieses Deck wirklich löschen?')) return;
@@ -969,10 +1064,96 @@ async function loadDeckQuestionsAndDisplay(deckId) {
     }
 }
 
+async function loadAdminQuestions() {
+    const selectDeckAdmin = document.getElementById("selectDeckAdmin"); // Admin-spezifisch
+    if (!selectDeckAdmin) {
+        console.error("❌ Fehler: `selectDeckAdmin` wurde nicht gefunden!");
+        return;
+    }
+
+    const selectedDeck = selectDeckAdmin.value;
+    console.log("📌 Gewähltes Admin-Deck:", selectedDeck);
+
+    if (!selectedDeck || selectedDeck === "") {
+        console.warn("⚠️ Kein Deck ausgewählt!");
+        return;
+    }
+
+    const questionList = document.getElementById('adminQuestionList');
+    if (!questionList) {
+        console.error("❌ `adminQuestionList` nicht gefunden!");
+        return;
+    }
+
+    questionList.innerHTML = '<p>⏳ Fragen werden geladen...</p>'; // Lade-Status
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showNotification("⚠️ Nicht angemeldet! Bitte melde dich an.", "warning");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/admin/questions/${selectedDeck}`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            throw new Error(`❌ Fehler: ${response.status} - ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        const questions = data.questions || [];
+
+        questionList.innerHTML = ''; // Vorherige Inhalte entfernen
+
+        if (questions.length === 0) {
+            questionList.innerHTML = '<p>⚠️ Keine Fragen in diesem Deck vorhanden.</p>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        questions.forEach(question => {
+            const listItem = document.createElement('li');
+            listItem.classList.add('question-item');
+            listItem.innerHTML = `<strong>${question.questionText}</strong>`;
+
+            // ✏️ Bearbeiten-Button
+            const editButton = document.createElement('button');
+            editButton.innerHTML = "✏️ Bearbeiten";
+            editButton.classList.add('edit-btn');
+            editButton.addEventListener('click', () => openEditQuestionModal(question._id, question.questionText, question.options, question.correctOptionIndex));
+
+            // 🗑 Löschen-Button
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = "🗑 Löschen";
+            deleteButton.classList.add('delete-btn');
+            deleteButton.addEventListener('click', async () => {
+                await deleteQuestion(question._id, selectedDeck);
+            });
+
+            listItem.appendChild(editButton);
+            listItem.appendChild(deleteButton);
+            fragment.appendChild(listItem);
+        });
+
+        questionList.appendChild(fragment);
+        showNotification("✅ Fragen erfolgreich geladen!", "success");
+
+    } catch (error) {
+        console.error('❌ Fehler beim Abrufen der Fragen:', error);
+        showNotification(`Fehler beim Abrufen der Fragen: ${error.message}`, "error");
+    }
+}
+
+
+
+// Funktion zum Hinzufügen einer neuen Frage
 async function addQuestion() {
     console.log("🔄 Versuche, eine neue Frage hinzuzufügen...");
 
-    // 🛠 Stelle sicher, dass das Modal existiert
     const adminModal = document.getElementById('adminModal');
     if (!adminModal) {
         console.error("❌ Fehler: Admin-Modal nicht gefunden!");
@@ -980,26 +1161,23 @@ async function addQuestion() {
         return;
     }
 
-    // 🛠 Sicherstellen, dass `selectDeck` existiert
-    const selectDeck = adminModal.querySelector('#selectDeck');
-    if (!selectDeck) {
-        console.error("❌ Fehler: `selectDeck` nicht gefunden!");
-        showNotification("⚠️ Fehler: Das Deck-Auswahlfeld existiert nicht.", "error");
+    // 🛠 Sicherstellen, dass `selectDeckAdmin` existiert
+    const selectDeckAdmin = document.getElementById("selectDeckAdmin");
+    if (!selectDeckAdmin) {
+        console.error("❌ Fehler: `selectDeckAdmin` nicht gefunden!");
+        showNotification("❌ Fehler: Das Deck-Auswahlfeld fehlt!", "error");
         return;
     }
 
-    // ✅ Stelle sicher, dass eine Option existiert
-    const selectedOption = selectDeck.options[selectDeck.selectedIndex];
-    if (!selectedOption || !selectedOption.value) {
-        showNotification('⚠️ Bitte wähle ein Deck aus.', "warning");
-        selectDeck.style.border = "2px solid red";
+    const selectedOption = selectDeckAdmin.options[selectDeckAdmin.selectedIndex];
+    const quizDeckId = selectedOption?.value.trim();
+
+    if (!quizDeckId) {
+        showNotification("⚠️ Bitte wähle ein Deck aus, bevor du eine Frage hinzufügst.", "warning");
         return;
     }
-    selectDeck.style.border = "";
 
-    const quizDeckId = selectedOption.value.trim();
-
-    // 🛠 Sichere Abfrage der Input-Felder
+    // 🛠 Felder für die Frage
     const questionTextElement = adminModal.querySelector('#questionText');
     const option1Element = adminModal.querySelector('#option1');
     const option2Element = adminModal.querySelector('#option2');
@@ -1013,18 +1191,17 @@ async function addQuestion() {
         return;
     }
 
-    // 📝 Werte abrufen
-    const questionText = questionTextElement.value?.trim() || "";
+    const questionText = questionTextElement.value.trim();
     const options = [
-        option1Element.value?.trim() || "",
-        option2Element.value?.trim() || "",
-        option3Element.value?.trim() || "",
-        option4Element.value?.trim() || ""
+        option1Element.value.trim(),
+        option2Element.value.trim(),
+        option3Element.value.trim(),
+        option4Element.value.trim()
     ];
     const correctOptionIndex = parseInt(correctOptionElement.value, 10);
 
-    // ✅ Validierung
-    if (!questionText || options.some(opt => !opt)) {
+    // 🚨 Validierung der Eingaben
+    if (!questionText || options.some(opt => opt === '')) {
         showNotification('⚠️ Bitte fülle alle Felder aus.', "warning");
         return;
     }
@@ -1041,7 +1218,6 @@ async function addQuestion() {
         return;
     }
 
-    // 🚀 API-Anfrage senden
     try {
         const response = await fetch('/api/admin/add-question', {
             method: 'POST',
@@ -1057,9 +1233,11 @@ async function addQuestion() {
         }
 
         showNotification('✅ Frage erfolgreich hinzugefügt!', "success");
-        await loadDeckQuestionsAndDisplay(quizDeckId);
 
-        // Felder nach erfolgreicher Erstellung leeren
+        // 🔄 Lade die Fragen neu, damit sie in der Liste erscheinen
+        await loadAdminQuestions();
+
+        // 🧹 Felder zurücksetzen
         questionTextElement.value = "";
         option1Element.value = "";
         option2Element.value = "";
@@ -1071,6 +1249,9 @@ async function addQuestion() {
         showNotification(`❌ Fehler beim Hinzufügen der Frage: ${error.message}`, "error");
     }
 }
+
+
+
 
   // Modal für Fragenbearbeitung
   function openEditQuestionModal(questionId, questionText, options, correctIndex) {

@@ -63,8 +63,7 @@
                 <h3 id="questionText">Frage wird geladen...</h3>
                 <div id="answerOptions"></div>
             </div>
-        
-            <button onclick="displayQuestion()">➡️ Nächste Frage</button>
+
         </div>
         
         <!-- ✅ QUIZ BEENDET -->
@@ -76,15 +75,18 @@
         </div>
         
         
-        
+                
         <!-- 🚨 Modal zum Melden einer Frage -->
         <div id="reportModal" style="display:none;">
             <h2>Frage melden</h2>
             <p>Gib bitte den Grund für die Meldung an:</p>
             <textarea id="reportReason" placeholder="Grund für die Meldung..."></textarea>
-            <button id="submitReport">Meldung absenden</button>
+            <input type="hidden" id="reportQuestionId">
+            <input type="hidden" id="reportQuizDeckId">
+            <button onclick="submitReport()">Meldung absenden</button>
             <button onclick="closeReportModal()">Abbrechen</button>
         </div>
+
         
         
         
@@ -116,8 +118,8 @@
             <ul id="deckList"></ul>
             
             <h3>Fragen zu Deck hinzufügen</h3>
-            <label for="selectDeck">Deck auswählen:</label>
-            <select id="selectDeck">
+            <label for="selectDeckAdmin">Deck auswählen:</label>
+            <select id="selectDeckAdmin" onchange="loadAdminQuestions()">
                 <option value="">-- Deck auswählen --</option>
             </select>
 
@@ -131,7 +133,7 @@
             <button onclick="addQuestion()">Frage hinzufügen</button>
 
             <h3>Fragen verwalten</h3>
-            <ul id="questionList"></ul>
+            <ul id="adminQuestionList"></ul>
         </div>
 
         <!-- Modal für Frage bearbeiten -->

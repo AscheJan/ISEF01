@@ -21,7 +21,6 @@ body {
     background: #f8f9fa;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     width: 600px;
     max-width: 100%;
     margin: auto;
@@ -107,10 +106,9 @@ body {
     align-items: center;
     justify-content: center;
     background: #f8f9fa;
-    padding: 20px;
+    padding: 10px;
     border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    width: 500px;
+    width: 600px;
     max-width: 100%;
     margin: auto;
     text-align: center;
@@ -450,10 +448,9 @@ button {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: #f8f9fa;
+    background: transparent;
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     width: 400px;
     max-width: 90%;
     margin: auto;
@@ -541,6 +538,69 @@ button {
     }
 }
 
+/* Leaderboard-Container */
+#leaderboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    padding: 20px;
+    border-radius: 12px;
+    width: 500px;
+    max-width: 100%;
+    margin: auto;
+    text-align: center;
+}
+
+/* Titel des Leaderboards */
+#leaderboard h3 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Liste der Spieler */
+#leaderboard ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+/* Einzelne Listenelemente im Leaderboard */
+#leaderboard ul li {
+    background: #ffffff;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Hover-Effekt für Listenelemente */
+#leaderboard ul li:hover {
+    background: #f1f1f1;
+}
+
+/* Responsive Anpassung für kleine Bildschirme */
+@media (max-width: 480px) {
+    #leaderboard {
+        width: 90%;
+    }
+
+    #leaderboard h3 {
+        font-size: 20px;
+    }
+
+    #leaderboard ul li {
+        font-size: 14px;
+    }
+}
 
 
 
