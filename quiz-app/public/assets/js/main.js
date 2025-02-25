@@ -519,9 +519,6 @@ async function endQuiz() {
 }
 
 
-
-
-
 // ✅ **Benutzer Logout**
 function logout() {
     console.log("🔴 Nutzer wird abgemeldet...");
@@ -810,7 +807,7 @@ function displayQuestion() {
     if (!questionContainer) {
         console.error("❌ Fehler: `question-container` nicht gefunden!");
         return;
-    }
+    } 
 
     if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
         endQuiz();
@@ -819,11 +816,17 @@ function displayQuestion() {
 
     const currentQuestion = gameState.questionSet[gameState.currentQuestionIndex];
 
+    if (!currentQuestion || !currentQuestion.questionText || !currentQuestion.options) {
+        console.error("⚠️ Fehler: Ungültige Frage!");
+        return;
+    }
+
     // 🧹 Container leeren & neue Frage einfügen
     questionContainer.innerHTML = `
         <h2>${currentQuestion.questionText}</h2>
         <div id="answerOptions"></div>
         <p id="timeLeft" class="timer">⏳ Zeit: 5s</p>
+        <button class="report-button" onclick="openReportModal('${currentQuestion._id}', '${gameState.selectedDeck}')">⚠️ Frage melden</button>
     `;
 
     // Antwortmöglichkeiten hinzufügen
@@ -841,6 +844,7 @@ function displayQuestion() {
         startQuestionTimer();
     }
 }
+
 
 
 
@@ -1574,7 +1578,7 @@ async function addQuestion() {
   function closeReportedQuestionsModal() {
     hideElement('reportedQuestionsModal');
   }
-  // Lädt alle gemeldeten Fragen
+
   async function loadReportedQuestions() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1601,37 +1605,131 @@ async function addQuestion() {
             return;
         }
 
-        const fragment = document.createDocumentFragment();
         data.forEach(report => {
-            const listItem = document.createElement('div');
-            listItem.classList.add('reported-question-item');
+            const reportId = report._id || 'Unbekannt';
+            const quizDeckName = report.quizDeckId?.name || 'Unbekannt';
+            const questionId = report.questionId?._id || 'Unbekannt';
+            const questionText = report.questionId?.questionText || 'Unbekannt';
+            const reason = report.reason || 'Kein Grund angegeben';
 
-            const deckName = document.createElement('p');
-            deckName.innerHTML = `<strong>Deck:</strong> ${report.quizDeckId?.name || 'Unbekannt'}`;
+            // 🛠 reportedBy prüfen:
+            let reportedBy = 'Unbekannt';
+            if (report.reportedBy && typeof report.reportedBy === 'object' && report.reportedBy.username) {
+                reportedBy = report.reportedBy.username;
+            } else if (report.reportedBy && typeof report.reportedBy === 'string') {
+                reportedBy = `Unbekannt (ID: ${report.reportedBy})`;
+            }
 
-            const questionText = document.createElement('p');
-            questionText.innerHTML = `<strong>Frage:</strong> ${report.questionId?.questionText || 'Unbekannt'}`;
+            const options = report.questionId?.options ? JSON.stringify(report.questionId.options) : '[]';
+            const correctOptionIndex = typeof report.questionId?.correctOptionIndex === 'number' ? report.questionId.correctOptionIndex : 'Unbekannt';
 
-            const reportedBy = document.createElement('p');
-            reportedBy.innerHTML = `<strong>Gemeldet von:</strong> ${report.reportedBy?.username || 'Unbekannt'}`;
-
-            const reason = document.createElement('p');
-            reason.innerHTML = `<strong>Grund:</strong> ${report.reason}`;
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <strong>Deck:</strong> <span>${quizDeckName}</span><br>
+                <strong>Frage:</strong> <span>${questionText}</span><br>
+                <strong>Gemeldet von:</strong> <span>${reportedBy}</span><br>
+                <strong>Grund:</strong> <span>${reason}</span><br>
+            `;
 
             const editButton = document.createElement('button');
-            editButton.textContent = 'Bearbeiten';
-            editButton.onclick = () => validateQuestion(report._id, 'update', report.questionId?.questionText);
+            editButton.innerHTML = "✏️ Bearbeiten";
+            editButton.addEventListener("click", () => {
+                openEditReportedQuestion(reportId, questionId, questionText, JSON.parse(options), correctOptionIndex);
+            });
 
-            listItem.append(deckName, questionText, reportedBy, reason, editButton);
-            fragment.appendChild(listItem);
+            listItem.appendChild(editButton);
+            reportedQuestionsList.appendChild(listItem);
         });
 
-        reportedQuestionsList.appendChild(fragment);
     } catch (error) {
         console.error('❌ Fehler beim Laden der gemeldeten Fragen:', error);
-        showNotification('Fehler beim Laden der gemeldeten Fragen.');
+        showNotification(`Fehler beim Laden der gemeldeten Fragen: ${error.message}`);
     }
 }
+
+
+
+
+async function validateReportedQuestion() {
+    const reportId = document.getElementById('editReportedReportId').value.trim();
+    const questionId = document.getElementById('editReportedQuestionId').value.trim();
+    
+    const updatedQuestionText = document.getElementById('editReportedQuestionText').value.trim();
+    const updatedOptions = [
+        document.getElementById('editReportedOption1').value.trim(),
+        document.getElementById('editReportedOption2').value.trim(),
+        document.getElementById('editReportedOption3').value.trim(),
+        document.getElementById('editReportedOption4').value.trim()
+    ];
+    const updatedCorrectOption = parseInt(document.getElementById('editReportedCorrectOption').value.trim(), 10);
+
+    if (!reportId || !questionId || !updatedQuestionText || updatedOptions.some(opt => opt === '') || isNaN(updatedCorrectOption) || updatedCorrectOption < 0 || updatedCorrectOption > 3) {
+        alert("⚠️ Bitte fülle alle Felder korrekt aus.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/admin/validate-question', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                reportId,
+                action: 'update',
+                updatedQuestion: updatedQuestionText,
+                updatedOptions,
+                updatedCorrectOption
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message);
+
+        alert("✅ Frage erfolgreich aktualisiert!");
+        document.getElementById('editReportedQuestionSection').style.display = 'none';
+        loadReportedQuestions();
+    } catch (error) {
+        alert(`❌ Fehler: ${error.message}`);
+    }
+}
+
+function openEditReportedQuestion(reportId, questionId, questionText, options, correctIndex) {
+    console.log("Bearbeite gemeldete Frage:", { reportId, questionId, questionText, options, correctIndex });
+
+    document.getElementById('editReportedReportId').value = reportId;
+    document.getElementById('editReportedQuestionId').value = questionId;
+    document.getElementById('editReportedQuestionText').value = questionText;
+
+    if (Array.isArray(options) && options.length === 4) {
+        document.getElementById('editReportedOption1').value = options[0] || '';
+        document.getElementById('editReportedOption2').value = options[1] || '';
+        document.getElementById('editReportedOption3').value = options[2] || '';
+        document.getElementById('editReportedOption4').value = options[3] || '';
+    } else {
+        console.warn("⚠️ Ungültige oder fehlende Antwortoptionen:", options);
+    }
+
+    if (typeof correctIndex === 'number' && correctIndex >= 0 && correctIndex <= 3) {
+        document.getElementById('editReportedCorrectOption').value = correctIndex;
+    } else {
+        console.warn("⚠️ Ungültiger korrekter Index:", correctIndex);
+    }
+
+    document.getElementById('editReportedQuestionSection').style.display = 'block';
+}
+
+
+
+
+function closeEditReportedQuestion() {
+    document.getElementById('editReportedQuestionSection').style.display = 'none';
+}
+
+
+function cancelEditReportedQuestion() {
+    document.getElementById('editReportedQuestionSection').style.display = 'none';
+}
+
+
 
   // Frage validieren (löschen oder bearbeiten)
   function validateQuestion(reportId, action, questionText = '') {

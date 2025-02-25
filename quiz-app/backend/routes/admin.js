@@ -225,15 +225,26 @@ router.post('/report-question', async (req, res) => {
 
 
 // **2. Alle gemeldeten Fragen abrufen**
-// Alle gemeldeten Fragen abrufen (nur Admins)
 router.get('/reported-questions', async (req, res) => {
     try {
         const reports = await ReportedQuestion.find({ status: 'pending' })
-            .populate({ path: 'questionId', select: 'questionText' })
-            .populate({ path: 'quizDeckId', select: 'name' })
-            .populate({ path: 'reportedBy', select: 'username' });
+            .populate({
+                path: 'questionId',
+                select: 'questionText options correctOptionIndex'
+            })
+            .populate({
+                path: 'quizDeckId',
+                select: 'name'
+            })
+            .populate({
+                path: 'reportedBy',
+                model: 'User', // Sicherstellen, dass es aus dem User-Modell kommt
+                select: 'username'
+            });
 
-        res.json(reports.length ? reports : []); // Falls keine vorhanden, leeren Array zurückgeben
+        console.log("🔍 Reports geladen:", JSON.stringify(reports, null, 2));
+
+        res.json(reports.length ? reports : []); 
     } catch (error) {
         console.error('❌ Fehler beim Abrufen der gemeldeten Fragen:', error);
         res.status(500).json({ message: 'Serverfehler beim Abrufen der gemeldeten Fragen' });
@@ -241,33 +252,54 @@ router.get('/reported-questions', async (req, res) => {
 });
 
 
+
+
 // **3. Gemeldete Frage bearbeiten oder löschen**
 router.post('/validate-question', async (req, res) => {
     try {
-        const { reportId, action, updatedQuestion } = req.body;
+        const { reportId, action, updatedQuestion, updatedOptions, updatedCorrectOption } = req.body;
 
+        // 🚨 Validierung: Sind alle notwendigen Daten vorhanden?
         if (!reportId || !action) {
-            return res.status(400).json({ message: 'Report ID und Aktion erforderlich' });
+            return res.status(400).json({ message: '⚠️ Report ID und Aktion erforderlich.' });
         }
 
         const report = await ReportedQuestion.findById(reportId);
         if (!report) {
-            return res.status(404).json({ message: 'Meldung nicht gefunden' });
+            return res.status(404).json({ message: '❌ Meldung nicht gefunden.' });
         }
 
-        // ❌ Nicht löschen, sondern nur den Status aktualisieren
+        // ✅ 1️⃣ Falls Admin die Meldung ohne Änderungen schließt
         if (action === 'resolve') {
             report.status = 'resolved';
             await report.save();
-        } else if (action === 'update' && updatedQuestion) {
-            await Question.findByIdAndUpdate(report.questionId, { questionText: updatedQuestion });
-            report.status = 'resolved';
-            await report.save();
+            return res.json({ message: '✅ Meldung als erledigt markiert.' });
         }
 
-        res.json({ message: '✅ Meldung wurde bearbeitet und als erledigt markiert.' });
+        // ✅ 2️⃣ Falls die Frage **bearbeitet** wird
+        if (action === 'update' && updatedQuestion && Array.isArray(updatedOptions) && updatedOptions.length === 4) {
+            const question = await Question.findById(report.questionId);
+            if (!question) {
+                return res.status(404).json({ message: '❌ Frage nicht gefunden.' });
+            }
+
+            // Aktualisierung der Frage mit allen Details
+            question.questionText = updatedQuestion;
+            question.options = updatedOptions;
+            question.correctOptionIndex = updatedCorrectOption;
+            await question.save();
+
+            // Meldung als erledigt markieren
+            report.status = 'resolved';
+            await report.save();
+
+            return res.json({ message: '✅ Frage erfolgreich aktualisiert und Meldung abgeschlossen.', updatedQuestion: question });
+        }
+
+        res.status(400).json({ message: '⚠️ Ungültige Aktion oder fehlende Daten.' });
+
     } catch (error) {
-        console.error(error);
+        console.error('❌ Fehler beim Verarbeiten der Meldung:', error);
         res.status(500).json({ message: '❌ Serverfehler beim Verarbeiten der Meldung.' });
     }
 });
