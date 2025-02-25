@@ -4,14 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz-App - Anmeldung</title>
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
     <link rel="stylesheet" href="assets/css/style.css">
     <script defer src="assets/js/main.js" defer></script>
 </head>
 <body>
     <div id="gameContainer">
         <div id="home">
-            <h1>Willkommen zur Quiz-App</h1>
-            <p>Bitte melde dich an oder registriere dich, um am Quiz teilzunehmen.</p>
+            <div class="container">
+                <img src="assets/img/logo.png" alt="Quiz-App Logo">
+                <h1>Willkommen zur Quiz-App</h1>
+                <p>Bitte melde dich an oder registriere dich, um am Quiz teilzunehmen.</p>
+            </div>
+            
+            
             <input type="text" id="username" placeholder="Benutzername">
             <input type="password" id="password" placeholder="Passwort">
             <button onclick="login()">Anmelden</button>
@@ -237,4 +243,10 @@
 
 
 </body>
+<footer class="footer">
+    <div class="footer-container">
+        <p>&copy; 2025 Jan Asche. Alle Rechte vorbehalten.</p>
+    </div>
+</footer>
+
 </html>
