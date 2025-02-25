@@ -47,10 +47,51 @@
             <div id="gameModeSelection">
                 <button onclick="selectGameMode('classic')" data-mode="classic">🔵 Klassisch</button>
                 <button onclick="selectGameMode('timeattack')" data-mode="timeattack">⏳ Zeitangriff</button>
+                <button onclick="selectGameMode('shuffle')" data-mode="shuffle">🎲 Shuffle</button>
+                <button onclick="selectGameMode('survival')" data-mode="survival">💀 Überleben</button>
+                <button onclick="selectGameMode('speed')" data-mode="speed">⚡ Blitz</button>
+                <button onclick="selectGameMode('risk')" data-mode="risk">💰 Risiko</button>
+                <button onclick="selectGameMode('endless')" data-mode="endless">♾️ Endlos</button>
             </div>
-        
+
             <button id="readyButton" style="display:none;">Bereit</button>
             <p id="status">Bitte wähle ein Deck und einen Spielmodus.</p>
+
+            <!-- 🏆 Button zum Öffnen der Legende -->
+            <button onclick="openGameRulesModal()">📖 Spielregeln anzeigen</button>
+
+            <!-- 📜 Spielregeln Modal -->
+            <div id="gameRulesModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeGameRulesModal()">&times;</span>
+                    <h2>📜 Spielmodi & Regeln</h2>
+                    <p>Hier findest du die Regeln für alle Spielmodi.</p>
+                    
+                    <h3>🔵 Klassisch</h3>
+                    <p>Beantworte alle Fragen der Reihe nach. Kein Zeitlimit.</p>
+
+                    <h3>⏳ Zeitangriff</h3>
+                    <p>Du hast nur 5 Sekunden pro Frage. Nach Ablauf der Zeit wird automatisch weitergeschaltet.</p>
+
+                    <h3>🎲 Shuffle</h3>
+                    <p>Die Fragen erscheinen in zufälliger Reihenfolge.</p>
+
+                    <h3>💀 Überleben</h3>
+                    <p>Eine falsche Antwort und das Spiel ist vorbei! Versuche, so viele Fragen wie möglich richtig zu beantworten.</p>
+
+                    <h3>⚡ Blitzmodus</h3>
+                    <p>Du hast insgesamt 60 Sekunden für das gesamte Quiz. Je schneller du antwortest, desto mehr Fragen kannst du schaffen.</p>
+
+                    <h3>💰 Risiko</h3>
+                    <p>Setze deine Punkte auf jede Frage: Richtig = doppelte Punkte, falsch = Punkteverlust.</p>
+
+                    <h3>🎭 50:50 Joker</h3>
+                    <p>Einmal pro Spiel kannst du zwei falsche Antworten eliminieren.</p>
+
+                    <h3>♾️ Endlos</h3>
+                    <p>Das Quiz endet nie! Fragen werden nach dem Durchlauf neu gemischt.</p>
+                </div>
+            </div>
         </div>
         
         <!-- ✅ QUIZ-ANSICHT -->

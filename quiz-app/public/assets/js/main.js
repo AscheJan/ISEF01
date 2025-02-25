@@ -78,8 +78,12 @@ const gameState = {
     questionSet: [],
     countdownTimer: null,
     timer: null,
-    countdownValue: 5
+    globalTimer: null,
+    countdownValue: 5,
+    totalTimeLeft: 60, // Für Speed-Modus
+    jokerUsed: false
 };
+
 
 // === Deklariere submitReportButton gleich hier, nachdem der DOM geladen ist ===
 const submitReportButton = document.getElementById("submitReport");
@@ -360,17 +364,16 @@ async function submitReport() {
 }
 
 
-
-
-// ✅ **Spielmodus wählen**
+// ✅ **Spielmodus wählen & UI aktualisieren**
 function selectGameMode(mode) {
     gameState.selectedGameMode = mode;
 
-    // Markiere den ausgewählten Spielmodus visuell
+    // 🔄 Markiere den ausgewählten Spielmodus visuell
     document.querySelectorAll("#gameModeSelection button").forEach(btn => btn.classList.remove("selected"));
     document.querySelector(`#gameModeSelection button[data-mode='${mode}']`)?.classList.add("selected");
 
-    updateReadyButtonState(); // Überprüft, ob der "Bereit"-Button sichtbar sein sollte
+    updateReadyButtonState();
+    console.log(`🎮 Spielmodus geändert zu: ${mode}`);
 }
 
 
@@ -389,64 +392,56 @@ function updateReadyButtonState() {
     }
 }
 
+function resetGameState() {
+    gameState.score = 0;
+    gameState.currentQuestionIndex = 0;
+    gameState.questionSet = [];
+    gameState.jokerUsed = false;
+    stopAllTimers();
+}
+
+function stopAllTimers() {
+    clearInterval(gameState.timer);
+    clearInterval(gameState.countdownTimer);
+    clearInterval(gameState.globalTimer);
+}
 
 
-// ✅ **Spiel starten**
-async function startQuiz() {
-    console.log("🚀 Quiz wird gestartet...");
 
-    if (!gameState.selectedDeck) {
-        showNotification("⚠️ Kein Deck ausgewählt. Bitte wähle zuerst ein Deck!");
-        return;
-    }
+
+// ✅ **Quiz starten (abhängig vom gewählten Modus)**
+function startQuiz() {
+    resetGameState();
+    console.log(`🚀 Quiz startet im Modus: ${gameState.selectedGameMode}`);
 
     document.getElementById("lobby").style.display = "none";
     document.getElementById("quizContainer").style.display = "block";
 
-    gameState.score = 0;
-    gameState.currentQuestionIndex = 0;
-    gameState.questionSet = []; // Setze Fragen zurück
+    loadDeckQuestions(gameState.selectedDeck).then(() => {
+        if (gameState.selectedGameMode === "shuffle") shuffleQuestions();
+        displayQuestion();
 
-    document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
+        // ✅ Zeitangriff-Modus (mit Timer)
+        if (gameState.selectedGameMode === "timeattack") startTimeAttackMode();
 
-    // 🔄 Fragen für das gewählte Deck abrufen und anzeigen
-    await loadDeckQuestions(gameState.selectedDeck);
-}
+        // ✅ Speed-Modus (60 Sekunden Gesamtzeit)
+        if (gameState.selectedGameMode === "speed") startSpeedMode();
 
-// ✅ **Aktuelle Frage anzeigen**
-function displayQuestion() {
-    const questionContainer = document.getElementById("question-container");
-    if (!questionContainer) {
-        console.error("❌ Fehler: `question-container` nicht gefunden!");
-        return;
-    }
+        // ✅ Überlebensmodus (eine falsche Antwort = Ende)
+        if (gameState.selectedGameMode === "survival") console.log("🛡️ Überlebensmodus aktiv!");
 
-    if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
-        endQuiz();
-        return;
-    }
+        // ✅ Endlosmodus (Fragen rotieren weiter, kein Ende)
+        if (gameState.selectedGameMode === "endless") console.log("🔄 Endlosmodus aktiv!");
 
-    const currentQuestion = gameState.questionSet[gameState.currentQuestionIndex];
-
-    // 🧹 Container leeren und neue Frage einfügen
-    questionContainer.innerHTML = `
-        <h2>${currentQuestion.questionText}</h2>
-        <div id="answerOptions"></div>
-        <button class="report-btn" onclick="openReportModal('${currentQuestion._id}', '${gameState.selectedDeck}')">
-            🚨 Frage melden
-        </button>
-    `;
-
-    // Antwortmöglichkeiten hinzufügen
-    const answerOptionsContainer = document.getElementById("answerOptions");
-
-    currentQuestion.options.forEach((option, index) => {
-        const btn = document.createElement("button");
-        btn.innerText = option;
-        btn.onclick = () => checkAnswer(index, currentQuestion.correctOptionIndex);
-        answerOptionsContainer.appendChild(btn);
+        // ✅ Risikomodus (doppelte Punkte oder Punktabzug)
+        if (gameState.selectedGameMode === "risk") console.log("🎲 Risikomodus aktiv!");
     });
 }
+
+
+
+
+
 
 // ✅ **Report-Modal schließen**
 function closeReportModal() {
@@ -492,32 +487,36 @@ async function saveHighscore(deckId, score) {
 async function endQuiz() {
     console.log("🏁 Quiz beendet!");
 
-    const username = localStorage.getItem("username");  // `username` ist jetzt der `userId`
-    const userId = username;  // userId wird jetzt vom `username` gesetzt
+    stopAllTimers(); // Stelle sicher, dass alle Timer gestoppt sind
+
+    const userId = localStorage.getItem("username");
     const deckId = gameState.selectedDeck;
     const score = gameState.score;
 
-    console.log("📤 Highscore wird gespeichert für:", { userId, username, deckId, score });
+    console.log("📤 Highscore wird gespeichert für:", { userId, deckId, score });
 
     if (!userId || !deckId || score === undefined) {
         console.error("❌ Fehlende Daten für Highscore-Speicherung:", { userId, deckId, score });
         return;
     }
 
-    // Speichern des Highscores
     await saveHighscore(deckId, score);
 
-    // ✅ Zeige das Endscreen-Element an
-    document.getElementById("quizContainer").style.display = "none"; // Quiz ausblenden
-    document.getElementById("finalScreen").style.display = "block"; // Endscreen anzeigen
+    const quizContainer = document.getElementById("quizContainer");
+    const finalScreen = document.getElementById("finalScreen");
+    const finalScore = document.getElementById("finalScore");
 
-    // ✅ Punkteanzeige aktualisieren
-    document.getElementById("finalScore").innerText = `🏆 Dein Score: ${score}`;
+    if (!quizContainer || !finalScreen || !finalScore) {
+        console.error("❌ UI-Elemente für Endscreen fehlen!");
+        return;
+    }
 
-    // 📊 Leaderboard für das aktuelle Deck laden
+    quizContainer.style.display = "none"; 
+    finalScreen.style.display = "block"; 
+    finalScore.innerText = `🏆 Dein Score: ${score}`;
+
     await loadLeaderboard(deckId);
 }
-
 
 
 
@@ -578,70 +577,273 @@ async function loadDeckOptions() {
 }
 
     //----------------------------------------------------------------
+// ✅ **Spielregeln anzeigen**
+function openGameRulesModal() {
+    document.getElementById("gameRulesModal").style.display = "block";
+}
+
+// ❌ **Spielregeln schließen**
+function closeGameRulesModal() {
+    document.getElementById("gameRulesModal").style.display = "none";
+}
+
+// 🏠 **Schließen mit Escape-Taste oder Klick außerhalb**
+window.onclick = function(event) {
+    const modal = document.getElementById("gameRulesModal");
+    if (event.target === modal) {
+        closeGameRulesModal();
+    }
+};
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        closeGameRulesModal();
+    }
+});
 
         
+function startCountdown() {
+    let timeLeft = gameState.countdownValue;
+    const statusText = document.getElementById("status");
 
+    statusText.innerText = `Das Quiz startet in ${timeLeft} Sekunden...`;
 
-        function startCountdown() {
-            let timeLeft = gameState.countdownValue;
-            const statusText = document.getElementById("status");
-        
-            if (!statusText) {
-                console.error("❌ Fehler: `statusText` Element nicht gefunden!");
-                return;
-            }
-        
-            statusText.innerText = `Das Quiz startet in ${timeLeft} Sekunden...`;
-        
-            gameState.countdownTimer = setInterval(() => {
-                timeLeft--;
-                statusText.innerText = `Das Quiz startet in ${timeLeft} Sekunden...`;
-        
-                if (timeLeft <= 0) {
-                    clearInterval(gameState.countdownTimer);
-                    startQuiz();
-                }
-            }, 1000);
-        }
-        
-        // 🛑 **Countdown abbrechen**
-        function stopCountdown() {
+    gameState.countdownTimer = setInterval(() => {
+        timeLeft--;
+        statusText.innerText = `Das Quiz startet in ${timeLeft} Sekunden...`;
+
+        if (timeLeft <= 0) {
             clearInterval(gameState.countdownTimer);
+            startQuiz();
         }
+    }, 1000);
+}
+
+function stopCountdown() {
+    clearInterval(gameState.countdownTimer);
+}
+
+function checkAnswer(selectedIndex, correctIndex) {
+    clearInterval(gameState.timer); // ⏳ Stopp den Timer für die aktuelle Frage
+
+    // ✅ 1. Richtige Antwort
+    if (selectedIndex === correctIndex) {
+        gameState.score++;
+        document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
+        gameState.currentQuestionIndex++;
+    } else {
+        console.log("❌ Falsche Antwort!");
+
+        // 🔴 Überlebensmodus: Bei Fehler sofort beenden!
+        if (gameState.selectedGameMode === "survival") {
+            console.log("🛡️ Überlebensmodus: Quiz wird sofort beendet!");
+            stopAllTimers();
+            endQuiz();
+            return;
+        }
+
+        // ⚠️ Risikomodus: Punkte abziehen, falls falsche Antwort
+        if (gameState.selectedGameMode === "risk") {
+            console.log("🎲 Risikomodus: Falsche Antwort -1 Punkt!");
+            gameState.score = Math.max(0, gameState.score - 1);
+            document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
+        }
+    }
+
+    // 🔄 2. Endlosmodus: Falls alle Fragen durch sind → zurücksetzen und weiter
+    if (gameState.selectedGameMode === "endless" && gameState.currentQuestionIndex >= gameState.questionSet.length) {
+        console.log("🔄 Endlosmodus: Neustart der Fragen...");
+        gameState.currentQuestionIndex = 0;
+        shuffleQuestions();
+    }
+
+    // 🚀 3. Falls noch Fragen übrig sind → nächste Frage anzeigen
+    if (gameState.currentQuestionIndex < gameState.questionSet.length) {
+        displayQuestion();
+    } else {
+        console.log("🏁 Keine Fragen mehr. Quiz wird beendet.");
+        endQuiz();
+    }
+}
+
+
+
+// 🎲 **Fragen zufällig mischen**
+function shuffleQuestions() {
+    for (let i = gameState.questionSet.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [gameState.questionSet[i], gameState.questionSet[j]] = [gameState.questionSet[j], gameState.questionSet[i]];
+    }
+    console.log("🔀 Fragen wurden gemischt:", gameState.questionSet);
+}
+
+function checkAnswerSurvival(selectedIndex, correctIndex) {
+    if (selectedIndex === correctIndex) {
+        gameState.score++;
+        document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
+        gameState.currentQuestionIndex++;
+        displayQuestion();
+    } else {
+        console.log("❌ Falsche Antwort! Das Quiz wird jetzt beendet.");
+        stopAllTimers();
+        gameState.currentQuestionIndex = gameState.questionSet.length;
+        endQuiz();
+    }
+}
+
+
+
+
+let totalTimeLeft = 60; // Gesamtzeitlimit für das ganze Quiz
+
+function startSpeedMode() {
+    stopAllTimers(); // Stelle sicher, dass kein anderer Timer läuft!
+    console.log("🚀 Speed-Modus gestartet!");
+
+    gameState.totalTimeLeft = 60; // Setze die Gesamtzeit für das Quiz
+    document.getElementById("totalTimeDisplay").style.display = "block";
+
+    gameState.globalTimer = setInterval(() => {
+        gameState.totalTimeLeft--;
+        document.getElementById("totalTimeDisplay").innerText = `⏳ Zeit: ${gameState.totalTimeLeft}s`;
+
+        if (gameState.totalTimeLeft <= 0) {
+            clearInterval(gameState.globalTimer);
+            console.log("⏳ Zeit abgelaufen. Quiz wird beendet!");
+            endQuiz();
+        }
+    }, 1000);
+}
+
+
+function checkAnswerRisk(selectedIndex, correctIndex) {
+    let riskPoints = 1;
+
+    if (confirm("💰 Möchtest du das Risiko eingehen? Richtige Antwort = 2 Punkte, falsche = -1 Punkt!")) {
+        riskPoints = 2;
+    } else {
+        return;
+    }
+
+    if (selectedIndex === correctIndex) {
+        gameState.score += riskPoints;
+    } else {
+        gameState.score -= 1;
+    }
+
+    document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
+    gameState.currentQuestionIndex++;
+    displayQuestion();
+}
+
+
+
+let jokerUsed = false;
+
+function useFiftyFiftyJoker(currentQuestion) {
+    if (gameState.jokerUsed) {
+        alert("⚠️ Du hast den 50:50 Joker bereits benutzt!");
+        return;
+    }
+
+    gameState.jokerUsed = true;
+    let wrongAnswers = currentQuestion.options
+        .map((option, index) => index !== currentQuestion.correctOptionIndex ? index : null)
+        .filter(index => index !== null);
     
+    let removedIndexes = wrongAnswers.sort(() => 0.5 - Math.random()).slice(0, 2);
     
-        // ✅ **Antwort prüfen**
-        function checkAnswer(selectedIndex, correctIndex) {
-            if (gameState.timer) {
-                clearTimeout(gameState.timer); // ✅ Verhindert "ReferenceError"
-            }
-        
-            if (selectedIndex === correctIndex) {
-                gameState.score++;
-                document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
-            }
-        
+    document.querySelectorAll("#answerOptions button").forEach((btn, index) => {
+        if (removedIndexes.includes(index)) {
+            btn.style.display = "none";
+        }
+    });
+}
+
+function checkAnswerEndless(selectedIndex, correctIndex) {
+    if (selectedIndex === correctIndex) {
+        gameState.score++;
+        document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
+        gameState.currentQuestionIndex++;
+
+        if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
+            console.log("🔄 Alle Fragen beantwortet. Starte von vorne...");
+            gameState.currentQuestionIndex = 0;
+            shuffleQuestions();
+        }
+
+        displayQuestion();
+    }
+}
+
+
+
+function startTimeAttackMode() {
+    stopAllTimers();
+    console.log("🚀 Zeitangriff-Modus gestartet!");
+    displayQuestion();
+}
+
+function startQuestionTimer() {
+    let timeLeft = 5;
+    const timeDisplay = document.getElementById("timeLeft");
+
+    gameState.timer = setInterval(() => {
+        timeLeft--;
+        timeDisplay.innerText = `⏳ Zeit: ${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+            clearInterval(gameState.timer);
             gameState.currentQuestionIndex++;
             displayQuestion();
         }
-        
-    
-        // ⏳ **Time Attack Modus**
-        function startTimeAttackTimer() {
-            let timeLeft = 5;
-            statusText.innerText = `⏳ Zeit: ${timeLeft}s`;
-    
-            timer = setInterval(() => {
-                timeLeft--;
-                statusText.innerText = `⏳ Zeit: ${timeLeft}s`;
-    
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    currentQuestionIndex++;
-                    displayQuestion();
-                }
-            }, 1000);
-        }
+    }, 1000);
+}
+
+
+
+// 🏁 **Frage anzeigen & ggf. Timer starten**
+function displayQuestion() {
+    clearInterval(gameState.timer); // Timer stoppen, um Überschneidungen zu verhindern
+    const questionContainer = document.getElementById("question-container");
+
+    if (!questionContainer) {
+        console.error("❌ Fehler: `question-container` nicht gefunden!");
+        return;
+    }
+
+    if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
+        endQuiz();
+        return;
+    }
+
+    const currentQuestion = gameState.questionSet[gameState.currentQuestionIndex];
+
+    // 🧹 Container leeren & neue Frage einfügen
+    questionContainer.innerHTML = `
+        <h2>${currentQuestion.questionText}</h2>
+        <div id="answerOptions"></div>
+        <p id="timeLeft" class="timer">⏳ Zeit: 5s</p>
+    `;
+
+    // Antwortmöglichkeiten hinzufügen
+    const answerOptionsContainer = document.getElementById("answerOptions");
+
+    currentQuestion.options.forEach((option, index) => {
+        const btn = document.createElement("button");
+        btn.innerText = option;
+        btn.onclick = () => checkAnswer(index, currentQuestion.correctOptionIndex);
+        answerOptionsContainer.appendChild(btn);
+    });
+
+    // Falls "Zeitangriff"-Modus aktiv ist, Timer starten
+    if (gameState.selectedGameMode === "timeattack") {
+        startQuestionTimer();
+    }
+}
+
+
+
     
 
     // 📊 Leaderboard für das aktuelle Deck laden
@@ -1036,7 +1238,7 @@ async function loadDeckQuestionsAndDisplay(deckId) {
 
             // ✏️ Bearbeiten-Button
             const editButton = document.createElement('button');
-            editButton.innerHTML = "✏️ Bearbeiten";
+            editButton.innerHTML = "✏️";
             editButton.classList.add('edit-btn');
             editButton.addEventListener('click', () => 
                 openEditQuestionModal(question._id, question.questionText, question.options, question.correctOptionIndex)
@@ -1044,7 +1246,7 @@ async function loadDeckQuestionsAndDisplay(deckId) {
 
             // 🗑 Löschen-Button (falls benötigt)
             const deleteButton = document.createElement('button');
-            deleteButton.innerHTML = "🗑 Löschen";
+            deleteButton.innerHTML = "🗑";
             deleteButton.classList.add('delete-btn');
             deleteButton.addEventListener('click', async () => {
                 await deleteQuestion(question._id, deckId);
@@ -1122,13 +1324,13 @@ async function loadAdminQuestions() {
 
             // ✏️ Bearbeiten-Button
             const editButton = document.createElement('button');
-            editButton.innerHTML = "✏️ Bearbeiten";
+            editButton.innerHTML = "✏️";
             editButton.classList.add('edit-btn');
             editButton.addEventListener('click', () => openEditQuestionModal(question._id, question.questionText, question.options, question.correctOptionIndex));
 
             // 🗑 Löschen-Button
             const deleteButton = document.createElement('button');
-            deleteButton.innerHTML = "🗑 Löschen";
+            deleteButton.innerHTML = "🗑";
             deleteButton.classList.add('delete-btn');
             deleteButton.addEventListener('click', async () => {
                 await deleteQuestion(question._id, selectedDeck);
@@ -1593,7 +1795,7 @@ function generateRoomCode() {
             listItem.innerText = deck.name;
             listItem.addEventListener('click', () => loadDeckQuestions(deck._id));
             const deleteButton = document.createElement('button');
-            deleteButton.innerText = "🗑 Löschen";
+            deleteButton.innerText = "🗑";
             deleteButton.addEventListener('click', async (event) => {
                 event.stopPropagation(); // Verhindert, dass der Klick auch das Deck lädt
                 await deleteDeck(deck._id);
