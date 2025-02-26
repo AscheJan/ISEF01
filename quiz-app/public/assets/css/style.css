@@ -11,6 +11,23 @@ body {
     align-items: center;
     height: 100vh;
 }
+
+/* ✅ Richtige Antwort: Leicht aufleuchten */
+@keyframes correctFlash {
+    0% { background-color: #28a745; transform: scale(1); }
+    50% { background-color: #34d058; transform: scale(1.05); }
+    100% { background-color: #28a745; transform: scale(1); }
+}
+
+/* ❌ Falsche Antwort: Leichtes Wackeln */
+@keyframes incorrectShake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
 /* 🎮 Quiz-Container */
 #gameContainer {
     display: flex;
@@ -177,17 +194,19 @@ body {
 /* 📜 Modal-Inhalt */
 .modal-content {
     background-color: #ffffff;
+    z-index: 1100;
     padding: 24px;
     margin: 5% auto;
     width: 90%;
     max-width: 600px;
-    max-height: 80vh;
+    max-height: 28vh;
     overflow-y: auto;
     border-radius: 12px;
     text-align: center;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     animation: fadeIn 0.3s ease-in-out;
 }
+
 
 /* ❌ Schließen-Button */
 .close {
@@ -299,6 +318,9 @@ body {
         text-align: center;
     }
 }
+
+
+
 
 /* Lobby-Container */
 #lobby {
@@ -883,6 +905,9 @@ button {
         font-size: 14px;
     }
 }
+
+
+
 
 
 

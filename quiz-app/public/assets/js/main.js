@@ -620,12 +620,47 @@ function stopCountdown() {
     clearInterval(gameState.countdownTimer);
 }
 
+
 function checkAnswer(selectedIndex, correctIndex) {
     clearInterval(gameState.timer); // ⏳ Stopp den Timer für die aktuelle Frage
 
+    const answerButtons = document.querySelectorAll("#answerOptions button");
+
+    if (!answerButtons || answerButtons.length === 0) {
+        console.error("❌ Fehler: Antwort-Buttons nicht gefunden!");
+        return;
+    }
+
+    // 🔇 (Optional) Sounds abspielen
+    const correctSound = new Audio("sounds/correct.mp3"); // 🎵 Richtig
+    const incorrectSound = new Audio("sounds/incorrect.mp3"); // ❌ Falsch
+
+    // 🚀 Buttons deaktivieren, damit nicht mehrfach geklickt werden kann
+    answerButtons.forEach(btn => btn.disabled = true);
+
+    // ✅ Korrekte Antwort markieren
+    answerButtons.forEach((btn, index) => {
+        if (index === correctIndex) {
+            btn.style.backgroundImage = "linear-gradient(135deg, #28a745, #1e7e34)"; // Grün
+            btn.style.color = "white";
+            btn.style.border = "2px solid #155d27";
+            btn.style.animation = "correctFlash 0.3s ease-in-out";
+            correctSound.play(); // ✅ Sound abspielen
+        }
+
+        if (index === selectedIndex && selectedIndex !== correctIndex) {
+            // ❌ Falsche Antwort markieren
+            btn.style.backgroundImage = "linear-gradient(135deg, #dc3545, #a71d2a)"; // Rot
+            btn.style.color = "white";
+            btn.style.border = "2px solid #6a121b";
+            btn.style.animation = "incorrectShake 0.3s ease-in-out";
+            incorrectSound.play(); // ❌ Sound abspielen
+        }
+    });
+
+    // 🔥 Punktesystem aktualisieren
     if (selectedIndex === correctIndex) {
         gameState.score++;
-        document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
     } else {
         console.log("❌ Falsche Antwort! Nächste Frage wird geladen.");
 
@@ -637,32 +672,45 @@ function checkAnswer(selectedIndex, correctIndex) {
             return;
         }
 
-        // ⚠️ Risikomodus: Punkte abziehen, falls falsche Antwort
+        // ⚠️ Risikomodus: Punkte abziehen
         if (gameState.selectedGameMode === "risk") {
             console.log("🎲 Risikomodus: Falsche Antwort -1 Punkt!");
             gameState.score = Math.max(0, gameState.score - 1);
-            document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
         }
     }
 
-    // 🔄 1. Nächste Frage laden, unabhängig von richtig oder falsch
-    gameState.currentQuestionIndex++;
+    document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
 
-    // 🔄 2. Endlosmodus: Falls alle Fragen durch sind → zurücksetzen und weiter
-    if (gameState.selectedGameMode === "endless" && gameState.currentQuestionIndex >= gameState.questionSet.length) {
-        console.log("🔄 Endlosmodus: Neustart der Fragen...");
-        gameState.currentQuestionIndex = 0;
-        shuffleQuestions();
-    }
+    // ⏳ Warte 3 Sekunden, bevor zur nächsten Frage gewechselt wird
+    setTimeout(() => {
+        // 🔄 Reset Button-Designs
+        answerButtons.forEach(btn => {
+            btn.style.backgroundImage = "";
+            btn.style.color = "";
+            btn.style.border = "";
+            btn.style.animation = "";
+            btn.disabled = false; // Reaktivieren
+        });
 
-    // 🚀 3. Falls noch Fragen übrig sind → nächste Frage anzeigen
-    if (gameState.currentQuestionIndex < gameState.questionSet.length) {
-        displayQuestion();
-    } else {
-        console.log("🏁 Keine Fragen mehr. Quiz wird beendet.");
-        endQuiz();
-    }
+        gameState.currentQuestionIndex++;
+
+        // 🔄 Endlosmodus: Falls alle Fragen durch sind → zurücksetzen
+        if (gameState.selectedGameMode === "endless" && gameState.currentQuestionIndex >= gameState.questionSet.length) {
+            console.log("🔄 Endlosmodus: Neustart der Fragen...");
+            gameState.currentQuestionIndex = 0;
+            shuffleQuestions();
+        }
+
+        // 🚀 Falls noch Fragen übrig sind → nächste Frage anzeigen
+        if (gameState.currentQuestionIndex < gameState.questionSet.length) {
+            displayQuestion();
+        } else {
+            console.log("🏁 Keine Fragen mehr. Quiz wird beendet.");
+            endQuiz();
+        }
+    }, 3000);
 }
+
 
 
 
