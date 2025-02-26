@@ -1815,7 +1815,6 @@ function cancelEditReportedQuestion() {
 
   let currentRoom = null;
   let currentUser = null;
-  let isHost = false;
   let hostUsername = null;
 
   let gameMode = null;
@@ -1988,3 +1987,399 @@ function generateRoomCode() {
         notification.remove();
     }, duration);
 }
+
+
+
+//socket IO
+
+const socket = io();
+let playerId = Math.random().toString(36).substr(2, 9);
+let isMultiplayer = false;
+let isHost = false;
+
+function openJoinGameModal() {
+    document.getElementById("joinGameModal").style.display = "block";
+}
+
+function closeJoinGameModal() {
+    document.getElementById("joinGameModal").style.display = "none";
+}
+
+// DOM-Elemente holen
+const leaveButton = document.getElementById("leaveButton");
+
+// Sicherstellen, dass der Button versteckt ist, bevor er gebraucht wird
+leaveButton.style.display = "none";
+
+// Spieler tritt Multiplayer bei
+function joinMultiplayer() {
+    isMultiplayer = true;
+
+    // Überprüfen, ob der Button existiert und anzeigen
+    if (leaveButton) {
+        leaveButton.style.display = "block";
+    }
+
+    socket.emit("joinLobby", { playerId });
+}
+
+// Spieler verlässt Multiplayer-Lobby
+leaveButton.addEventListener("click", () => {
+    console.log("🔴 Spieler verlässt die Lobby...");
+    socket.emit("leaveLobby", { playerId, roomCode: currentRoom });
+});
+
+// Lobby aktualisieren
+socket.on("updateLobby", (players) => {
+    updatePlayers(players); // Verwenden wir eine einheitliche Funktion!
+    checkIfHost(players);
+});
+
+// 🏆 Spieler-Liste aktualisieren
+// 🏆 Spieler-Liste aktualisieren
+function updatePlayers(players, host) {
+    let playerList = document.getElementById("playerList"); 
+    if (!playerList) {
+        console.error("❌ Fehler: `playerList` nicht gefunden!");
+        return;
+    }
+
+    playerList.innerHTML = ""; // 🧹 Liste leeren
+
+    players.forEach((player) => {
+        let li = document.createElement("li");
+        let playerName = player.name || `Spieler ${player.id.substring(0, 5)}`;
+
+        // **Nur wenn Multiplayer: Host anzeigen**
+        if (players.length > 1 && host && player.id === host.id) {
+            li.textContent = `👑 ${playerName} (Host)`;
+        } else {
+            li.textContent = `👤 ${playerName}`;
+        }
+
+        playerList.appendChild(li);
+    });
+
+    // Host-Status anzeigen
+    let statusText = document.getElementById("lobbyStatus");
+    if (!statusText) return;
+
+    if (players.length > 1 && host) {
+        statusText.textContent = `👑 ${host.username} ist der Host`;
+    } else {
+        statusText.textContent = `🕹️ Einzelspieler-Modus`;
+    }
+}
+
+
+
+// 🏆 Neuen Host bestimmen
+function checkIfHost(players) {
+    let currentPlayer = players.find(p => p.id === playerId);
+    let lobbyStatusElement = document.getElementById("lobbyStatus");
+
+    if (!lobbyStatusElement) {
+        console.error("❌ Fehler: `lobbyStatus` nicht gefunden!");
+        return;
+    }
+
+    if (currentPlayer && currentPlayer.isHost) {
+        isHost = true;
+        lobbyStatusElement.textContent = "Du bist der Host!";
+    } else {
+        isHost = false;
+        lobbyStatusElement.textContent = "Wartelobby";
+    }
+}
+
+
+// Spieler verlässt die Lobby
+socket.on("playerLeft", (players) => {
+    if (!players.some(p => p.id === playerId)) {
+        isMultiplayer = false;
+        
+        // Button ausblenden
+        if (leaveButton) {
+            leaveButton.style.display = "none";
+        }
+    }
+});
+
+// Automatisch neuen Host bestimmen
+socket.on("newHost", (newHostId) => {
+    if (playerId === newHostId) {
+        isHost = true;
+        document.getElementById("lobbyStatus").textContent = "Du bist der neue Host!";
+    }
+});
+
+
+// 🏆 Deck-Auswahl senden
+document.getElementById("selectDeck").addEventListener("change", function () {
+    let selectedDeckId = this.value;
+    let selectedDeckName = deckNames[selectedDeckId] || "Unbekanntes Deck";
+
+    if (selectedDeckId && currentRoom) {
+        console.log(`📖 Deck gewählt: ${selectedDeckName}`);
+        socket.emit("selectDeck", { roomCode: currentRoom, playerId, deckId: selectedDeckId });
+    }
+});
+
+// 🎮 Deck-Auswahl für alle Spieler aktualisieren
+socket.on("updateDeckSelection", (players) => {
+    let deckList = document.getElementById("multiplayerDeckList");
+    let statusDeck = document.getElementById("statusDeck");
+    if (!deckList || !statusDeck) return;
+
+    deckList.innerHTML = ""; // Liste leeren
+    players.forEach(player => {
+        let deckName = deckNames[player.deckId] || "Noch kein Deck gewählt";
+        let li = document.createElement("li");
+        li.textContent = `${player.username}: ${deckName}`;
+        deckList.appendChild(li);
+
+        // Falls der aktuelle Spieler betroffen ist, Status aktualisieren
+        if (player.id === playerId) {
+            statusDeck.textContent = `📖 Dein gewähltes Deck: ${deckName}`;
+        }
+    });
+});
+
+
+
+function setReady() {
+    if (!currentRoom) return;
+    socket.emit("playerReady", { roomCode: currentRoom, playerId });
+}
+
+// Event: Bereitschaft aktualisieren
+socket.on("updateReadyStatus", ({ players }) => {
+    let readyList = document.getElementById("readyStatus");
+    readyList.innerHTML = "";
+
+    players.forEach(player => {
+        let li = document.createElement("li");
+        li.textContent = `${player.username} - ${player.isReady ? "✅ Bereit" : "❌ Warten..."}`;
+        readyList.appendChild(li);
+    });
+});
+
+// Event: Spiel kann starten
+socket.on("gameCanStart", () => {
+    document.getElementById("startGameBtn").style.display = "block";
+});
+
+
+// Automatisch Raum erstellen, wenn sich der Benutzer verbindet
+socket.on("connect", () => {
+    console.log("✅ Verbunden mit Server:", socket.id);
+    
+    let username = localStorage.getItem("username") || prompt("Bitte gib deinen Namen ein:");
+    localStorage.setItem("username", username);
+    
+    autoCreateRoom(username);
+});
+
+// Funktion zur automatischen Raumerstellung mit Namen
+function autoCreateRoom(username) {
+    socket.emit("createRoom", username);
+}
+
+
+// Event: Raum wurde erstellt → Spieler beitritt automatisch
+socket.on("roomCreated", (data) => {
+    currentRoom = data.roomCode;
+    isHost = true; // Spieler ist der Host
+
+    console.log("🎮 Raum erstellt:", currentRoom);
+
+    setTimeout(() => {
+        let roomCodeElement = document.getElementById("roomCode");
+        if (roomCodeElement) {
+            roomCodeElement.innerText = `Raumcode: ${currentRoom}`;
+        }
+
+        let lobbyElement = document.getElementById("lobby");
+        if (lobbyElement) {
+            lobbyElement.style.display = "block";
+        }
+
+        let startGameBtn = document.getElementById("startGameBtn");
+        if (startGameBtn) {
+            startGameBtn.style.display = "block"; // Host sieht den Button
+        }
+
+    }, 100);
+});
+
+socket.on("updatePlayers", ({ players, host }) => {
+    console.log("🔄 Spieler-Liste aktualisiert:", players, "Host:", host);
+
+    const playerList = document.getElementById("playerList");
+    const statusText = document.getElementById("status");
+
+    if (!playerList || !statusText) {
+        console.error("❌ Fehler: `playerList` oder `status` nicht gefunden!");
+        return;
+    }
+
+    // 🧹 Liste leeren
+    playerList.innerHTML = "";
+
+    // 🎮 **Host immer anzeigen**
+    const hostUsername = host?.username || "Unbekannter Host";
+    console.log("👑 Host:", hostUsername);
+
+    // 🕹️ Einzelspieler-Modus
+    if (players.length === 1) {
+        statusText.innerText = `🕹️ Einzelspieler-Modus (Host: ${hostUsername})`;
+
+        const hostElement = document.createElement("li");
+        hostElement.innerText = `${hostUsername}`;
+        playerList.appendChild(hostElement);
+        return;
+    }
+
+    // 🎮 Multiplayer-Modus → Host zuerst anzeigen
+    statusText.innerText = `👥 Spieler im Raum: ${players.length} (Host: ${hostUsername})`;
+    
+    const hostElement = document.createElement("li");
+    hostElement.innerText = `👑 ${hostUsername} (Host)`;
+    playerList.appendChild(hostElement);
+
+    // 🔄 Restliche Spieler (außer Host) hinzufügen
+    players.forEach(player => {
+        if (player.username !== hostUsername) {
+            const playerElement = document.createElement("li");
+            playerElement.innerText = `👤 ${player.username}`;
+            playerList.appendChild(playerElement);
+        }
+    });
+});
+
+
+
+
+
+function joinGame() {
+    let roomCode = document.getElementById("roomCodeInput").value.trim();
+    let username = localStorage.getItem("username") || prompt("Bitte gib deinen Namen ein:");
+
+    if (!roomCode || !username) {
+        alert("❌ Bitte Raumcode und Namen eingeben!");
+        return;
+    }
+
+    localStorage.setItem("username", username);
+
+    console.log(`🔗 ${username} tritt Raum ${roomCode} bei...`);
+    socket.emit("joinRoom", { roomCode, username });
+}
+
+
+// Event: Erfolgreicher Beitritt
+socket.on("roomJoined", (data) => {
+    console.log("✅ Raum beigetreten:", data.roomCode);
+    currentRoom = data.roomCode;
+
+    if (data.isSingleplayer) {
+        console.log("🕹️ Einzelspieler-Modus erkannt!");
+        document.getElementById("status").innerText = "🕹️ Einzelspieler-Modus aktiviert!";
+    } else {
+        document.getElementById("status").innerText = `👥 Spieler im Raum: ${data.players.length}`;
+        updatePlayers(data.players); // Falls Multiplayer, zeige Liste an
+    }
+
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("lobby").style.display = "block";
+    document.getElementById("roomCode").innerText = `Raumcode: ${currentRoom}`;
+});
+
+
+function updatePlayers(players) {
+    console.log("🔄 Spieler aktualisieren:", players);
+    
+    const playerList = document.getElementById("playerList");
+    if (!playerList) {
+        console.error("❌ Fehler: `playerList` nicht gefunden!");
+        return;
+    }
+
+    // 🧹 Liste leeren
+    playerList.innerHTML = "";
+
+    players.forEach(player => {
+        const playerElement = document.createElement("li");
+        playerElement.innerText = player.username + (player.isHost ? " (Host)" : "");
+        playerList.appendChild(playerElement);
+    });
+}
+
+
+// Event: Fehler beim Beitreten
+socket.on("error", (message) => {
+    alert(message);
+});
+
+
+
+
+// Event: Fehler bei Raumbeitritt
+socket.on("error", (message) => {
+    alert(message);
+});
+
+
+// Event: Alle Spieler sind bereit → Spiel kann starten
+socket.on("gameCanStart", () => {
+    document.getElementById("readyBtn").style.display = "none";
+    socket.emit("startGame", currentRoom);
+});
+
+// Event: Spielstart
+socket.on("gameStarted", () => {
+    document.getElementById("lobby").style.display = "none";
+    document.getElementById("quizContainer").style.display = "block";
+});
+
+// Event: Neue Frage anzeigen
+socket.on("newQuestion", (question) => {
+    document.getElementById("questionText").innerText = question.text;
+    let optionsContainer = document.getElementById("answerOptions");
+    optionsContainer.innerHTML = "";
+
+    question.options.forEach((option, index) => {
+        let btn = document.createElement("button");
+        btn.innerText = option;
+        btn.onclick = () => sendAnswer(question.id, index);
+        optionsContainer.appendChild(btn);
+    });
+});
+
+// Funktion: Antwort senden
+function sendAnswer(questionId, answerIndex) {
+    socket.emit("answer", { roomCode: currentRoom, questionId, answerIndex, playerId: socket.id });
+}
+
+// Event: Punkte aktualisieren
+socket.on("updateScores", (scores) => {
+    let scoreDisplay = document.getElementById("scoreDisplay");
+    scoreDisplay.innerHTML = "🏆 Punktestand:<br>";
+    for (let player in scores) {
+        scoreDisplay.innerHTML += `${player}: ${scores[player]} Punkte<br>`;
+    }
+});
+
+// Event: Spielende & Ergebnisse anzeigen
+socket.on("gameOver", (finalScores) => {
+    document.getElementById("quizContainer").style.display = "none";
+    document.getElementById("finalScreen").style.display = "block";
+    let finalScoreText = document.getElementById("finalScore");
+    finalScoreText.innerHTML = "🏆 Endergebnis:<br>";
+
+    Object.entries(finalScores)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([player, score]) => {
+            finalScoreText.innerHTML += `${player}: ${score} Punkte<br>`;
+        });
+});
