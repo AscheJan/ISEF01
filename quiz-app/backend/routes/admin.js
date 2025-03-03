@@ -185,6 +185,8 @@ router.delete('/delete-question/:questionId', async (req, res) => {
 
 
 // **1. Frage melden**
+let reportedQuestions = new Set(); // Speichert bereits gemeldete Fragen
+
 router.post('/report-question', async (req, res) => {
     try {
         let { questionId, quizDeckId, reportedBy, reason } = req.body;
@@ -194,6 +196,13 @@ router.post('/report-question', async (req, res) => {
         if (!questionId || !quizDeckId || !reportedBy || !reason) {
             console.log("❌ Fehlende Daten:", { questionId, quizDeckId, reportedBy, reason });
             return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
+        }
+
+        // Überprüfen, ob die Frage bereits gemeldet wurde
+        const existingReport = await ReportedQuestion.findOne({ questionId });
+        if (existingReport) {
+            console.log("⚠️ Diese Frage wurde bereits gemeldet.");
+            return res.status(400).json({ message: 'Diese Frage wurde bereits gemeldet.' });
         }
 
         // ✅ Falls `reportedBy` ein Benutzername ist, suche die User-ID
@@ -214,7 +223,6 @@ router.post('/report-question', async (req, res) => {
         await report.save();
         console.log("✅ Frage erfolgreich gemeldet!");
         res.json({ message: '✅ Frage wurde erfolgreich gemeldet!' });
-
     } catch (error) {
         console.error('❌ Fehler beim Melden der Frage:', error);
         res.status(500).json({ message: 'Serverfehler beim Melden der Frage' });
@@ -259,7 +267,6 @@ router.post('/validate-question', async (req, res) => {
     try {
         const { reportId, action, updatedQuestion, updatedOptions, updatedCorrectOption } = req.body;
 
-        // 🚨 Validierung: Sind alle notwendigen Daten vorhanden?
         if (!reportId || !action) {
             return res.status(400).json({ message: '⚠️ Report ID und Aktion erforderlich.' });
         }
@@ -271,9 +278,8 @@ router.post('/validate-question', async (req, res) => {
 
         // ✅ 1️⃣ Falls Admin die Meldung ohne Änderungen schließt
         if (action === 'resolve') {
-            report.status = 'resolved';
-            await report.save();
-            return res.json({ message: '✅ Meldung als erledigt markiert.' });
+            await ReportedQuestion.findByIdAndDelete(reportId);
+            return res.json({ message: '✅ Meldung als erledigt entfernt.' });
         }
 
         // ✅ 2️⃣ Falls die Frage **bearbeitet** wird
@@ -289,15 +295,13 @@ router.post('/validate-question', async (req, res) => {
             question.correctOptionIndex = updatedCorrectOption;
             await question.save();
 
-            // Meldung als erledigt markieren
-            report.status = 'resolved';
-            await report.save();
+            // Meldung entfernen
+            await ReportedQuestion.findByIdAndDelete(reportId);
 
-            return res.json({ message: '✅ Frage erfolgreich aktualisiert und Meldung abgeschlossen.', updatedQuestion: question });
+            return res.json({ message: '✅ Frage erfolgreich aktualisiert und Meldung entfernt.', updatedQuestion: question });
         }
 
         res.status(400).json({ message: '⚠️ Ungültige Aktion oder fehlende Daten.' });
-
     } catch (error) {
         console.error('❌ Fehler beim Verarbeiten der Meldung:', error);
         res.status(500).json({ message: '❌ Serverfehler beim Verarbeiten der Meldung.' });
