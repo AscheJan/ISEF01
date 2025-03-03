@@ -47,7 +47,6 @@ body {
     max-width: 1200px;
     height: 90vh;
     max-height: 90vh;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(18px);
     transition: all 0.4s ease-in-out;
     overflow-y: auto;
@@ -66,7 +65,6 @@ body {
     padding: 20px;
     border-radius: 14px;
     background: rgba(248, 249, 250, 0.97);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
     backdrop-filter: blur(14px);
 }

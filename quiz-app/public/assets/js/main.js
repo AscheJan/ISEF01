@@ -1001,24 +1001,46 @@ function displayQuestion() {
     });
   }
 
-  function register() {
-    const newUsername = document.getElementById('newUsername').value;
-    const newPassword = document.getElementById('newPassword').value;
-    fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: newUsername, password: newPassword })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === 'Registrierung erfolgreich') {
-            showNotification('Registrierung erfolgreich! Bitte melde dich an.');
-            showLogin();
-        } else {
-            document.getElementById('registerError').innerText = data.message;
+  async function register() {
+    const newUsername = document.getElementById('newUsername').value.trim();
+    const newEmail = document.getElementById('newEmail').value.trim();
+    const newPassword = document.getElementById('newPassword').value.trim();
+
+    // **Frontend-Validierung: Prüfen, ob die E-Mail erlaubt ist**
+    const allowedDomain = "@iu-study.org";
+    if (!newEmail.endsWith(allowedDomain)) {
+        showError(`❌ Bitte nutze eine gültige ${allowedDomain}-E-Mail-Adresse.`);
+        return;
+    }
+
+    if (!newUsername || !newEmail || !newPassword) {
+        showError("❌ Bitte fülle alle Felder aus.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: newUsername, email: newEmail, password: newPassword })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message);
         }
-    });
-  }
+
+        showNotification("✅ Registrierung erfolgreich! Bitte melde dich an.");
+        showLogin(); // Zurück zur Anmeldung navigieren
+    } catch (error) {
+        console.error("❌ Fehler bei der Registrierung:", error);
+        showNotification("❌ Registrierung fehlgeschlagen.");
+        showError(error.message);
+    }
+}
+
+
+
 
   function showRegister() {
     document.getElementById('home').style.display = 'none';
@@ -1026,21 +1048,20 @@ function displayQuestion() {
   }
 
   async function login() {
-    const username = document.getElementById("username").value.trim();
+    const identifier = document.getElementById("username").value.trim(); // Kann Username oder E-Mail sein
     const password = document.getElementById("password").value.trim();
 
-    if (!username || !password) {
-        return showError("⚠️ Bitte Benutzername und Passwort eingeben.");
+    if (!identifier || !password) {
+        return showError("⚠️ Bitte Benutzername/E-Mail und Passwort eingeben.");
     }
 
     try {
         const response = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username: identifier, email: identifier, password })
         });
 
-        // Prüfen, ob die Antwort wirklich JSON ist
         const responseText = await response.text();
         let data;
         try {
@@ -1053,22 +1074,18 @@ function displayQuestion() {
             throw new Error(data.message || "Login fehlgeschlagen.");
         }
 
-        if (data.userId) {
-            localStorage.setItem("userId", data.userId);
-        } else {
-            console.warn("⚠️ userId fehlt in der Server-Antwort!");
-        }
-
         localStorage.setItem("token", data.token);
-        localStorage.setItem("username", data.username || username);
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("email", data.email); // 🆕 E-Mail speichern
+        console.log("✅ Login erfolgreich!");
 
-        console.log("✅ Login erfolgreich! Benutzer:", username, "UserID:", data.userId);
         window.location.reload();
     } catch (error) {
         console.error("❌ Fehler beim Login:", error);
         showError(error.message);
     }
-  }
+}
+
 
 
 
@@ -2120,41 +2137,46 @@ socket.on("newHost", (newHostId) => {
 
 document.getElementById("selectDeck").addEventListener("change", function () {
     let selectedDeckId = this.value;
-    let selectedDeckName = selectedDeckId || "Unbekanntes Deck";
-
     if (selectedDeckId) {
-        console.log(`📖 Deck gewählt: ${selectedDeckName}`);
-
-        // 🏆 Deck-Fragen laden
-        loadDeckQuestions(selectedDeckId);
-
-        // 📡 Falls der Nutzer in einem Raum ist, Deck-Auswahl senden
-        if (currentRoom) {
-            socket.emit("selectDeck", { roomCode: currentRoom, playerId, deckId: selectedDeckId });
-        }
+        console.log(`📖 Deck gewählt: ${selectedDeckId}`);
+        gameState.selectedDeck = selectedDeckId;
+        socket.emit("selectDeck", { roomCode: currentRoom, deckId: selectedDeckId });
     }
 });
 
+socket.on("updateDeckSelection", (deckId) => {
+    document.getElementById("statusDeck").innerText = `📖 Gewähltes Deck: ${deckId}`;
+});
 
-// 🎮 Deck-Auswahl für alle Spieler aktualisieren
-socket.on("updateDeckSelection", (players) => {
-    let deckList = document.getElementById("multiplayerDeckList");
-    let statusDeck = document.getElementById("statusDeck");
-    if (!deckList || !statusDeck) return;
-
-    deckList.innerHTML = ""; // Liste leeren
-    players.forEach(player => {
-        let deckName = deckNames[player.deckId] || "Noch kein Deck gewählt";
-        let li = document.createElement("li");
-        li.textContent = `${player.username}: ${deckName}`;
-        deckList.appendChild(li);
-
-        // Falls der aktuelle Spieler betroffen ist, Status aktualisieren
-        if (player.id === playerId) {
-            statusDeck.textContent = `📖 Dein gewähltes Deck: ${deckName}`;
-        }
+// 🎮 Spielmodus synchronisieren
+document.querySelectorAll("#gameModeSelection button").forEach(button => {
+    button.addEventListener("click", function () {
+        const mode = this.getAttribute("data-mode");
+        gameState.selectedGameMode = mode;
+        console.log(`🎮 Spielmodus gewählt: ${mode}`);
+        socket.emit("selectGameMode", { roomCode: currentRoom, gameMode: mode });
     });
 });
+
+// 🏁 Server informiert alle Spieler, dass Deck & Modus gewählt wurden
+socket.on("allSelectionsMade", ({ deck, mode }) => {
+    console.log(`✅ Alle Auswahlen getroffen: Deck - ${deck}, Modus - ${mode}`);
+
+    let statusText = document.getElementById("status");
+    if (statusText) {
+        statusText.innerText = `📖 Gewähltes Deck: ${deck} | 🎮 Spielmodus: ${mode}`;
+    }
+
+    let readyButton = document.getElementById("readyButton");
+    if (readyButton) {
+        readyButton.style.display = "block";
+    }
+});
+
+socket.on("updateGameModeSelection", (gameMode) => {
+    document.getElementById("statusGameMode").innerText = `🎮 Spielmodus: ${gameMode}`;
+});
+
 
 
 
@@ -2163,17 +2185,20 @@ function setReady() {
     socket.emit("playerReady", { roomCode: currentRoom, playerId });
 }
 
-// Event: Bereitschaft aktualisieren
-socket.on("updateReadyStatus", ({ players }) => {
-    let readyList = document.getElementById("readyStatus");
-    readyList.innerHTML = "";
+document.getElementById("readyButton").addEventListener("click", function () {
+    socket.emit("playerReady", { roomCode: currentRoom, playerId });
+});
 
+socket.on("updateReadyStatus", (players) => {
+    let readyStatusList = document.getElementById("readyStatus");
+    readyStatusList.innerHTML = "";
     players.forEach(player => {
         let li = document.createElement("li");
-        li.textContent = `${player.username} - ${player.isReady ? "✅ Bereit" : "❌ Warten..."}`;
-        readyList.appendChild(li);
+        li.innerText = `${player.username}: ${player.isReady ? "✅ Bereit" : "⏳ Warten..."}`;
+        readyStatusList.appendChild(li);
     });
 });
+
 
 // Event: Spiel kann starten
 socket.on("gameCanStart", () => {
@@ -2361,17 +2386,26 @@ socket.on("error", (message) => {
 });
 
 
-// Event: Alle Spieler sind bereit → Spiel kann starten
-socket.on("gameCanStart", () => {
-    document.getElementById("readyBtn").style.display = "none";
-    socket.emit("startGame", currentRoom);
-});
+
 
 // Event: Spielstart
-socket.on("gameStarted", () => {
+socket.on("gameStarted", ({ questions }) => {
     document.getElementById("lobby").style.display = "none";
     document.getElementById("quizContainer").style.display = "block";
 });
+
+function endGame() {
+    socket.emit("endGame", currentRoom);
+}
+
+socket.on("returnToLobby", () => {
+    document.getElementById("quizContainer").style.display = "none";
+    document.getElementById("lobby").style.display = "block";
+
+    // Setze "Bereit"-Status zurück
+    document.getElementById("readyButton").innerText = "Bereit";
+});
+
 
 // Event: Neue Frage anzeigen
 socket.on("newQuestion", (question) => {

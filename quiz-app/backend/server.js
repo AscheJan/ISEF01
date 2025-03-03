@@ -50,8 +50,8 @@ io.on("connection", (socket) => {
 
 
     socket.on("startGame", async (roomCode) => {
-        if (!rooms[roomCode] || rooms[roomCode].host !== socket.id) return;
-
+        if (!rooms[roomCode]) return;
+    
         if (!activeGames[roomCode]) {
             activeGames[roomCode] = { 
                 questions: [], 
@@ -59,21 +59,30 @@ io.on("connection", (socket) => {
                 currentQuestionIndex: 0 
             };
         }
-
-        // Fragen aus der DB abrufen und mischen
+    
         const questions = await Question.find().limit(10);
         const shuffledQuestions = shuffleArray(questions);
-
+    
         activeGames[roomCode].questions = shuffledQuestions.map(q => ({
             id: q._id,
             text: q.text,
             options: q.options,
             correctOption: q.correctOption
         }));
-
+    
         io.to(roomCode).emit("gameStarted", { questions: activeGames[roomCode].questions });
         sendNextQuestion(roomCode);
     });
+    
+    
+    socket.on("endGame", (roomCode) => {
+        if (!rooms[roomCode]) return;
+    
+        rooms[roomCode].players.forEach(player => player.isReady = false);
+        io.to(roomCode).emit("returnToLobby");
+    });
+    
+    
 
 
    // Spieler tritt einer Lobby bei
@@ -137,20 +146,21 @@ socket.on("leaveLobby", ({ playerId, roomCode }) => {
 
 
 
-socket.on("playerReady", ({ roomCode, playerId }) => {
-    if (!rooms[roomCode]) return;
+    socket.on("playerReady", ({ roomCode, playerId }) => {
+        if (!rooms[roomCode]) return;
     
-    let player = rooms[roomCode].players.find(p => p.id === playerId);
-    if (player) player.isReady = true;
-
-    // Prüfen, ob alle Spieler bereit sind
-    let allReady = rooms[roomCode].players.every(p => p.isReady);
-    io.to(roomCode).emit("updateReadyStatus", { players: rooms[roomCode].players });
-
-    if (allReady) {
-        io.to(roomCode).emit("gameCanStart");
-    }
-});
+        let player = rooms[roomCode].players.find(p => p.id === playerId);
+        if (player) player.isReady = !player.isReady;
+    
+        let allReady = rooms[roomCode].players.every(p => p.isReady);
+        io.to(roomCode).emit("updateReadyStatus", rooms[roomCode].players);
+    
+        if (allReady) {
+            io.to(roomCode).emit("gameCanStart");
+        }
+    });
+    
+    
 
 
     socket.on("createRoom", (username) => {
@@ -181,53 +191,63 @@ socket.on("playerReady", ({ roomCode, playerId }) => {
         });
     });
     
-
     socket.on("joinRoom", ({ roomCode, username }) => {
         if (!rooms[roomCode]) {
             socket.emit("error", "❌ Raum existiert nicht!");
             return;
         }
-    
+
         let room = rooms[roomCode];
-    
-        // Spieler nur hinzufügen, wenn er nicht schon drin ist
-        if (!room.players.some(player => player.id === socket.id)) {
-            room.players.push({ id: socket.id, username });
+
+        if (!room.players.some(p => p.id === socket.id)) {
+            room.players.push({ id: socket.id, username, isReady: false });
         }
-    
+
         socket.join(roomCode);
         console.log(`🔗 ${username} ist Raum ${roomCode} beigetreten.`);
-    
-        // **Check, ob es ein Einzelspieler-Modus ist**
-        if (room.players.length > 1) {
-            room.isSingleplayer = false;
-    
-            // Falls es vorher kein Host gab oder der Host geleaved ist → neuen Host setzen
-            if (!room.host || !room.players.some(p => p.id === room.host.id)) {
-                room.host = room.players[0]; // Erster Spieler in der Liste wird Host
-            }
-        } else {
-            room.isSingleplayer = true;
-            room.host = null; // Kein Host, wenn nur ein Spieler da ist!
-        }
-    
-        // 🏆 Spieler-Liste aktualisieren
+
         io.to(roomCode).emit("updatePlayers", {
             players: room.players,
             host: room.host
         });
-    
-        // Erfolg an den beitretenden Spieler senden
+
+        // 🏆 Deck & Spielmodus an den neuen Spieler senden
         socket.emit("roomJoined", {
             roomCode,
             players: room.players,
             host: room.host,
-            isSingleplayer: room.isSingleplayer
+            selectedDeck: room.selectedDeck,
+            selectedGameMode: room.selectedGameMode
         });
     });
     
     
-    
+    // 🎲 Deck-Auswahl für alle synchronisieren
+    socket.on("selectDeck", ({ roomCode, deckId }) => {
+        if (rooms[roomCode]) {
+            rooms[roomCode].selectedDeck = deckId;
+            io.to(roomCode).emit("updateDeckSelection", deckId);
+            checkIfAllSelectionsMade(roomCode);
+        }
+    });
+
+    // 🎮 Spielmodus-Auswahl für alle synchronisieren
+    socket.on("selectGameMode", ({ roomCode, gameMode }) => {
+        if (rooms[roomCode]) {
+            rooms[roomCode].selectedGameMode = gameMode;
+            io.to(roomCode).emit("updateGameModeSelection", gameMode);
+            checkIfAllSelectionsMade(roomCode);
+        }
+    });
+
+    // 🏁 Überprüfen, ob alle Voraussetzungen erfüllt sind
+    function checkIfAllSelectionsMade(roomCode) {
+        let room = rooms[roomCode];
+        if (!room || !room.selectedDeck || !room.selectedGameMode) return;
+
+        // 📡 Alle Spieler im Raum informieren
+        io.to(roomCode).emit("allSelectionsMade", { deck: room.selectedDeck, mode: room.selectedGameMode });
+    }
 
 
 
@@ -279,15 +299,17 @@ socket.on("playerReady", ({ roomCode, playerId }) => {
 
 // 🎲 **Raum automatisch erstellen für jeden Nutzer**
 function createRoom(socket) {
-    let roomCode = Math.random().toString(36).substr(2, 5).toUpperCase(); 
+    let roomCode = generateRoomCode();
 
     rooms[roomCode] = {
-        players: [socket.id],
+        players: [],
         host: socket.id,
-        readyPlayers: []
+        readyPlayers: new Set(),
+        selectedDeck: null,
+        selectedGameMode: null
     };
 
-    activeGames[roomCode] = { // Hier initialisieren
+    activeGames[roomCode] = {
         questions: [],
         scores: {},
         currentQuestionIndex: 0
@@ -298,8 +320,9 @@ function createRoom(socket) {
 
     socket.emit("roomCreated", { roomCode });
 
-    return roomCode; // Rückgabe für spätere Nutzung
+    return roomCode;
 }
+
 
 // 🛠 Hilfsfunktion zum Generieren von Raumnamen
 function generateRoomCode() {

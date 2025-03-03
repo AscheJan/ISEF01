@@ -29,11 +29,14 @@
         <div id="register" style="display:none;">
             <h1>Registrierung</h1>
             <input type="text" id="newUsername" placeholder="Benutzername">
+            <input type="email" id="newEmail" placeholder="E-Mail (nur @iu-study.org)" pattern=".*@iu-study\.org$" required>
             <input type="password" id="newPassword" placeholder="Passwort">
             <button onclick="register()">Registrieren</button>
             <button onclick="showLogin()">Zurück zur Anmeldung</button>
-            <p id="registerError" style="color: red;"></p>
+            <p id="registerError" style="color: red;"></p> <!-- Fehleranzeige hier -->
         </div>
+        
+
         <!-- ✅ Dashboard-Bereich -->
         <div id="dashboard" style="display:none;">
             <h1>Dashboard</h1>

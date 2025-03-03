@@ -46,30 +46,75 @@ router.get('/user', async (req, res) => {
 
 
 // Registrierung eines neuen Benutzers
-router.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-  
-  // Überprüfen, ob der Benutzername bereits existiert
-  const existingUser = await User.findOne({ username });
-  if (existingUser) {
-    return res.status(400).json({ message: 'Benutzername bereits vergeben' });
-  }
+router.post("/register", async (req, res) => {
+  const { username, email, password } = req.body;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ username, password: hashedPassword, role: 'user' }); // Standardrolle: user
-  await user.save();
-  res.json({ message: 'Registrierung erfolgreich' });
+  try {
+      // 🛑 **E-Mail-Domain validieren**
+      if (!email.endsWith("@iu-study.org")) {
+          return res.status(400).json({ message: "❌ Nur E-Mails mit @iu-study.org sind erlaubt!" });
+      }
+
+      // 🛑 **Prüfen, ob Benutzername oder E-Mail bereits existiert**
+      const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+      if (existingUser) {
+          if (existingUser.email === email) {
+              return res.status(400).json({ message: "❌ Diese E-Mail ist bereits registriert!" });
+          } else {
+              return res.status(400).json({ message: "❌ Dieser Benutzername ist bereits vergeben!" });
+          }
+      }
+
+      // 🔐 **Passwort hashen**
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // ✅ **Neuen Benutzer speichern**
+      const newUser = new User({
+          username,
+          email,
+          password: hashedPassword,
+          role: "user",
+      });
+
+      await newUser.save();
+      res.status(201).json({ message: "✅ Registrierung erfolgreich! Bitte melde dich an." });
+
+  } catch (error) {
+      console.error("❌ Fehler bei der Registrierung:", error);
+
+      // Prüfen, ob der Fehler durch ein MongoDB Unique-Constraint-Problem verursacht wurde
+      if (error.code === 11000) {
+          if (error.keyPattern.username) {
+              return res.status(400).json({ message: "❌ Dieser Benutzername ist bereits vergeben!" });
+          }
+          if (error.keyPattern.email) {
+              return res.status(400).json({ message: "❌ Diese E-Mail ist bereits registriert!" });
+          }
+      }
+
+      res.status(500).json({ message: "❌ Interner Serverfehler. Bitte später erneut versuchen." });
+  }
 });
+
 
 // Benutzer-Login
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  const user = await User.findOne({ username });
+  const { username, email, password } = req.body;
+
+  // 🔍 Suche nach Benutzer anhand von E-Mail oder Username
+  const user = await User.findOne({ $or: [{ username }, { email }] });
+
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(400).json({ message: 'Ungültige Anmeldedaten' });
   }
-  const token = jwt.sign({ userId: user._id, username: user.username, role: user.role }, 'geheim', { expiresIn: '1h' });
-  res.json({ token, username: user.username, role: user.role });
+
+  const token = jwt.sign(
+    { userId: user._id, username: user.username, email: user.email, role: user.role },
+    'geheim',
+    { expiresIn: '1h' }
+  );
+
+  res.json({ token, username: user.username, email: user.email, role: user.role });
 });
 
 // Authentifizierten Benutzer abrufen und Rolle prüfen
