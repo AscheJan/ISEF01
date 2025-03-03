@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log("🟢 DOM vollständig geladen.");
-    
+    checkAndHandleLoginStatus();
     initializeApp();
+
 
     const selectDeckAdmin = document.getElementById("selectDeckAdmin");
 
@@ -51,12 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
             stopCountdown();
         }
     });
-
-
-
-
 });
-
 
 
 
@@ -208,10 +204,10 @@ function fetchUserDataIfAuthenticated() {
 }
 
 
-// ✅ **Deck-Handling**
 async function loadDeckOptions() {
-    console.log("🔄 Lade Decks aus API...");
+    console.log("🔄 Lade Decks für das Admin-Panel und andere Bereiche...");
     const token = localStorage.getItem('token');
+
     if (!token) {
         console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
         showNotification("Bitte melde dich erneut an.");
@@ -227,40 +223,61 @@ async function loadDeckOptions() {
         if (!response.ok) throw new Error(`Fehler beim Laden der Decks: ${response.status}`);
 
         const data = await response.json();
-        console.log("✅ API Antwort:", data); // DEBUG: Gibt die API-Antwort aus
+        console.log("✅ API Antwort (Decks):", data);
 
         if (!data.decks || data.decks.length === 0) {
             console.warn("⚠️ Keine Decks gefunden.");
             return;
         }
 
-        // Das Admin-Dropdown finden
+        // 🔽 Alle relevanten Select-Elemente abrufen
         const selectDeckAdmin = document.getElementById("selectDeckAdmin");
-        if (!selectDeckAdmin) {
-            console.error("❌ Fehler: `selectDeckAdmin` nicht gefunden!");
+        const selectDeckLobby = document.getElementById("selectDeck");
+
+        const selectElements = [selectDeckAdmin, selectDeckLobby].filter(el => el !== null);
+
+        if (selectElements.length === 0) {
+            console.error("❌ Keine passenden <select>-Elemente gefunden!");
             return;
         }
 
-        // Vorherige Optionen löschen
-        selectDeckAdmin.innerHTML = '<option value="">-- Deck auswählen --</option>';
+        // 🔄 Alle gefundenen <select>-Elemente aktualisieren
+        selectElements.forEach(select => {
+            select.innerHTML = '<option value="">-- Deck auswählen --</option>';
 
-        // Decks in das Dropdown einfügen
-        data.decks.forEach(deck => {
-            const option = document.createElement('option');
-            option.value = deck._id;
-            option.innerText = deck.name;
-            selectDeckAdmin.appendChild(option);
+            data.decks.forEach(deck => {
+                const option = document.createElement('option');
+                option.value = deck._id;
+                option.innerText = deck.name;
+                select.appendChild(option);
+            });
+
+            console.log(`✅ Decks erfolgreich in ${select.id} geladen.`);
         });
 
-        console.log("✅ Decks erfolgreich in `selectDeckAdmin` geladen.");
+        // 🏆 Event-Listener für die Deck-Auswahl in der Lobby hinzufügen
+        if (selectDeckLobby) {
+            selectDeckLobby.addEventListener("change", function () {
+                let selectedDeckId = this.value;
+                let selectedDeckName = data.decks.find(deck => deck._id === selectedDeckId)?.name || "Unbekanntes Deck";
+
+                if (selectedDeckId) {
+                    console.log(`📖 Deck gewählt: ${selectedDeckName}`);
+                    loadDeckQuestions(selectedDeckId);
+
+                    // 📡 Falls der Nutzer in einem Raum ist, Deck-Auswahl senden
+                    if (typeof socket !== "undefined" && currentRoom) {
+                        socket.emit("selectDeck", { roomCode: currentRoom, playerId, deckId: selectedDeckId });
+                    }
+                }
+            });
+        }
+
     } catch (error) {
         console.error("❌ Fehler beim Laden der Decks:", error);
         showNotification(error.message);
     }
 }
-
-
-
 
 
 
@@ -382,6 +399,21 @@ function selectGameMode(mode) {
 function updateReadyButtonState() {
     const readyButton = document.getElementById("readyButton");
     const statusText = document.getElementById("status");
+    const statusDeck = document.getElementById("statusDeck"); // 🆕 Anzeige für Deck
+    const statusGameMode = document.getElementById("statusGameMode"); // 🆕 Anzeige für Spielmodus
+
+    if (gameState.selectedDeck) {
+        const deckElement = document.querySelector(`#selectDeck option[value="${gameState.selectedDeck}"]`);
+        statusDeck.innerText = `📖 Gewähltes Deck: ${deckElement ? deckElement.innerText : "Unbekannt"}`;
+    } else {
+        statusDeck.innerText = "📖 Gewähltes Deck: Noch nicht gewählt";
+    }
+
+    if (gameState.selectedGameMode) {
+        statusGameMode.innerText = `🎮 Spielmodus: ${gameState.selectedGameMode}`;
+    } else {
+        statusGameMode.innerText = "🎮 Spielmodus: Noch nicht gewählt";
+    }
 
     if (gameState.selectedDeck && gameState.selectedGameMode) {
         readyButton.style.display = "block";
@@ -391,6 +423,7 @@ function updateReadyButtonState() {
         statusText.innerText = "Bitte wähle ein Deck und einen Spielmodus.";
     }
 }
+
 
 function resetGameState() {
     gameState.score = 0;
@@ -519,12 +552,6 @@ async function endQuiz() {
 }
 
 
-// ✅ **Benutzer Logout**
-function logout() {
-    console.log("🔴 Nutzer wird abgemeldet...");
-    localStorage.removeItem('token');
-    window.location.href = "/login.html";
-}
 
 // 🏠 **Escape-Taste & Klick außerhalb des Modals schließen Modale**
 function handleOutsideClick(event) {
@@ -553,25 +580,7 @@ async function fetchDecks() {
     }
 }
 
-async function loadDeckOptions() {
-    console.log("🔄 Lade Decks aus API...");
-    const decks = await fetchDecks();
-    const selectDeckLobby = document.querySelector('#lobby #selectDeck');
-    const selectDeckAdmin = document.querySelector('#adminModal #selectDeck');
 
-    [selectDeckLobby, selectDeckAdmin].forEach(select => {
-        if (!select) return;
-        select.innerHTML = '<option value="">-- Deck auswählen --</option>';
-        decks.forEach(deck => {
-            const option = document.createElement('option');
-            option.value = deck._id;
-            option.innerText = deck.name;
-            select.appendChild(option);
-        });
-    });
-
-    console.log("✅ Decks erfolgreich geladen.");
-}
 
     //----------------------------------------------------------------
 // ✅ **Spielregeln anzeigen**
@@ -789,7 +798,7 @@ let jokerUsed = false;
 
 function useFiftyFiftyJoker(currentQuestion) {
     if (gameState.jokerUsed) {
-        alert("⚠️ Du hast den 50:50 Joker bereits benutzt!");
+        showNotification("⚠️ Du hast den 50:50 Joker bereits benutzt!");
         return;
     }
 
@@ -991,6 +1000,7 @@ function displayQuestion() {
         logout();
     });
   }
+
   function register() {
     const newUsername = document.getElementById('newUsername').value;
     const newPassword = document.getElementById('newPassword').value;
@@ -1009,6 +1019,7 @@ function displayQuestion() {
         }
     });
   }
+
   function showRegister() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('register').style.display = 'block';
@@ -1029,13 +1040,19 @@ function displayQuestion() {
             body: JSON.stringify({ username, password })
         });
 
-        const data = await response.json();
+        // Prüfen, ob die Antwort wirklich JSON ist
+        const responseText = await response.text();
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (jsonError) {
+            throw new Error("Ungültige Antwort vom Server. Bitte später erneut versuchen.");
+        }
 
         if (!response.ok) {
             throw new Error(data.message || "Login fehlgeschlagen.");
         }
 
-        // 🔐 `userId` speichern, wenn vorhanden
         if (data.userId) {
             localStorage.setItem("userId", data.userId);
         } else {
@@ -1051,7 +1068,8 @@ function displayQuestion() {
         console.error("❌ Fehler beim Login:", error);
         showError(error.message);
     }
-}
+  }
+
 
 
 
@@ -1063,12 +1081,28 @@ function displayQuestion() {
         errorElement.style.color = "red";
     }
   }
+
   function logout() {
     console.log("🔴 Nutzer wird abgemeldet...");
-    localStorage.removeItem('token'); // 🛑 Token löschen
-    localStorage.removeItem('role');  // 🔄 Falls Rolle gespeichert wurde, ebenfalls entfernen
-    window.location.href = "/login.html"; // 🔄 Sofortige Weiterleitung zur Login-Seite
-}
+
+    // 🔥 Entferne alle gespeicherten Daten
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
+
+    // Versuche, die Eingabefelder zu leeren, falls sie auf der aktuellen Seite existieren
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+
+    if (usernameInput) usernameInput.value = "";
+    if (passwordInput) passwordInput.value = "";
+
+    // 🌍 Weiterleitung zur Login-Seite nach kurzem Timeout (um sicheres Löschen zu garantieren)
+    setTimeout(() => {
+        window.location.href = "/login.html";
+    }, 100); 
+ }
+
 
  function showLogin(){
     window.location.href = "/login.html";
@@ -1088,12 +1122,7 @@ function displayQuestion() {
   }
 
 
-document.getElementById("selectDeck").addEventListener("change", function () {
-    const selectedDeck = this.value;
-    if (selectedDeck) {
-        loadDeckQuestions(selectedDeck);
-    }
-});
+
 
 
 
@@ -1128,6 +1157,8 @@ document.getElementById("selectDeck").addEventListener("change", function () {
   function closeAdminModal() {
     hideElement('adminModal');
   }
+
+
   // Deck erstellen
   async function createDeck() {
     const deckNameInput = document.getElementById('deckName');
@@ -1163,63 +1194,7 @@ document.getElementById("selectDeck").addEventListener("change", function () {
     }
   }
   
-  // Decks laden und anzeigen
-  async function loadDeckOptions() {
-    console.log("🔄 Lade Decks für das Admin-Panel und andere Bereiche...");
-    const token = localStorage.getItem('token');
 
-    if (!token) {
-        console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
-        showNotification("Bitte melde dich erneut an.");
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/admin/decks', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) throw new Error(`Fehler beim Laden der Decks: ${response.status}`);
-
-        const data = await response.json();
-        console.log("✅ API Antwort (Decks):", data); // DEBUG: Gibt die API-Antwort aus
-
-        if (!data.decks || data.decks.length === 0) {
-            console.warn("⚠️ Keine Decks gefunden.");
-            return;
-        }
-
-        // 🔽 Alle relevanten Select-Elemente abrufen
-        const selectDeckAdmin = document.getElementById("selectDeckAdmin");
-        const selectDeckLobby = document.getElementById("selectDeck");
-        
-        const selectElements = [selectDeckAdmin, selectDeckLobby].filter(el => el !== null);
-
-        if (selectElements.length === 0) {
-            console.error("❌ Keine passenden <select>-Elemente gefunden!");
-            return;
-        }
-
-        // 🔄 Alle gefundenen <select>-Elemente aktualisieren
-        selectElements.forEach(select => {
-            select.innerHTML = '<option value="">-- Deck auswählen --</option>';
-
-            data.decks.forEach(deck => {
-                const option = document.createElement('option');
-                option.value = deck._id;
-                option.innerText = deck.name;
-                select.appendChild(option);
-            });
-
-            console.log(`✅ Decks erfolgreich in ${select.id} geladen.`);
-        });
-
-    } catch (error) {
-        console.error("❌ Fehler beim Laden der Decks:", error);
-        showNotification(error.message);
-    }
-}
 
 
 
@@ -1714,7 +1689,7 @@ async function validateReportedQuestion() {
     const updatedCorrectOption = parseInt(document.getElementById('editReportedCorrectOption').value.trim(), 10);
 
     if (!reportId || !questionId || !updatedQuestionText || updatedOptions.some(opt => opt === '') || isNaN(updatedCorrectOption) || updatedCorrectOption < 0 || updatedCorrectOption > 3) {
-        alert("⚠️ Bitte fülle alle Felder korrekt aus.");
+        showNotification("⚠️ Bitte fülle alle Felder korrekt aus.");
         return;
     }
 
@@ -1734,11 +1709,11 @@ async function validateReportedQuestion() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message);
 
-        alert("✅ Frage erfolgreich aktualisiert!");
+        showNotification("✅ Frage erfolgreich aktualisiert!");
         document.getElementById('editReportedQuestionSection').style.display = 'none';
         loadReportedQuestions();
     } catch (error) {
-        alert(`❌ Fehler: ${error.message}`);
+        showNotification(`❌ Fehler: ${error.message}`);
     }
 }
 
@@ -1823,7 +1798,7 @@ function cancelEditReportedQuestion() {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
-            handleUnauthorized();
+            checkAndHandleLoginStatus();
             return null;
         }
 
@@ -1853,19 +1828,48 @@ function cancelEditReportedQuestion() {
     }
 }
 
-function handleUnauthorized() {
-    document.getElementById("quizContainer").style.display = "none";
-    document.getElementById("dashboard").style.display = "none";
-    document.getElementById("lobby").style.display = "none";
-    showNotification("Bitte melde dich zuerst an!");
-    if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+function checkAndHandleLoginStatus() {
+    const token = localStorage.getItem("token");
+    const homeElement = document.getElementById("home");
+    const registerElement = document.getElementById("register");
+    const dashboardElement = document.getElementById("dashboard");
+    const lobbyElement = document.getElementById("lobby"); // Lobby-Element hinzufügen
+
+    if (token) {
+        // ✅ Benutzer ist eingeloggt
+        console.debug("✅ Benutzer ist eingeloggt.");
+        if (homeElement) homeElement.style.display = "none";
+        if (registerElement) registerElement.style.display = "none";
+        if (dashboardElement) dashboardElement.style.display = "block";
+        if (lobbyElement) lobbyElement.style.display = "block"; // Lobby anzeigen
+
+        // Benutzername aktualisieren
+        const username = localStorage.getItem("username") || "Unbekannt";
+        const displayUsernameElement = document.getElementById("displayUsername");
+        if (displayUsernameElement) displayUsernameElement.innerText = username;
+    } else {
+        // ❌ Benutzer ist nicht eingeloggt
+        console.warn("⚠ Benutzer ist nicht eingeloggt.");
+        if (homeElement) homeElement.style.display = "block";
+        if (registerElement) registerElement.style.display = "none";
+        if (dashboardElement) dashboardElement.style.display = "none";
+        if (lobbyElement) lobbyElement.style.display = "none"; // 💡 Lobby ausblenden
+
+        // Falls nicht auf der Login-Seite, weiterleiten
+        if (window.location.pathname !== "/login") {
+            if (typeof showNotification === "function") {
+                showNotification("Bitte melde dich zuerst an!");
+            }
+            window.location.href = "/login";
+        }
     }
 }
 
+
+
 async function handleFetchError(response) {
     if (response.status === 401) {
-        handleUnauthorized();
+        checkAndHandleLoginStatus();
         return null;
     }
     const errorText = await response.text();
@@ -2079,7 +2083,7 @@ function checkIfHost(players) {
     let lobbyStatusElement = document.getElementById("lobbyStatus");
 
     if (!lobbyStatusElement) {
-        console.error("❌ Fehler: `lobbyStatus` nicht gefunden!");
+        //console.error("❌ Fehler: `lobbyStatus` nicht gefunden!");
         return;
     }
 
@@ -2114,16 +2118,23 @@ socket.on("newHost", (newHostId) => {
 });
 
 
-// 🏆 Deck-Auswahl senden
 document.getElementById("selectDeck").addEventListener("change", function () {
     let selectedDeckId = this.value;
-    let selectedDeckName = deckNames[selectedDeckId] || "Unbekanntes Deck";
+    let selectedDeckName = selectedDeckId || "Unbekanntes Deck";
 
-    if (selectedDeckId && currentRoom) {
+    if (selectedDeckId) {
         console.log(`📖 Deck gewählt: ${selectedDeckName}`);
-        socket.emit("selectDeck", { roomCode: currentRoom, playerId, deckId: selectedDeckId });
+
+        // 🏆 Deck-Fragen laden
+        loadDeckQuestions(selectedDeckId);
+
+        // 📡 Falls der Nutzer in einem Raum ist, Deck-Auswahl senden
+        if (currentRoom) {
+            socket.emit("selectDeck", { roomCode: currentRoom, playerId, deckId: selectedDeckId });
+        }
     }
 });
+
 
 // 🎮 Deck-Auswahl für alle Spieler aktualisieren
 socket.on("updateDeckSelection", (players) => {
@@ -2170,24 +2181,45 @@ socket.on("gameCanStart", () => {
 });
 
 
-// Automatisch Raum erstellen, wenn sich der Benutzer verbindet
 socket.on("connect", () => {
     console.log("✅ Verbunden mit Server:", socket.id);
-    
-    let username = localStorage.getItem("username") || prompt("Bitte gib deinen Namen ein:");
-    localStorage.setItem("username", username);
-    
-    autoCreateRoom(username);
+
+    // Funktion zur Überprüfung, ob der Username im Local Storage ist
+    function waitForUsername() {
+        let username = localStorage.getItem("username");
+        if (username) {
+            clearInterval(checkUsernameInterval); // Beende das Intervall
+            autoCreateRoom(username);
+        }
+    }
+
+    // Falls der Username noch nicht im Local Storage ist, warte darauf
+    if (!localStorage.getItem("username")) {
+        console.log("⏳ Warten auf Benutzernamen...");
+        
+        let checkUsernameInterval = setInterval(waitForUsername, 500); // Alle 500ms prüfen
+    } else {
+        autoCreateRoom(localStorage.getItem("username"));
+    }
 });
 
 // Funktion zur automatischen Raumerstellung mit Namen
 function autoCreateRoom(username) {
+    console.log(`🚀 Erstelle Raum für: ${username}`);
     socket.emit("createRoom", username);
 }
 
 
-// Event: Raum wurde erstellt → Spieler beitritt automatisch
+
 socket.on("roomCreated", (data) => {
+    const token = localStorage.getItem("token"); // Token überprüfen
+
+    if (!token) {
+        console.warn("❌ Raum-Erstellung abgebrochen: Benutzer ist nicht eingeloggt.");
+        return; // Beendet die Funktion, wenn kein Token vorhanden ist
+    }
+
+    // ✅ Benutzer ist eingeloggt → Raum-Erstellung erlauben
     currentRoom = data.roomCode;
     isHost = true; // Spieler ist der Host
 
@@ -2211,6 +2243,7 @@ socket.on("roomCreated", (data) => {
 
     }, 100);
 });
+
 
 socket.on("updatePlayers", ({ players, host }) => {
     console.log("🔄 Spieler-Liste aktualisiert:", players, "Host:", host);
@@ -2259,14 +2292,12 @@ socket.on("updatePlayers", ({ players, host }) => {
 
 
 
-
-
 function joinGame() {
     let roomCode = document.getElementById("roomCodeInput").value.trim();
     let username = localStorage.getItem("username") || prompt("Bitte gib deinen Namen ein:");
 
     if (!roomCode || !username) {
-        alert("❌ Bitte Raumcode und Namen eingeben!");
+        showNotification("❌ Bitte Raumcode und Namen eingeben!");
         return;
     }
 
@@ -2318,7 +2349,7 @@ function updatePlayers(players) {
 
 // Event: Fehler beim Beitreten
 socket.on("error", (message) => {
-    alert(message);
+    showNotification(message);
 });
 
 
@@ -2326,7 +2357,7 @@ socket.on("error", (message) => {
 
 // Event: Fehler bei Raumbeitritt
 socket.on("error", (message) => {
-    alert(message);
+    showNotification(message);
 });
 
 

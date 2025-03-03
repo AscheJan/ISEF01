@@ -1,4 +1,12 @@
 /* 🌍 Allgemeine Stile – Modern, Schlank & Elegant */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* 🌍 Allgemeine Stile – Modern, Schlank & Elegant */
 body {
     font-family: 'Poppins', sans-serif;
     background: #f4f6f9;
@@ -10,22 +18,21 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden;
 }
 
-/* ✅ Richtige Antwort: Leicht aufleuchten */
+/* ✅ Richtige Antwort: Sanftes Aufleuchten */
 @keyframes correctFlash {
     0% { background-color: #28a745; transform: scale(1); }
-    50% { background-color: #34d058; transform: scale(1.05); }
+    50% { background-color: #34d058; transform: scale(1.08); }
     100% { background-color: #28a745; transform: scale(1); }
 }
 
-/* ❌ Falsche Antwort: Leichtes Wackeln */
+/* ❌ Falsche Antwort: Weiches Wackeln */
 @keyframes incorrectShake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
+    0%, 100% { transform: translateX(0); }
+    25%, 75% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
 }
 
 /* 🎮 Quiz-Container */
@@ -33,17 +40,21 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.85); /* Glassmorphism */
-    padding: 24px;
-    border-radius: 16px;
-    width: 90%;
+    justify-content: flex-start;
+    padding: 32px;
+    border-radius: 20px;
+    width: 95%;
     max-width: 1200px;
+    height: 90vh;
     max-height: 90vh;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-    backdrop-filter: blur(14px);
-    transition: all 0.3s ease-in-out;
-    overflow-y: auto; /* Scrollt nur, wenn nötig */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(18px);
+    transition: all 0.4s ease-in-out;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 20px 10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(255, 255, 255, 0.5);
 }
 
 /* 📦 Inhalt innerhalb des Game-Containers */
@@ -51,13 +62,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
-    padding: 18px;
-    border-radius: 12px;
-    background: rgba(248, 249, 250, 0.9);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    margin-bottom: 16px;
-    backdrop-filter: blur(10px);
+    width: 95%;
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(248, 249, 250, 0.97);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    backdrop-filter: blur(14px);
 }
 
 /* 🎭 Titel und Text */
@@ -71,28 +82,32 @@ body {
 
 /* 🔤 Eingabefelder */
 #gameContainer input {
-    width: 100%;
+    width: calc(100% - 16px); /* Abstand rechts */
     padding: 12px;
-    margin: 8px 0;
+    margin: 8px 8px 8px 0; /* Abstand nach rechts */
     border-radius: 8px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.15);
     font-size: 15px;
-    transition: all 0.2s ease-in-out;
-    background: rgba(255, 255, 255, 0.85);
+    transition: all 0.25s ease-in-out;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+#gameContainer input:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: #007bff;
 }
 
 #gameContainer input:focus {
     border-color: #007bff;
     outline: none;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
-    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
 }
 
-/* 🎛 Buttons – Moderner Hover- & Touch-Effekt */
+/* 🎛 Buttons */
 #gameContainer button {
     padding: 14px 18px;
     font-size: 16px;
-    border-radius: 10px;
+    border-radius: 12px;
     border: none;
     cursor: pointer;
     background: linear-gradient(135deg, #007bff, #0056b3);
@@ -100,50 +115,30 @@ body {
     transition: all 0.3s ease-in-out, transform 0.1s;
     width: 100%;
     margin-top: 12px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.12);
 }
 
 #gameContainer button:hover {
     background: linear-gradient(135deg, #0056b3, #003d80);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
 #gameContainer button:active {
-    transform: scale(0.96);
+    transform: scale(0.95);
     background: linear-gradient(135deg, #004080, #002f66);
 }
 
-/* 📱 Verbesserte Responsive Anpassung */
-@media (max-height: 700px) {
-    #gameContainer {
-        max-height: 85vh;
-        padding: 18px;
-    }
-}
-
-@media (max-height: 600px) {
-    #gameContainer {
-        max-height: 80vh;
-        padding: 16px;
-    }
-}
-
+/* 📱 Responsive Design */
 @media (max-width: 768px) {
     #gameContainer {
         padding: 20px;
         width: 95%;
         max-height: 85vh;
     }
-
-    #gameContainer > div {
-        padding: 14px;
-    }
-
     #gameContainer input {
         font-size: 14px;
         padding: 10px;
     }
-
     #gameContainer button {
         font-size: 15px;
         padding: 12px 16px;
@@ -156,27 +151,37 @@ body {
         width: 95%;
         max-height: 80vh;
     }
-
     #gameContainer input {
         font-size: 13px;
         padding: 9px;
     }
-
     #gameContainer button {
         font-size: 14px;
         padding: 10px 14px;
     }
 }
 
-/* 🎨 Perfekte Touchscreen-Interaktion */
+/* 🎨 Touchscreen-Interaktion */
 @media (hover: none) {
     #gameContainer button:active {
-        transform: scale(0.98);
+        transform: scale(0.97);
         background: linear-gradient(135deg, #004080, #002f66);
     }
 }
 
+/* ✅ Richtige Antwort: Sanftes Aufleuchten */
+@keyframes correctFlash {
+    0% { background-color: #28a745; transform: scale(1); }
+    50% { background-color: #34d058; transform: scale(1.08); }
+    100% { background-color: #28a745; transform: scale(1); }
+}
 
+/* ❌ Falsche Antwort: Weiches Wackeln */
+@keyframes incorrectShake {
+    0%, 100% { transform: translateX(0); }
+    25%, 75% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+}
 
 /* 🌑 Modal Hintergrund */
 .modal {
@@ -188,25 +193,25 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
+    transition: opacity 0.3s ease-in-out;
 }
 
 /* 📜 Modal-Inhalt */
 .modal-content {
     background-color: #ffffff;
     z-index: 1100;
-    padding: 24px;
-    margin: 5% auto;
-    width: 90%;
-    max-width: 600px;
-    max-height: 28vh;
+    padding: 28px;
+    margin: 8% auto;
+    width: 85%;
+    max-width: 500px;
+    max-height: 40vh;
     overflow-y: auto;
-    border-radius: 12px;
+    border-radius: 16px;
     text-align: center;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     animation: fadeIn 0.3s ease-in-out;
 }
-
 
 /* ❌ Schließen-Button */
 .close {
@@ -215,7 +220,7 @@ body {
     right: 16px;
     font-size: 24px;
     cursor: pointer;
-    color: #555;
+    color: #666;
     transition: color 0.3s;
 }
 
@@ -223,55 +228,27 @@ body {
     color: #d9534f;
 }
 
-/* 🖼 Logo & Text Container */
-.container {
-    text-align: center;
-    margin-top: 30px;
-}
-
 /* 📸 Logo */
 .container img {
-    width: 140px;
+    width: 130px;
     border-radius: 50%;
     display: block;
-    margin: 0 auto 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    margin: 0 auto 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* 📢 Überschrift */
 .container h1 {
-    font-size: 28px;
+    font-size: 26px;
     color: #222;
     font-weight: 600;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 /* 📝 Text */
 .container p {
-    font-size: 18px;
-    color: #666;
-}
-
-/* 📱 Responsives Design */
-@media (max-width: 768px) {
-    #gameContainer {
-        padding: 18px;
-        width: 95%;
-    }
-
-    #gameContainer > div {
-        padding: 12px;
-    }
-
-    #gameContainer input {
-        font-size: 14px;
-        padding: 10px;
-    }
-
-    #gameContainer button {
-        font-size: 15px;
-        padding: 10px 14px;
-    }
+    font-size: 16px;
+    color: #555;
 }
 
 /* ✨ Animation für sanftes Erscheinen */
@@ -286,39 +263,51 @@ body {
     }
 }
 
-
-
-/* Start- und Zurücksetzen-Buttons */
+/* 🌟 Start- und Zurücksetzen-Buttons */
 #startGame {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
+    transition: all 0.3s ease-in-out;
 }
 
 #startGame:hover {
-    background-color: #0056b3;
+    background: linear-gradient(135deg, #0056b3, #003d80);
 }
 
 #resetGame {
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #dc3545, #b52a37);
     color: white;
+    transition: all 0.3s ease-in-out;
 }
 
 #resetGame:hover {
-    background-color: #b52a37;
+    background: linear-gradient(135deg, #b52a37, #922024);
 }
 
-/* Responsive Anpassung für kleine Bildschirme */
-@media (max-width: 480px) {
-    #gameContainer {
+/* 📱 Responsives Design */
+@media (max-width: 768px) {
+    .modal-content {
         width: 90%;
+        max-height: 50vh;
+        padding: 20px;
     }
-
-    #gameContainer > div {
-        flex-direction: column;
-        text-align: center;
+    #gameContainer {
+        padding: 18px;
+        width: 95%;
     }
 }
 
+@media (max-width: 480px) {
+    .modal-content {
+        width: 95%;
+        max-height: 60vh;
+        padding: 16px;
+    }
+    #gameContainer {
+        padding: 16px;
+        width: 95%;
+    }
+}
 
 
 
@@ -502,6 +491,18 @@ button {
     transition: all 0.3s ease-in-out;
 }
 
+textarea {
+    width: 50%;
+    min-height: 120px;
+    max-height: 300px;
+    resize: vertical;
+    padding: 12px;
+    line-height: 1.5;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
 /*Warteraum*/
 #selectDeck {
     width: 100%;
@@ -544,7 +545,8 @@ button {
     }
 }
 
-/* Modal Styling */
+
+/* 🌑 Admin Modal */
 #adminModal {
     display: block;
     position: fixed;
@@ -552,293 +554,207 @@ button {
     left: 50%;
     transform: translate(-50%, -50%);
     background: #fff;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    padding: 28px;
+    border-radius: 16px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     width: 420px;
     max-width: 90%;
     max-height: 80vh;
     overflow-y: auto;
-    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+    font-family: 'Poppins', sans-serif;
     text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+    margin: auto;
 }
 
-/* Titel */
+/* 📢 Titel */
 #adminModal h2, #adminModal h3 {
     margin-bottom: 12px;
-    color: #333;
+    color: #222;
+    font-weight: 600;
 }
 
-/* Eingabefelder und Dropdown */
+/* 🔤 Eingabefelder & Dropdown */
 #adminModal input, #adminModal select {
     width: 100%;
-    padding: 10px;
-    margin: 6px 0;
-    border-radius: 6px;
+    padding: 12px;
+    margin: 8px auto;
+    border-radius: 8px;
     border: 1px solid #ddd;
-    font-size: 14px;
+    font-size: 15px;
+    transition: all 0.2s ease-in-out;
+    display: block;
 }
 
 #adminModal input:focus, #adminModal select:focus {
     outline: none;
     border-color: #007bff;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
 }
 
-/* Buttons mit fester Breite */
+/* 🎛 Buttons */
 #adminModal button {
-    width: 200px; /* Feste Breite */
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 6px;
+    width: 220px;
+    padding: 12px;
+    margin: 12px auto;
+    border-radius: 8px;
     border: none;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
-    transition: background 0.2s ease-in-out;
-    display: block; /* Zentriert durch margin auto */
-    margin-left: auto;
-    margin-right: auto;
+    transition: background 0.2s ease-in-out, transform 0.1s;
+    display: block;
 }
 
-/* Schließen-Button */
+/* ❌ Schließen-Button */
 #adminModal button:first-of-type {
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #dc3545, #b52a37);
     color: white;
 }
 
 #adminModal button:first-of-type:hover {
-    background-color: #b52a37;
+    background: linear-gradient(135deg, #b52a37, #922024);
+    transform: translateY(-2px);
 }
 
 /* Standard-Buttons */
 #adminModal button:not(:first-of-type) {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
 }
 
 #adminModal button:not(:first-of-type):hover {
-    background-color: #0056b3;
-}
-
-/* ✅ Fragenliste-Container */
-.question-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    max-width: 600px;
-    background: #f8f9fa;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* ✅ Einzelne Frage */
-.question-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #ddd;
-    transition: background 0.2s ease-in-out;
-}
-
-.question-item:last-child {
-    border-bottom: none;
-}
-
-.question-item:hover {
-    background: #e9ecef;
-}
-
-/* ✅ Fragentext */
-.question-text {
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-}
-
-/* ✅ Buttons */
-.question-actions {
-    display: flex;
-    gap: 10px;
-}
-
-/* ✅ Buttons */
-.question-actions {
-    display: flex;
-    gap: 10px;
-}
-
-#reportedQuestionsList {
-    list-style: none; /* Entfernt Aufzählungspunkte */
-    padding: 0; /* Entfernt Standard-Padding */
-    margin: 0; /* Entfernt Standard-Margin */
-}
-
-#reportedQuestionsList li {
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-}
-
-/* Button-Design für Bearbeiten */
-#reportedQuestionsList li button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    margin-top: 6px;
-}
-
-#reportedQuestionsList li button:hover {
-    background: #0056b3;
+    background: linear-gradient(135deg, #0056b3, #003d80);
     transform: translateY(-2px);
 }
 
-
-
-/* Bestehende Decks Liste */
-#deckList, #questionList {
+/* 📋 Fragenliste */
+.question-list {
     list-style: none;
     padding: 0;
-    margin: 0;
-}
-
-/* Einzelne Deck-Elemente */
-#deckList li, #questionList li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    margin: auto;
+    max-width: 600px;
     background: #f8f9fa;
-    padding: 8px;
-    margin: 4px 0;
-    border-radius: 6px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
 }
 
-/* Löschen-Button für Decks */
-#deckList li button, #questionList li button {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 5px 8px;
-    font-size: 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 80px; /* Feste Breite für kleine Buttons */
-}
-
-#deckList li button:hover, #questionList li button:hover {
-    background: #b52a37;
-}
-
-/* Responsive Anpassung */
+/* 📱 Responsive */
 @media (max-width: 480px) {
     #adminModal {
-        width: 90%;
+        width: 95%;
     }
-
     #adminModal button {
-        width: 100%; /* Volle Breite auf kleineren Geräten */
+        width: 100%;
     }
 }
 
-
-/* Home-Container */
+/* 🏠 Home-Container */
 #home {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: transparent;
-    padding: 30px;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 40px;
     border-radius: 12px;
-    width: 400px;
-    max-width: 90%;
+    width: 100%;
+    max-width: 600px;
     margin: auto;
     text-align: center;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(12px);
 }
 
-/* Titel */
+/* 🏷 Titel */
 #home h1 {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 10px;
+    font-size: 28px;
+    color: #222;
+    margin-bottom: 12px;
+    font-weight: 700;
 }
 
-/* Beschreibungstext */
+/* 📜 Beschreibungstext */
 #home p {
-    font-size: 14px;
+    font-size: 16px;
     color: #555;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
-/* Eingabefelder */
+/* ✍️ Eingabefelder */
 #home input {
     width: 100%;
-    padding: 12px;
-    margin: 6px 0;
-    border-radius: 6px;
+    padding: 14px;
+    margin: 8px 0;
+    border-radius: 12px;
     border: 1px solid #ddd;
-    font-size: 14px;
+    font-size: 15px;
     outline: none;
-    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.05), inset -4px -4px 10px rgba(255, 255, 255, 0.7);
 }
 
 #home input:focus {
     border-color: #007bff;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+    background: #fff;
 }
 
-/* Buttons */
+/* 🎛 Buttons */
 #home button {
-    width: 200px; /* Feste Breite */
-    padding: 12px;
-    margin-top: 10px;
-    border-radius: 6px;
+    width: 220px;
+    padding: 14px;
+    margin-top: 12px;
+    border-radius: 12px;
     border: none;
     font-size: 16px;
     cursor: pointer;
-    transition: background 0.2s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
 }
 
-/* Anmelden-Button */
+/* 🔵 Anmelden-Button */
 #home button:first-of-type {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
 }
 
 #home button:first-of-type:hover {
-    background-color: #0056b3;
+    background: linear-gradient(135deg, #0056b3, #003d80);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* Registrieren-Button */
+/* 🟢 Registrieren-Button */
 #home button:last-of-type {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #28a745, #218838);
     color: white;
 }
 
 #home button:last-of-type:hover {
-    background-color: #218838;
+    background: linear-gradient(135deg, #218838, #1e7e34);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* Fehlermeldung */
+/* ⚠️ Fehlermeldung */
 #error {
     color: red;
     font-size: 14px;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
-/* Responsive Anpassung für kleine Bildschirme */
+/* 📱 Responsive Design */
 @media (max-width: 480px) {
     #home {
         width: 90%;
+        padding: 30px;
     }
 
     #home button {
-        width: 100%; /* Volle Breite für mobile Geräte */
+        width: 100%;
     }
 }
 
@@ -909,51 +825,51 @@ button {
 
 
 
-
-
 /* 🔔 Benachrichtigungen */
 .notification {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 1000;
-    padding: 12px 20px;
-    border-radius: 8px;
+    padding: 14px 24px;
+    border-radius: 12px;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 500;
     color: white;
     cursor: pointer;
     opacity: 0.95;
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(8px);
 }
 
 /* ✨ Animation für Benachrichtigungen */
 .notification:hover {
     opacity: 1;
-    transform: translateY(-3px);
+    transform: translateY(-4px);
 }
 
 /* 🔵 Info */
 .notification.info {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #007bff, #0056b3);
 }
 
 /* 🟢 Erfolg */
 .notification.success {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #28a745, #218838);
 }
 
 /* ⚠️ Warnung */
 .notification.warning {
-    background-color: #ffc107;
+    background: linear-gradient(135deg, #ffc107, #e0a800);
     color: black;
 }
 
 /* ❌ Fehler */
 .notification.error {
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #dc3545, #c82333);
 }
+
 
 .footer {
     background: transparent;
