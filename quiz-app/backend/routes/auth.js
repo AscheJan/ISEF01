@@ -1,25 +1,27 @@
+// Importiert benötigte Module
+require('dotenv').config(); // Falls noch nicht geschehen
+
 const express = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const router = express.Router();
+const bcrypt = require('bcrypt');         // Zum sicheren Hashen von Passwörtern
+const jwt = require('jsonwebtoken');      // Zum Erstellen und Verifizieren von Tokens
+const User = require('../models/User');   // User-Modell
+const router = express.Router();          // Erstellt eine neue Router-Instanz
 
 router.get('/user', async (req, res) => {
   try {
       console.log("🔍 Anfrage an /api/user erhalten.");
 
-      // 🔹 Token aus Header extrahieren
+      // Token aus dem Authorization-Header extrahieren
       const token = req.headers.authorization?.split(' ')[1];
-
       if (!token) {
           console.warn("⚠️ Kein Token bereitgestellt.");
           return res.status(401).json({ error: "Kein Token bereitgestellt" });
       }
 
-      // 🔹 Token entschlüsseln
+      // Token verifizieren
       let decoded;
       try {
-          decoded = jwt.verify(token, 'geheim'); // **Hier das korrekte Secret 'geheim' nutzen**
+          decoded = jwt.verify(token, process.env.JWT_SECRET);
       } catch (error) {
           console.error("❌ Token ungültig:", error.message);
           return res.status(401).json({ error: "Token ungültig oder abgelaufen" });
@@ -27,9 +29,8 @@ router.get('/user', async (req, res) => {
 
       console.log(`🔍 Benutzer-ID aus Token: ${decoded.userId}`);
 
-      // 🔹 Benutzer aus MongoDB abrufen
+      // Benutzer aus der DB holen (nur username anzeigen)
       const user = await User.findById(decoded.userId).select('username');
-
       if (!user) {
           console.warn("⚠️ Benutzer nicht gefunden.");
           return res.status(404).json({ error: "Benutzer nicht gefunden" });
@@ -45,17 +46,16 @@ router.get('/user', async (req, res) => {
 });
 
 
-// Registrierung eines neuen Benutzers
 router.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
-      // 🛑 **E-Mail-Domain validieren**
+      // Nur @iu-study.org erlaubt (anpassbar)
       if (!email.endsWith("@iu-study.org")) {
           return res.status(400).json({ message: "❌ Nur E-Mails mit @iu-study.org sind erlaubt!" });
       }
 
-      // 🛑 **Prüfen, ob Benutzername oder E-Mail bereits existiert**
+      // Prüfen, ob Benutzername oder E-Mail bereits existieren
       const existingUser = await User.findOne({ $or: [{ email }, { username }] });
       if (existingUser) {
           if (existingUser.email === email) {
@@ -65,24 +65,19 @@ router.post("/register", async (req, res) => {
           }
       }
 
-      // 🔐 **Passwort hashen**
+      // Passwort hashen
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // ✅ **Neuen Benutzer speichern**
-      const newUser = new User({
-          username,
-          email,
-          password: hashedPassword,
-          role: "user",
-      });
-
+      // Benutzer erstellen und speichern
+      const newUser = new User({ username, email, password: hashedPassword, role: "user" });
       await newUser.save();
+
       res.status(201).json({ message: "✅ Registrierung erfolgreich! Bitte melde dich an." });
 
   } catch (error) {
       console.error("❌ Fehler bei der Registrierung:", error);
 
-      // Prüfen, ob der Fehler durch ein MongoDB Unique-Constraint-Problem verursacht wurde
+      // Behandlung von MongoDB-Fehlern bei Unique Constraints
       if (error.code === 11000) {
           if (error.keyPattern.username) {
               return res.status(400).json({ message: "❌ Dieser Benutzername ist bereits vergeben!" });
@@ -97,32 +92,34 @@ router.post("/register", async (req, res) => {
 });
 
 
-// Benutzer-Login
 router.post('/login', async (req, res) => {
   const { username, email, password } = req.body;
 
-  // 🔍 Suche nach Benutzer anhand von E-Mail oder Username
+  // Suche Benutzer per Username oder E-Mail
   const user = await User.findOne({ $or: [{ username }, { email }] });
 
+  // Wenn kein Benutzer oder Passwort nicht stimmt → Fehler
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(400).json({ message: 'Ungültige Anmeldedaten' });
   }
 
+  // JWT erstellen (1 Stunde gültig)
   const token = jwt.sign(
     { userId: user._id, username: user.username, email: user.email, role: user.role },
-    'geheim',
+    process.env.JWT_SECRET, // ⚠️ Auch hier sollte das Secret aus process.env kommen!
     { expiresIn: '1h' }
   );
 
   res.json({ token, username: user.username, email: user.email, role: user.role });
 });
 
+
 // Authentifizierten Benutzer abrufen und Rolle prüfen
 router.get('/me', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'Nicht autorisiert' });
   try {
-    const decoded = jwt.verify(token, 'geheim');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'Benutzer nicht gefunden' });
@@ -138,7 +135,7 @@ function checkLoginStatus(req, res) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'Nicht autorisiert' });
   try {
-    const decoded = jwt.verify(token, 'geheim');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     User.findById(decoded.userId).select('-password').then(user => {
       if (user) {
         res.json({ username: user.username, role: user.role });

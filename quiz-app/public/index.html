@@ -172,7 +172,7 @@
         </div>
         
         <!-- 🚨 Modal für gemeldete Fragen -->
-        <div id="reportedQuestionsModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:8px; box-shadow:0px 4px 6px rgba(0, 0, 0, 0.1); width: 400px; max-height: 80vh; overflow-y: auto;">
+        <div id="reportedQuestionsModal" style="display:none;">
             <h2>Gemeldete Fragen</h2>
             <ul id="reportedQuestionsList"></ul>
             <button onclick="closeReportedQuestionsModal()">Schließen</button>
@@ -240,34 +240,19 @@
         </div>
 
         <!-- Modal für Frage bearbeiten -->
-        <div id="editQuestionModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px; width: 400px; max-width: 90%; overflow: hidden;">
+        <div id="editQuestionModal" style="display:none;">
             <h2>Frage bearbeiten</h2>
-            
             <input type="hidden" id="editQuestionId">
-        
-            <label for="editQuestionText">Fragetext:</label>
-            <input type="text" id="editQuestionText" placeholder="Neue Frage eingeben" required>
-        
-            <label for="editOption1">Antwort 1:</label>
-            <input type="text" id="editOption1" placeholder="Antwort 1" required>
-        
-            <label for="editOption2">Antwort 2:</label>
-            <input type="text" id="editOption2" placeholder="Antwort 2" required>
-        
-            <label for="editOption3">Antwort 3:</label>
-            <input type="text" id="editOption3" placeholder="Antwort 3" required>
-        
-            <label for="editOption4">Antwort 4:</label>
-            <input type="text" id="editOption4" placeholder="Antwort 4" required>
-        
-            <label for="editCorrectOption">Korrekte Antwort (Index 0-3):</label>
-            <input type="number" id="editCorrectOption" min="0" max="3" required>
-        
-            <div style="margin-top: 10px; display: flex; gap: 10px;">
-                <button onclick="editQuestion()">💾 Speichern</button>
-                <button onclick="closeEditQuestionModal()">❌ Abbrechen</button>
-            </div>
-        </div>
+            <input type="text" id="editQuestionText" placeholder="Fragetext">
+            <input type="text" id="editOption1" placeholder="Antwort 1">
+            <input type="text" id="editOption2" placeholder="Antwort 2">
+            <input type="text" id="editOption3" placeholder="Antwort 3">
+            <input type="text" id="editOption4" placeholder="Antwort 4">
+            <input type="number" id="editCorrectOption" placeholder="Richtige Option (0-3)">
+            <button onclick="editQuestion()">💾 Speichern</button>
+            <button onclick="closeEditQuestionModal()">❌ Abbrechen</button>
+          </div>
+          
     </div>
     
 </body>

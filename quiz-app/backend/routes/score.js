@@ -1,6 +1,9 @@
+// 🔌 Importiert benötigte Module
 const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
+
+// 📦 Importiere die Mongoose-Modelle
 const User = require('../models/User');
 const Score = require('../models/Score');
 const QuizDeck = require('../models/QuizDeck');
@@ -10,36 +13,42 @@ router.post('/save', async (req, res) => {
         console.log("📥 Eingehende Daten:", req.body);
         let { userId, username, deckId, score } = req.body;
 
-        // 🔍 **Falls `userId` ein Benutzername ist, hole die `ObjectId`**
+        // 🔍 Falls `userId` kein gültiges ObjectId-Format ist → eventuell ein Benutzername!
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             console.warn(`⚠️ userId ist keine gültige ObjectId! Versuche, anhand des Benutzernamens (${username}) die ObjectId zu finden.`);
-            const user = await User.findOne({ username: userId }); // `userId` ist in Wirklichkeit der Benutzername
+
+            // Versuche, User anhand von `userId` als username zu finden
+            const user = await User.findOne({ username: userId });
             if (!user) {
                 return res.status(404).json({ message: "❌ Benutzer nicht gefunden" });
             }
-            userId = user._id; // ✅ Verwende die `ObjectId`
+
+            // Benutzer erfolgreich gefunden → ObjectId extrahieren
+            userId = user._id;
             console.log(`✅ Benutzer gefunden: ${username} -> userId: ${userId}`);
         }
 
-        // ✅ **Konvertiere `deckId` zu einer gültigen ObjectId**
+        // ✅ Validierung der `deckId`
         if (!mongoose.Types.ObjectId.isValid(deckId)) {
             return res.status(400).json({ message: "❌ Ungültige deckId: Kein gültiges ObjectId-Format" });
         }
+
+        // In Mongoose-Objekt konvertieren
         deckId = new mongoose.Types.ObjectId(deckId);
 
-        // 🔍 **Überprüfe, ob das Deck existiert**
+        // 🔍 Überprüfen, ob das angegebene Deck überhaupt existiert
         const deckExists = await QuizDeck.findById(deckId);
         if (!deckExists) {
             return res.status(404).json({ message: "❌ Deck nicht gefunden" });
         }
 
-        // 🔍 **Überprüfe, ob der Benutzer bereits ein Highscore für dieses Deck hat**
+        // 🔍 Prüfen, ob bereits ein Score für diesen User + Deck gespeichert wurde
         const existingScore = await Score.findOne({ userId, deckId });
         if (existingScore) {
             return res.status(400).json({ message: "❌ Highscore für dieses Deck bereits gespeichert" });
         }
 
-        // ✅ **Highscore speichern**
+        // ✅ Score neu erstellen und speichern
         const newScore = new Score({ userId, username, deckId, score });
         await newScore.save();
 
@@ -54,20 +63,25 @@ router.post('/save', async (req, res) => {
 
 
 
+
 // 📊 Leaderboard für ein Deck abrufen
 router.get('/leaderboard/:deckId', async (req, res) => {
     const { deckId } = req.params;
 
     try {
+        // 📊 Finde alle Scores zu diesem Deck, sortiert nach Punktzahl absteigend
         const leaderboard = await Score.find({ deckId })
-            .sort({ score: -1 }) // Höchste Punkte zuerst
-            .limit(10); // Top 10 Spieler anzeigen
+            .sort({ score: -1 })  // Höchste Punktzahlen zuerst
+            .limit(10);           // Begrenze auf die Top 10
 
+        // 🟢 Rückgabe des Leaderboards als JSON
         res.json(leaderboard);
+
     } catch (error) {
-        console.error("Fehler beim Laden des Leaderboards:", error);
+        console.error("❌ Fehler beim Laden des Leaderboards:", error);
         res.status(500).json({ message: "Interner Serverfehler" });
     }
 });
+
 
 module.exports = router;

@@ -1,46 +1,61 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const http = require('http');
-const socketIo = require("socket.io");
-const connectDB = require('./config/db');
-const authRoutes = require('./routes/auth');
-const adminRoutes = require('./routes/admin');
-const scoreRoutes = require('./routes/score');
-const Question = require("./models/Question");
-const path = require('path');
+// 🔌 Importiere erforderliche Module
+require('dotenv').config(); // 🌱 Lädt Umgebungsvariablen
+const express = require('express');             // Web-Framework für HTTP-Routing
+const cors = require('cors');                   // Middleware zur Behandlung von Cross-Origin-Anfragen
+const http = require('http');                   // Node.js HTTP-Modul für Server-Erstellung
+const socketIo = require("socket.io");          // WebSocket-Kommunikation mit Clients
+const connectDB = require('./config/db');       // Eigene DB-Verbindung aus externer Datei
+const authRoutes = require('./routes/auth');    // Authentifizierungsrouten
+const adminRoutes = require('./routes/admin');  // Admin-bezogene API-Routen
+const scoreRoutes = require('./routes/score');  // Routen zur Punkteverwaltung
+const Question = require("./models/Question");  // Datenmodell für Fragen (optional verwendet)
+const path = require('path');                   // Zum Arbeiten mit Dateipfaden
 
+// 🎮 Initialisiere Express-Anwendung
 const app = express();
 
-app.use(express.json());
-app.use(cors());
 
-//socket IO
+app.use(express.json()); // Parsen von JSON-Anfragen im Body
+app.use(cors());         // Ermöglicht Anfragen aus anderen Domains (z. B. vom Frontend)
+
+
+// Erstelle einen HTTP-Server basierend auf Express
 const server = http.createServer(app);
-const io = socketIo(server);
 
-// Datenbankverbindung herstellen
+// Initialisiere WebSocket-Server mit Socket.IO
+const io = socketIo(server); 
+
+
+// Stelle die Verbindung zur MongoDB-Datenbank her (aus config/db.js)
 connectDB();
 
 
+// Routen für Authentifizierung (Login, Registrierung, Token-Prüfung etc.)
 app.use('/api/auth', authRoutes);
+
+// Admin-Funktionen wie Fragenverwaltung oder Nutzerübersicht
 app.use('/api/admin', adminRoutes);
+
+// Punkte & Highscore-Routen
 app.use('/api/scores', scoreRoutes);
 
-// Statische Dateien bereitstellen
+
+// Stellt statische Inhalte aus dem Ordner 'public' bereit (z. B. HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Standardroute für das Laden der index.html
+
+// Fallback-Route – für React/SPA-Routing (z. B. bei clientseitigem Routing über React Router)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+    res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
+  
 
 
-// Socket IO
-let activeGames = {}; // Speichert aktive Spiele mit Fragen und Punkteständen
-let rooms = {}; // Speicher für aktive Spielräume
+// 🔁 Globale Speicherobjekte
+let activeGames = {}; // Aktive Spiele: enthält Fragen, Punktestände und aktuellen Status
+let rooms = {};       // Alle aktuell existierenden Spielräume mit Spielern und Einstellungen
+let players = [];     // Liste aller verbundenen Spieler (für Modus-/Deckwahl, etc.)
 
-let players = [];
 
 io.on("connection", (socket) => {
     console.log("👤 Neuer Spieler verbunden:", socket.id);
@@ -51,89 +66,79 @@ io.on("connection", (socket) => {
 
     socket.on("startGame", async (roomCode) => {
         if (!rooms[roomCode]) return;
-    
+
         if (!activeGames[roomCode]) {
-            activeGames[roomCode] = { 
-                questions: [], 
-                scores: {}, 
-                currentQuestionIndex: 0 
-            };
+            activeGames[roomCode] = { questions: [], scores: {}, currentQuestionIndex: 0 };
         }
-    
+
+        // Hole Fragen aus der Datenbank und mische sie
         const questions = await Question.find().limit(10);
         const shuffledQuestions = shuffleArray(questions);
-    
+
+        // Bereite Fragen für das Spiel auf
         activeGames[roomCode].questions = shuffledQuestions.map(q => ({
             id: q._id,
             text: q.text,
             options: q.options,
             correctOption: q.correctOption
         }));
-    
+
+        // Starte das Spiel im Raum
         io.to(roomCode).emit("gameStarted", { questions: activeGames[roomCode].questions });
         sendNextQuestion(roomCode);
     });
-    
+
     
     socket.on("endGame", (roomCode) => {
         if (!rooms[roomCode]) return;
-    
+
         rooms[roomCode].players.forEach(player => player.isReady = false);
         io.to(roomCode).emit("returnToLobby");
     });
+
     
     
 
+    socket.on("joinLobby", ({ playerId }) => {
+        if (!rooms["mainLobby"]) {
+            rooms["mainLobby"] = { players: [], host: null };
+        }
 
-   // Spieler tritt einer Lobby bei
-   socket.on("joinLobby", ({ playerId }) => {
-    if (!rooms["mainLobby"]) {
-        rooms["mainLobby"] = { players: [], host: null };
-    }
+        let lobby = rooms["mainLobby"];
+        let newPlayer = { id: playerId, name: `Spieler ${lobby.players.length + 1}`, isHost: false };
 
-    let lobby = rooms["mainLobby"];
-    let newPlayer = { id: playerId, name: `Spieler ${lobby.players.length + 1}`, isHost: false };
+        lobby.players.push(newPlayer);
+        if (!lobby.host) {
+            lobby.host = newPlayer.id;
+            newPlayer.isHost = true;
+        }
 
-    lobby.players.push(newPlayer);
-    if (!lobby.host) {
-        lobby.host = newPlayer.id;
-        newPlayer.isHost = true;
-    }
-
-    io.emit("updateLobby", lobby.players);
-});
-
-// Spieler verlässt die Lobby
-socket.on("leaveLobby", ({ playerId, roomCode }) => {
-    let lobby = rooms[roomCode];
-
-    if (!lobby) return;
-
-    // Spieler entfernen
-    lobby.players = lobby.players.filter(p => p.id !== playerId);
-
-    // Falls der Host verlässt, neuen Host bestimmen
-    if (lobby.host === playerId && lobby.players.length > 0) {
-        lobby.host = lobby.players[0].id;
-        lobby.players[0].isHost = true;
-        io.emit("newHost", lobby.host);
-    }
-
-    // Falls keine Spieler mehr übrig sind, lösche den Raum
-    if (lobby.players.length === 0) {
-        delete rooms[roomCode];
-    } else {
         io.emit("updateLobby", lobby.players);
-    }
-});
+    });
 
-    // Spieler zur Liste hinzufügen
+    socket.on("leaveLobby", ({ playerId, roomCode }) => {
+        let lobby = rooms[roomCode];
+        if (!lobby) return;
+
+        lobby.players = lobby.players.filter(p => p.id !== playerId);
+
+        if (lobby.host === playerId && lobby.players.length > 0) {
+            lobby.host = lobby.players[0].id;
+            lobby.players[0].isHost = true;
+            io.emit("newHost", lobby.host);
+        }
+
+        if (lobby.players.length === 0) {
+            delete rooms[roomCode];
+        } else {
+            io.emit("updateLobby", lobby.players);
+        }
+    });
+
+    // Spieler lokal registrieren
     players.push({ id: socket.id, name: `Spieler ${players.length + 1}`, deck: null, mode: null });
-
-    // Aktualisierte Liste senden
     io.emit("updateSelections", players);
 
-    // Spielerwahl empfangen
     socket.on("playerSelection", ({ deck, mode }) => {
         let player = players.find(p => p.id === socket.id);
         if (player) {
@@ -142,6 +147,7 @@ socket.on("leaveLobby", ({ playerId, roomCode }) => {
         }
         io.emit("updateSelections", players);
     });
+
 
 
 
@@ -382,5 +388,8 @@ function handlePlayerDisconnect(socketId) {
     }
 }
 
+const PORT = process.env.PORT || 5000; // Fallback auf 5000, falls .env fehlt
 
-server.listen(5000, () => console.log('Server läuft auf Port 5000'));
+server.listen(PORT, () => {
+  console.log(`🚀 Server läuft auf Port ${PORT}`);
+});

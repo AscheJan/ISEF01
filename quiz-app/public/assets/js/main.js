@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("🟢 DOM vollständig geladen.");
     checkAndHandleLoginStatus();
     initializeApp();
 
@@ -11,11 +10,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    console.log("📌 `selectDeckAdmin` wurde gefunden:", selectDeckAdmin);
 
     selectDeckAdmin.addEventListener("change", function () {
         const selectedDeck = selectDeckAdmin.value;
-        console.log("📌 Admin-Bereich: Gewähltes Deck:", selectedDeck);
 
         if (!selectedDeck || selectedDeck === "") {
             console.warn("⚠️ Kein Deck ausgewählt!");
@@ -87,7 +84,6 @@ const submitReportButton = document.getElementById("submitReport");
 // Funktion: handleDeckChange
 function handleDeckChange(event) {
     gameState.selectedDeck = event.target.value;
-    console.log(`📌 Deck geändert: ${gameState.selectedDeck}`);
     
     if (gameState.selectedDeck) {
         loadDeckQuestions(gameState.selectedDeck);
@@ -167,7 +163,6 @@ function initializeUI() {
 
     if (usernameDisplay) {
         usernameDisplay.innerText = username;
-        console.log(`👤 Eingeloggt als: ${username}`);
     } else {
         console.warn("⚠️ Benutzername nicht gefunden.");
     }
@@ -205,7 +200,6 @@ function fetchUserDataIfAuthenticated() {
 
 
 async function loadDeckOptions() {
-    console.log("🔄 Lade Decks für das Admin-Panel und andere Bereiche...");
     const token = localStorage.getItem('token');
 
     if (!token) {
@@ -223,7 +217,6 @@ async function loadDeckOptions() {
         if (!response.ok) throw new Error(`Fehler beim Laden der Decks: ${response.status}`);
 
         const data = await response.json();
-        console.log("✅ API Antwort (Decks):", data);
 
         if (!data.decks || data.decks.length === 0) {
             console.warn("⚠️ Keine Decks gefunden.");
@@ -251,8 +244,6 @@ async function loadDeckOptions() {
                 option.innerText = deck.name;
                 select.appendChild(option);
             });
-
-            console.log(`✅ Decks erfolgreich in ${select.id} geladen.`);
         });
 
         // 🏆 Event-Listener für die Deck-Auswahl in der Lobby hinzufügen
@@ -262,7 +253,6 @@ async function loadDeckOptions() {
                 let selectedDeckName = data.decks.find(deck => deck._id === selectedDeckId)?.name || "Unbekanntes Deck";
 
                 if (selectedDeckId) {
-                    console.log(`📖 Deck gewählt: ${selectedDeckName}`);
                     loadDeckQuestions(selectedDeckId);
 
                     // 📡 Falls der Nutzer in einem Raum ist, Deck-Auswahl senden
@@ -283,7 +273,6 @@ async function loadDeckOptions() {
 
 // ✅ **Fragen eines Decks abrufen**
 async function loadDeckQuestions(deckId) {
-    console.log(`📥 Lade Fragen für Deck: ${deckId}`);
     const token = localStorage.getItem('token');
     if (!token) {
         showNotification("⚠️ Bitte melde dich an.");
@@ -319,8 +308,6 @@ async function loadDeckQuestions(deckId) {
 
 // ✅ **Report-Modal öffnen**
 function openReportModal(questionId, quizDeckId) {
-    console.log("🔍 Melden-Modal geöffnet für Frage:", questionId);
-
     const reportModal = document.getElementById("reportModal");
     if (!reportModal) {
         console.error("❌ Fehler: `reportModal` nicht gefunden!");
@@ -334,8 +321,6 @@ function openReportModal(questionId, quizDeckId) {
 
 // ✅ **Frage melden**
 async function submitReport() {
-    console.log("📤 Sende Meldung...");
-
     const questionId = document.getElementById("reportQuestionId").value.trim();
     const quizDeckId = document.getElementById("reportQuizDeckId").value.trim();
     const reason = document.getElementById("reportReason").value.trim();
@@ -363,8 +348,6 @@ async function submitReport() {
         });
 
         const data = await response.json();
-        console.log("📥 Antwort vom Server:", data);
-
         if (!response.ok) {
             showNotification(`❌ Fehler: ${data.message}`, "error");
             return;
@@ -390,7 +373,6 @@ function selectGameMode(mode) {
     document.querySelector(`#gameModeSelection button[data-mode='${mode}']`)?.classList.add("selected");
 
     updateReadyButtonState();
-    console.log(`🎮 Spielmodus geändert zu: ${mode}`);
 }
 
 
@@ -445,8 +427,6 @@ function stopAllTimers() {
 // ✅ **Quiz starten (abhängig vom gewählten Modus)**
 function startQuiz() {
     resetGameState();
-    console.log(`🚀 Quiz startet im Modus: ${gameState.selectedGameMode}`);
-
     document.getElementById("lobby").style.display = "none";
     document.getElementById("quizContainer").style.display = "block";
 
@@ -471,11 +451,6 @@ function startQuiz() {
     });
 }
 
-
-
-
-
-
 // ✅ **Report-Modal schließen**
 function closeReportModal() {
     document.getElementById("reportModal").style.display = "none";
@@ -490,8 +465,6 @@ async function saveHighscore(deckId, score) {
         return;
     }
 
-    console.log("📤 Highscore-Daten senden:", { userId, username, deckId, score });
-
     try {
         const response = await fetch("http://localhost:5000/api/scores/save", {
             method: "POST",
@@ -502,9 +475,6 @@ async function saveHighscore(deckId, score) {
         if (!response.ok) {
             throw new Error(`❌ Fehler: ${response.status} - ${await response.text()}`);
         }
-
-        console.log("✅ Highscore gespeichert!");
-
     } catch (error) {
         console.error("❌ Fehler beim Speichern des Highscores:", error);
     }
@@ -518,15 +488,11 @@ async function saveHighscore(deckId, score) {
 
 // ✅ **Quiz beenden**
 async function endQuiz() {
-    console.log("🏁 Quiz beendet!");
-
     stopAllTimers(); // Stelle sicher, dass alle Timer gestoppt sind
 
     const userId = localStorage.getItem("username");
     const deckId = gameState.selectedDeck;
     const score = gameState.score;
-
-    console.log("📤 Highscore wird gespeichert für:", { userId, deckId, score });
 
     if (!userId || !deckId || score === undefined) {
         console.error("❌ Fehlende Daten für Highscore-Speicherung:", { userId, deckId, score });
@@ -671,11 +637,8 @@ function checkAnswer(selectedIndex, correctIndex) {
     if (selectedIndex === correctIndex) {
         gameState.score++;
     } else {
-        console.log("❌ Falsche Antwort! Nächste Frage wird geladen.");
-
         // 🔴 Überlebensmodus: Bei Fehler sofort beenden!
         if (gameState.selectedGameMode === "survival") {
-            console.log("🛡️ Überlebensmodus: Quiz wird sofort beendet!");
             stopAllTimers();
             endQuiz();
             return;
@@ -683,7 +646,6 @@ function checkAnswer(selectedIndex, correctIndex) {
 
         // ⚠️ Risikomodus: Punkte abziehen
         if (gameState.selectedGameMode === "risk") {
-            console.log("🎲 Risikomodus: Falsche Antwort -1 Punkt!");
             gameState.score = Math.max(0, gameState.score - 1);
         }
     }
@@ -705,7 +667,6 @@ function checkAnswer(selectedIndex, correctIndex) {
 
         // 🔄 Endlosmodus: Falls alle Fragen durch sind → zurücksetzen
         if (gameState.selectedGameMode === "endless" && gameState.currentQuestionIndex >= gameState.questionSet.length) {
-            console.log("🔄 Endlosmodus: Neustart der Fragen...");
             gameState.currentQuestionIndex = 0;
             shuffleQuestions();
         }
@@ -714,7 +675,6 @@ function checkAnswer(selectedIndex, correctIndex) {
         if (gameState.currentQuestionIndex < gameState.questionSet.length) {
             displayQuestion();
         } else {
-            console.log("🏁 Keine Fragen mehr. Quiz wird beendet.");
             endQuiz();
         }
     }, 3000);
@@ -730,7 +690,6 @@ function shuffleQuestions() {
         const j = Math.floor(Math.random() * (i + 1));
         [gameState.questionSet[i], gameState.questionSet[j]] = [gameState.questionSet[j], gameState.questionSet[i]];
     }
-    console.log("🔀 Fragen wurden gemischt:", gameState.questionSet);
 }
 
 function checkAnswerSurvival(selectedIndex, correctIndex) {
@@ -740,7 +699,6 @@ function checkAnswerSurvival(selectedIndex, correctIndex) {
         gameState.currentQuestionIndex++;
         displayQuestion();
     } else {
-        console.log("❌ Falsche Antwort! Das Quiz wird jetzt beendet.");
         stopAllTimers();
         gameState.currentQuestionIndex = gameState.questionSet.length;
         endQuiz();
@@ -754,7 +712,6 @@ let totalTimeLeft = 60; // Gesamtzeitlimit für das ganze Quiz
 
 function startSpeedMode() {
     stopAllTimers(); // Stelle sicher, dass kein anderer Timer läuft!
-    console.log("🚀 Speed-Modus gestartet!");
 
     gameState.totalTimeLeft = 60; // Setze die Gesamtzeit für das Quiz
     document.getElementById("totalTimeDisplay").style.display = "block";
@@ -765,7 +722,6 @@ function startSpeedMode() {
 
         if (gameState.totalTimeLeft <= 0) {
             clearInterval(gameState.globalTimer);
-            console.log("⏳ Zeit abgelaufen. Quiz wird beendet!");
             endQuiz();
         }
     }, 1000);
@@ -823,7 +779,6 @@ function checkAnswerEndless(selectedIndex, correctIndex) {
         gameState.currentQuestionIndex++;
 
         if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
-            console.log("🔄 Alle Fragen beantwortet. Starte von vorne...");
             gameState.currentQuestionIndex = 0;
             shuffleQuestions();
         }
@@ -836,7 +791,6 @@ function checkAnswerEndless(selectedIndex, correctIndex) {
 
 function startTimeAttackMode() {
     stopAllTimers();
-    console.log("🚀 Zeitangriff-Modus gestartet!");
     displayQuestion();
 }
 
@@ -911,7 +865,6 @@ function displayQuestion() {
 
     // 📊 Leaderboard für das aktuelle Deck laden
     async function loadLeaderboard(deckId) {
-        console.log(`📊 Lade Leaderboard für Deck: ${deckId}`);
 
         try {
             const response = await fetch(`/api/scores/leaderboard/${deckId}`);
@@ -957,7 +910,6 @@ function displayQuestion() {
         return response.json();
     })
     .then(data => {
-        console.log('Gemeldete Fragen:', data);
         showNotification(`Es gibt ${data.length} gemeldete Fragen.`);
     })
     .catch(error => console.error('Fehler beim Laden des Admin-Dashboards:', error));
@@ -985,7 +937,6 @@ function displayQuestion() {
             setText('displayUsername', user.username);
             // 🛠 Admin-Check verbessern
             localStorage.setItem('role', user.role);
-            console.log("User-Rolle geladen:", user.role);
             if (user.role === 'admin') {
                 showElement('adminPanel');
             } else {
@@ -1077,7 +1028,6 @@ function displayQuestion() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", data.username);
         localStorage.setItem("email", data.email); // 🆕 E-Mail speichern
-        console.log("✅ Login erfolgreich!");
 
         window.location.reload();
     } catch (error) {
@@ -1100,7 +1050,6 @@ function displayQuestion() {
   }
 
   function logout() {
-    console.log("🔴 Nutzer wird abgemeldet...");
 
     // 🔥 Entferne alle gespeicherten Daten
     localStorage.removeItem("token");
@@ -1160,9 +1109,7 @@ function displayQuestion() {
     }
     showElement('adminModal');
     try {
-        console.log("🔄 Lade Decks für Admin-Panel...");
         await loadDecks();
-        console.log("✅ Decks erfolgreich geladen.");
     } catch (error) {
         console.error("❌ Fehler beim Laden der Decks:", error);
         showNotification("Fehler beim Laden der Decks!");
@@ -1238,7 +1185,6 @@ function displayQuestion() {
 
 
 async function loadDeckQuestionsAndDisplay(deckId) {
-    console.log(`📥 Lade Fragen für Deck: ${deckId}`);
 
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1247,7 +1193,8 @@ async function loadDeckQuestionsAndDisplay(deckId) {
         return;
     }
 
-    const questionList = document.getElementById('questionList');
+    const questionList = document.getElementById('adminQuestionList');
+
     if (!questionList) {
         console.error("❌ `questionList` nicht gefunden!");
         return;
@@ -1320,7 +1267,6 @@ async function loadAdminQuestions() {
     }
 
     const selectedDeck = selectDeckAdmin.value;
-    console.log("📌 Gewähltes Admin-Deck:", selectedDeck);
 
     if (!selectedDeck || selectedDeck === "") {
         console.warn("⚠️ Kein Deck ausgewählt!");
@@ -1400,7 +1346,6 @@ async function loadAdminQuestions() {
 
 // Funktion zum Hinzufügen einer neuen Frage
 async function addQuestion() {
-    console.log("🔄 Versuche, eine neue Frage hinzuzufügen...");
 
     const adminModal = document.getElementById('adminModal');
     if (!adminModal) {
@@ -1735,7 +1680,6 @@ async function validateReportedQuestion() {
 }
 
 function openEditReportedQuestion(reportId, questionId, questionText, options, correctIndex) {
-    console.log("Bearbeite gemeldete Frage:", { reportId, questionId, questionText, options, correctIndex });
 
     document.getElementById('editReportedReportId').value = reportId;
     document.getElementById('editReportedQuestionId').value = questionId;
@@ -1900,7 +1844,6 @@ async function handleFetchError(response) {
 
 // 🎮 **Neues Spiel starten**
 async function createGame() {
-    console.log("🚀 Spiel wird erstellt...");
 
     // **Dashboard verstecken & Lobby anzeigen**
     document.getElementById("quizContainer").style.display = "none";
@@ -1913,8 +1856,6 @@ async function createGame() {
     // **Zufälligen Raumcode generieren**
     const roomCode = generateRoomCode();
     document.getElementById("roomCode").textContent = roomCode;
-
-    console.log("✅ Spiel erstellt mit Raumcode:", roomCode);
 }
 
 // ✅ Hilfsfunktion: Raumcode generieren
@@ -1927,7 +1868,6 @@ function generateRoomCode() {
 
 
   async function loadDecks() {
-    console.log("🔄 Lade Decks aus der API...");
     const token = localStorage.getItem('token');
     if (!token) {
         console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
@@ -1943,7 +1883,6 @@ function generateRoomCode() {
         if (response.status === 403) throw new Error('⛔ Zugriff verweigert – Nur Admins dürfen Decks verwalten.');
         if (!response.ok) throw new Error(`❌ Fehler beim Abrufen der Decks – Status: ${response.status}`);
         const data = await response.json();
-        console.log("🟢 API-Antwort erhalten:", data);
         const deckList = document.getElementById('deckList');
         const selectDeck = document.getElementById('selectDeck');
         if (!deckList || !selectDeck) {
@@ -1976,7 +1915,6 @@ function generateRoomCode() {
             option.innerText = deck.name;
             selectDeck.appendChild(option);
         });
-        console.log("✅ Decks erfolgreich in die Liste und das Dropdown eingefügt.");
     } catch (error) {
         console.error('❌ Fehler beim Laden der Decks:', error);
         showNotification(error.message);
@@ -2046,7 +1984,6 @@ function joinMultiplayer() {
 
 // Spieler verlässt Multiplayer-Lobby
 leaveButton.addEventListener("click", () => {
-    console.log("🔴 Spieler verlässt die Lobby...");
     socket.emit("leaveLobby", { playerId, roomCode: currentRoom });
 });
 
@@ -2138,7 +2075,6 @@ socket.on("newHost", (newHostId) => {
 document.getElementById("selectDeck").addEventListener("change", function () {
     let selectedDeckId = this.value;
     if (selectedDeckId) {
-        console.log(`📖 Deck gewählt: ${selectedDeckId}`);
         gameState.selectedDeck = selectedDeckId;
         socket.emit("selectDeck", { roomCode: currentRoom, deckId: selectedDeckId });
     }
@@ -2153,15 +2089,12 @@ document.querySelectorAll("#gameModeSelection button").forEach(button => {
     button.addEventListener("click", function () {
         const mode = this.getAttribute("data-mode");
         gameState.selectedGameMode = mode;
-        console.log(`🎮 Spielmodus gewählt: ${mode}`);
         socket.emit("selectGameMode", { roomCode: currentRoom, gameMode: mode });
     });
 });
 
 // 🏁 Server informiert alle Spieler, dass Deck & Modus gewählt wurden
 socket.on("allSelectionsMade", ({ deck, mode }) => {
-    console.log(`✅ Alle Auswahlen getroffen: Deck - ${deck}, Modus - ${mode}`);
-
     let statusText = document.getElementById("status");
     if (statusText) {
         statusText.innerText = `📖 Gewähltes Deck: ${deck} | 🎮 Spielmodus: ${mode}`;
@@ -2207,7 +2140,6 @@ socket.on("gameCanStart", () => {
 
 
 socket.on("connect", () => {
-    console.log("✅ Verbunden mit Server:", socket.id);
 
     // Funktion zur Überprüfung, ob der Username im Local Storage ist
     function waitForUsername() {
@@ -2220,7 +2152,6 @@ socket.on("connect", () => {
 
     // Falls der Username noch nicht im Local Storage ist, warte darauf
     if (!localStorage.getItem("username")) {
-        console.log("⏳ Warten auf Benutzernamen...");
         
         let checkUsernameInterval = setInterval(waitForUsername, 500); // Alle 500ms prüfen
     } else {
@@ -2230,7 +2161,6 @@ socket.on("connect", () => {
 
 // Funktion zur automatischen Raumerstellung mit Namen
 function autoCreateRoom(username) {
-    console.log(`🚀 Erstelle Raum für: ${username}`);
     socket.emit("createRoom", username);
 }
 
@@ -2247,8 +2177,6 @@ socket.on("roomCreated", (data) => {
     // ✅ Benutzer ist eingeloggt → Raum-Erstellung erlauben
     currentRoom = data.roomCode;
     isHost = true; // Spieler ist der Host
-
-    console.log("🎮 Raum erstellt:", currentRoom);
 
     setTimeout(() => {
         let roomCodeElement = document.getElementById("roomCode");
@@ -2271,7 +2199,6 @@ socket.on("roomCreated", (data) => {
 
 
 socket.on("updatePlayers", ({ players, host }) => {
-    console.log("🔄 Spieler-Liste aktualisiert:", players, "Host:", host);
 
     const playerList = document.getElementById("playerList");
     const statusText = document.getElementById("status");
@@ -2286,7 +2213,6 @@ socket.on("updatePlayers", ({ players, host }) => {
 
     // 🎮 **Host immer anzeigen**
     const hostUsername = host?.username || "Unbekannter Host";
-    console.log("👑 Host:", hostUsername);
 
     // 🕹️ Einzelspieler-Modus
     if (players.length === 1) {
@@ -2327,19 +2253,15 @@ function joinGame() {
     }
 
     localStorage.setItem("username", username);
-
-    console.log(`🔗 ${username} tritt Raum ${roomCode} bei...`);
     socket.emit("joinRoom", { roomCode, username });
 }
 
 
 // Event: Erfolgreicher Beitritt
 socket.on("roomJoined", (data) => {
-    console.log("✅ Raum beigetreten:", data.roomCode);
     currentRoom = data.roomCode;
 
     if (data.isSingleplayer) {
-        console.log("🕹️ Einzelspieler-Modus erkannt!");
         document.getElementById("status").innerText = "🕹️ Einzelspieler-Modus aktiviert!";
     } else {
         document.getElementById("status").innerText = `👥 Spieler im Raum: ${data.players.length}`;
@@ -2353,8 +2275,6 @@ socket.on("roomJoined", (data) => {
 
 
 function updatePlayers(players) {
-    console.log("🔄 Spieler aktualisieren:", players);
-    
     const playerList = document.getElementById("playerList");
     if (!playerList) {
         console.error("❌ Fehler: `playerList` nicht gefunden!");
