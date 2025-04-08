@@ -1,6 +1,6 @@
 Perfekt! Dann ergänze ich den Hinweis zur `.env`-Datei direkt im **Setup-Bereich** der `README.md` – inklusive Erinnerung, sie selbst anzulegen und nicht zu committen. Hier ist die überarbeitete Version:
 
-```markdown
+
 # 🧠 ISEF01 – Interaktives Quizsystem
 
 Ein modernes, interaktives Multiplayer-Quizsystem mit Lobby, Deckverwaltung, Admin-Modus und Fragenbewertung. Entwickelt mit HTML, CSS, JavaScript (Vanilla) und Node.js.
@@ -44,5 +44,3 @@ npm start
 
 MIT © 2025 [AscheJan](https://github.com/AscheJan)
 ```
-
-Wenn du willst, kann ich dir gleich eine `.gitignore`-Datei generieren oder prüfen, ob `.env` korrekt ignoriert wird. Sag einfach Bescheid!
