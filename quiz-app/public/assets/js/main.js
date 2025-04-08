@@ -1242,7 +1242,7 @@ async function loadDeckQuestionsAndDisplay(deckId) {
             deleteButton.innerHTML = "🗑";
             deleteButton.classList.add('delete-btn');
             deleteButton.addEventListener('click', async () => {
-                await deleteQuestion(question._id, deckId);
+                deleteQuestion(question._id, deckId);
             });
 
             listItem.appendChild(editButton);
@@ -1325,7 +1325,7 @@ async function loadAdminQuestions() {
             deleteButton.innerHTML = "🗑";
             deleteButton.classList.add('delete-btn');
             deleteButton.addEventListener('click', async () => {
-                await deleteQuestion(question._id, selectedDeck);
+                deleteQuestion(question._id, selectedDeck);
             });
 
             listItem.appendChild(editButton);
@@ -1513,49 +1513,49 @@ async function addQuestion() {
         showNotification('❌ Fehler beim Bearbeiten der Frage: ' + error.message);
     }
   }
-  // 🗑 Frage löschen mit Sicherheitsabfrage
-  async function deleteQuestion(questionId, deckId, questionText = '') {
-    if (!confirm(`🚨 Möchtest du die Frage wirklich löschen?\n\n❓ "${questionText}"`)) return;
-    const token = localStorage.getItem('token');
-    try {
-        const response = await fetch(`/api/admin/delete-question/${questionId}`, {
+  // 🗑 Frage löschen – Modal statt confirm
+    function deleteQuestion(questionId, deckId, questionText = '') {
+        // Speichere aktuelle Löschdaten
+        pendingDelete = { questionId, deckId };
+        document.getElementById('deleteModalText').innerText = `❓ "${questionText}"`;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    let pendingDelete = { questionId: null, deckId: null };
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+        const { questionId, deckId } = pendingDelete;
+        closeDeleteModal();
+        const token = localStorage.getItem('token');
+      
+        try {
+          const response = await fetch(`/api/admin/delete-question/${questionId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || 'Fehler beim Löschen der Frage.');
-        }
-        showNotification('✅ Frage erfolgreich gelöscht!');
-        // 🔄 UI sofort aktualisieren, ohne gesamte Liste neu zu laden
-        const questionListItem = document.querySelector(`[data-question-id="${questionId}"]`);
-        if (questionListItem) {
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || 'Fehler beim Löschen der Frage.');
+      
+          showNotification('✅ Frage erfolgreich gelöscht!');
+      
+          // UI sofort aktualisieren
+          const questionListItem = document.querySelector(`[data-question-id="${questionId}"]`);
+          if (questionListItem) {
             questionListItem.remove();
-        } else {
-            await loadDeckQuestions(deckId); // Falls UI nicht aktualisiert wurde, gesamte Liste neu laden
+          } else {
+            await loadDeckQuestions(deckId);
+          }
+        } catch (error) {
+          showNotification('❌ Fehler beim Löschen der Frage: ' + error.message);
         }
-    } catch (error) {
-        showNotification('❌ Fehler beim Löschen der Frage: ' + error.message);
-    }
-  }
-  // 🗑 Frage löschen mit Sicherheitsabfrage
-  async function deleteQuestion(questionId, deckId) {
-    if (!confirm('🚨 Möchtest du diese Frage wirklich löschen?')) return;
-    const token = localStorage.getItem('token');
-    try {
-        const response = await fetch(`/api/admin/delete-question/${questionId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) {
-            throw new Error('Fehler beim Löschen der Frage.');
-        }
-        showNotification('✅ Frage erfolgreich gelöscht!');
-        await loadDeckQuestions(deckId); // Nach dem Löschen Liste neu laden
-    } catch (error) {
-        showNotification('❌ Fehler beim Löschen der Frage: ' + error.message);
-    }
-  }
+      });
+      
+  
+
+
   // Öffnet das Modal für gemeldete Fragen
   function openReportedQuestionsModal() {
     showElement('reportedQuestionsModal');

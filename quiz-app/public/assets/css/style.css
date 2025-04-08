@@ -676,239 +676,218 @@
     }
   }
   
-
-/* 🧩 Admin Modal – final, modern & responsiv */
+/* 🧩 Admin Modal – elegant, responsive, modern */
 #adminModal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    max-width: 90vw;
-    max-height: 90vh;
-    padding: var(--spacing-xl);
-    background: var(--color-white);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-xl);
-    overflow-y: auto;
-    overflow-x: hidden;
-    text-align: center;
-    font-family: var(--font-family);
-    box-sizing: border-box;
-    z-index: 1000;
-  }
-  
-  /* 🔤 Überschriften */
-  #adminModal h2,
-  #adminModal h3 {
-    margin-bottom: var(--spacing-sm);
-    color: var(--color-dark);
-    font-weight: 600;
-  }
-  
-  /* 📝 Eingaben & Dropdowns */
-  #adminModal input,
-  #adminModal select {
-    width: 100%;
-    padding: var(--spacing-md);
-    margin: var(--spacing-sm) 0;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-gray);
-    font-size: var(--font-size-base);
-    transition: all var(--transition-fast);
-    display: block;
-  }
-  
-  #adminModal input:focus,
-  #adminModal select:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
-  }
-  
-  /* 🎛 Buttons */
-  #adminModal button {
-    width: 220px;
-    max-width: 100%;
-    padding: var(--spacing-md);
-    margin: var(--spacing-sm) auto;
-    border-radius: var(--radius-md);
-    border: none;
-    font-size: var(--font-size-base);
-    cursor: pointer;
-    transition: background var(--transition-fast), transform 0.1s;
-    display: block;
-  }
-  
-  #adminModal button:first-of-type {
-    background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
-    color: var(--color-white);
-  }
-  
-  #adminModal button:first-of-type:hover {
-    background: linear-gradient(135deg, var(--color-error-dark), #922024);
-    transform: translateY(-2px);
-  }
-  
-  #adminModal button:not(:first-of-type) {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: var(--color-white);
-  }
-  
-  #adminModal button:not(:first-of-type):hover {
-    background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
-    transform: translateY(-2px);
-  }
-  
-  /* 🧾 Admin-Fragenliste */
-  #adminQuestionList {
-    list-style: none;
-    padding: 0;
-    margin: var(--spacing-md) 0;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--spacing-sm);
-  }
-  
-  /* 📦 Frage-Eintrag */
-  .question-item {
-    background: var(--color-light);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-sm) var(--spacing-md);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background 0.2s ease-in-out;
-  }
-  
-  /* ✏️ Fragetext */
-  .question-item strong {
-    flex: 1;
-    color: var(--color-dark);
-    font-size: var(--font-size-base);
-    text-align: left;
-  }
-  
-  /* 🎛 Minimalistische Buttons */
-  .question-item button {
-    margin-left: var(--spacing-xs);
-    padding: 6px 10px;
-    font-size: 14px;
-    background: transparent;
-    color: var(--color-muted);
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-  }
-  
-  /* 🖋 Edit-Button */
-  .edit-btn:hover {
-    color: var(--color-primary);
-    border-color: var(--color-primary);
-    background-color: rgba(0, 123, 255, 0.05);
-  }
-  
-  /* 🗑 Delete-Button */
-  .delete-btn:hover {
-    color: var(--color-error);
-    border-color: var(--color-error);
-    background-color: rgba(220, 53, 69, 0.05);
-  }
-  
-  /* 📱 Responsive Grid */
-  @media (min-width: 600px) {
-    #adminQuestionList {
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    }
-  }
-  
-  /* 📱 Mobile Optimierung */
-  @media (max-width: 480px) {
-    #adminModal {
-      padding: var(--spacing-lg);
-      max-height: 95vh;
-    }
-  
-    #adminModal button {
-      width: 100%;
-    }
-  
-    .question-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--spacing-xs);
-    }
-  
-    .question-item button {
-      width: 100%;
-    }
-  }
-  
-  /* 📦 Deckliste */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  padding: var(--spacing-xl);
+  background: var(--color-white);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  overflow-y: auto;
+  text-align: left;
+  font-family: var(--font-family);
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+/* 🔤 Überschriften */
+#adminModal h2 {
+  font-size: 1.6rem;
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-gray-light);
+  padding-bottom: var(--spacing-xs);
+}
+
+#adminModal h3 {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* 📝 Eingaben */
+#adminModal input,
+#adminModal select {
+  width: 100%;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background-color: var(--color-white);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#adminModal input:focus,
+#adminModal select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.2);
+}
+#adminModal button {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ❌ Schließen-Button */
+#adminModal button:first-of-type {
+  background-color: var(--color-error);
+  color: var(--color-white);
+  font-weight: 600;
+}
+#adminModal button:first-of-type:hover {
+  background-color: var(--color-error-dark);
+  transform: translateY(-1px);
+}
+
+/* ✅ Primär-Button */
+#adminModal button:not(:first-of-type) {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+#adminModal button:not(:first-of-type):hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+/* 🧾 Deck-Liste */
 #deckList {
-    list-style: none;
-    padding: 0;
-    margin: var(--spacing-md) 0;
-    display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+
+
+#deckList li span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-dark);
+}
+
+/* 🗑 Deck löschen */
+.delete-deck-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.delete-deck-btn:hover {
+  color: var(--color-error);
+}
+
+.delete-deck-btn:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* 🧾 Fragenliste – modern & übersichtlich */
+#adminQuestionList {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-md) 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+/* 📦 Einzelne Frage-Karte */
+.question-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-light);
+  border: 1px solid var(--color-gray-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  gap: var(--spacing-xs);
+}
+/* ✏️ Fragetext */
+.question-item strong {
+  font-size: 1rem;
+  color: var(--color-dark);
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 🔘 Button-Zeile */
+.question-item .button-group {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* 🖋 Edit / 🗑 Delete Buttons */
+.question-item button {
+  padding: 6px 12px;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.edit-btn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.delete-btn:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
+
+/* 📱 Responsive Design */
+@media (min-width: 600px) {
+  #adminQuestionList {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  #adminModal {
+    padding: var(--spacing-lg);
+    max-height: 95vh;
+  }
+
+  .question-item {
     flex-direction: column;
-    gap: var(--spacing-sm);
+    align-items: flex-start;
+    gap: var(--spacing-xs);
   }
-  
-  /* 🧩 Einzelnes Deck-Element */
-  #deckList li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--color-light);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    font-size: var(--font-size-base);
-    color: var(--color-dark);
-    box-shadow: none;
-    transition: background 0.2s ease-in-out;
-  }
-  
-  /* 🧾 Deck-Name */
-  #deckList li span {
-    flex: 1;
-    text-align: left;
-    font-weight: 500;
-  }
-  
-  /* 🗑 Button zum Löschen */
+
+  .question-item button,
   .delete-deck-btn {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--color-muted);
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    width: 100%;
   }
-  
-  /* 🔥 Hover-Effekt */
-  .delete-deck-btn:hover {
-    color: var(--color-error);
-    border-color: var(--color-error);
-    background-color: rgba(220, 53, 69, 0.05);
-  }
-  
-  /* 📱 Responsive Verhalten */
-  @media (max-width: 480px) {
-    #deckList li {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--spacing-xs);
-    }
-  
-    .delete-deck-btn {
-      width: 100%;
-    }
-  }
+}
+
   
 
 
@@ -1228,3 +1207,153 @@
       border-radius: var(--radius-sm);
     }
   }
+
+  .modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  .modal-content {
+    background: var(--color-white);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+  }
+  
+  .modal-content h3 {
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-error);
+  }
+  
+  .modal-content p {
+    margin-bottom: var(--spacing-md);
+    color: var(--color-dark);
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+  }
+  
+  .modal-actions button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .modal-actions .danger {
+    background: var(--color-error);
+    color: white;
+  }
+  .modal-actions .danger:hover {
+    background: var(--color-error-dark);
+  }
+  .modal-actions button:not(.danger) {
+    background: var(--color-gray-light);
+    color: var(--color-dark);
+  }
+  .modal-actions button:not(.danger):hover {
+    background: var(--color-gray);
+  }
+  
+  #editReportedQuestionSection {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  
+    width: 90%;
+    max-width: 480px;
+    background: var(--color-white);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+  
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    font-family: var(--font-family);
+  }
+  
+  /* 🧠 Überschrift */
+  #editReportedQuestionSection h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin-bottom: var(--spacing-sm);
+    text-align: center;
+  }
+  
+  /* 🏷️ Label */
+  #editReportedQuestionSection label {
+    font-weight: 500;
+    margin-top: var(--spacing-sm);
+    margin-bottom: 4px;
+    color: var(--color-muted);
+    font-size: 0.95rem;
+  }
+  
+  /* ✏️ Eingabefelder */
+  #editReportedQuestionSection input[type="text"],
+  #editReportedQuestionSection input[type="number"] {
+    width: 100%;
+    padding: var(--spacing-sm);
+    font-size: 1rem;
+    border: 1px solid var(--color-gray);
+    border-radius: var(--radius-md);
+    background: var(--color-light);
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  #editReportedQuestionSection input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.15);
+  }
+  
+  /* 🔘 Buttons */
+  #editReportedQuestionSection button {
+    padding: 10px 16px;
+    font-size: 1rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    margin-top: var(--spacing-sm);
+  }
+  
+  /* ✅ Validieren-Button */
+  #editReportedQuestionSection button:first-of-type {
+    background: var(--color-primary);
+    color: white;
+  }
+  
+  #editReportedQuestionSection button:first-of-type:hover {
+    background: var(--color-primary-dark);
+  }
+  
+  /* ❌ Abbrechen-Button */
+  #editReportedQuestionSection button:last-of-type {
+    background: var(--color-gray-light);
+    color: var(--color-dark);
+  }
+  
+  #editReportedQuestionSection button:last-of-type:hover {
+    background: var(--color-gray);
+  }
+  
