@@ -3,7 +3,7 @@ Perfekt! Dann ergänze ich den Hinweis zur `.env`-Datei direkt im **Setup-Bereic
 
 # 🧠 ISEF01 – Interaktives Quizsystem
 
-Ein modernes, interaktives Multiplayer-Quizsystem mit Lobby, Deckverwaltung, Admin-Modus und Fragenbewertung. Entwickelt mit HTML, CSS, JavaScript (Vanilla) und Node.js.
+Ein modernes, interaktives Multiplayer-Quizsystem mit Lobby, Deckverwaltung, Admin-Modus und Fragenbewertung. Entwickelt mit HTML, CSS, JavaScript, Node.js und Mongodb.
 
 ## 🚀 Features
 
@@ -18,7 +18,7 @@ Ein modernes, interaktives Multiplayer-Quizsystem mit Lobby, Deckverwaltung, Adm
 
 ```bash
 git clone https://github.com/AscheJan/ISEF01.git
-cd ISEF01
+cd quiz-app
 npm install
 ```
 
@@ -33,6 +33,18 @@ JWT_SECRET=deinGeheimerJWTKey
 ```
 
 > ❗️Wichtig: Die `.env`-Datei **darf nicht** ins GitHub-Repository hochgeladen werden. Stelle sicher, dass `.env` in `.gitignore` enthalten ist.
+erstelle dazu eine datei .gitignore
+```gitignore
+# Node.js & npm
+node_modules/
+package-lock.json
+
+# Umgebungsvariablen
+.env
+
+# VS Code-Settings
+.vscode/
+```
 
 ### ✅ App starten
 
@@ -43,4 +55,3 @@ npm start
 ## 📄 Lizenz
 
 MIT © 2025 [AscheJan](https://github.com/AscheJan)
-```
