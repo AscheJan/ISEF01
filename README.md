@@ -55,4 +55,4 @@ npm run production
 
 ## Lizenz
 
-MIT © 2025 [AscheJan](https://github.com/AscheJan)
+Fair Source License © 2025 [AscheJan](https://github.com/AscheJan)
