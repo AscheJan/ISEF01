@@ -1,5 +1,9 @@
-# Ignore .env file
+# Node.js & npm
+node_modules/
+package-lock.json
+
+# Umgebungsvariablen
 .env
 
-# Weitere Dateien und Verzeichnisse, die ignoriert werden sollen
-node_modules/
+# VS Code-Settings
+.vscode/
