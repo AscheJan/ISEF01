@@ -49,7 +49,11 @@ package-lock.json
 ### ✅ App starten
 
 ```bash
-npm start
+npm run dev
+
+oder
+
+npm run production
 ```
 
 ## 📄 Lizenz
