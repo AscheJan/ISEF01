@@ -1,11 +1,8 @@
-Perfekt! Dann ergänze ich den Hinweis zur `.env`-Datei direkt im **Setup-Bereich** der `README.md` – inklusive Erinnerung, sie selbst anzulegen und nicht zu committen. Hier ist die überarbeitete Version:
-
-
-# 🧠 ISEF01 – Interaktives Quizsystem
+# ISEF01 – Interaktives Quizsystem
 
 Ein modernes, interaktives Multiplayer-Quizsystem mit Lobby, Deckverwaltung, Admin-Modus und Fragenbewertung. Entwickelt mit HTML, CSS, JavaScript, Node.js und Mongodb.
 
-## 🚀 Features
+## Features
 
 - 👥 Multiplayer-Lobby mit Spielmodi (z. B. Klassisch, Zeitangriff)
 - 🗂 Deckverwaltung (Erstellen, Löschen, Bearbeiten)
@@ -14,7 +11,7 @@ Ein modernes, interaktives Multiplayer-Quizsystem mit Lobby, Deckverwaltung, Adm
 - 🎨 Responsives UI mit modernem CSS-Design
 - 📊 Leaderboard & Fortschrittsanzeige
 
-## ⚙️ Setup
+## Setup
 
 ```bash
 git clone https://github.com/AscheJan/ISEF01.git
@@ -22,7 +19,7 @@ cd quiz-app
 npm install
 ```
 
-### 🔐 .env Datei erstellen
+### .env Datei erstellen
 
 Lege im Hauptverzeichnis eine Datei namens `.env` an und trage folgende Werte ein:
 
@@ -32,7 +29,7 @@ MONGO_URI=mongodb://localhost:27017/quizapp
 JWT_SECRET=deinGeheimerJWTKey
 ```
 
-> ❗️Wichtig: Die `.env`-Datei **darf nicht** ins GitHub-Repository hochgeladen werden. Stelle sicher, dass `.env` in `.gitignore` enthalten ist.
+> Wichtig: Die `.env`-Datei **darf nicht** ins GitHub-Repository hochgeladen werden. Stelle sicher, dass `.env` in `.gitignore` enthalten ist.
 erstelle dazu eine datei .gitignore
 ```gitignore
 # Node.js & npm
@@ -46,7 +43,7 @@ package-lock.json
 .vscode/
 ```
 
-### ✅ App starten
+### App starten
 
 ```bash
 npm run dev
@@ -56,6 +53,6 @@ oder
 npm run production
 ```
 
-## 📄 Lizenz
+## Lizenz
 
 MIT © 2025 [AscheJan](https://github.com/AscheJan)
