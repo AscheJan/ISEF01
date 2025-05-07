@@ -1,153 +1,169 @@
-/* 🎨 Root Design Tokens */
+/* 🎨 Farbpalette */
 :root {
-    /* Farben */
-    --color-primary: #007bff;
-    --color-primary-dark: #0056b3;
-    --color-secondary: #28a745;
-    --color-secondary-dark: #218838;
-    --color-error: #dc3545;
-    --color-error-dark: #b52a37;
-    --color-warning: #ffc107;
-    --color-warning-dark: #e0a800;
-    --color-light: #f8f9fa;
-    --color-dark: #222;
-    --color-muted: #555;
-    --color-white: #ffffff;
-    --color-gray: #ddd;
-    --color-background: #f4f6f9;
-    --color-input-bg: rgba(255, 255, 255, 0.95);
-    
-    /* Typografie */
-    --font-family: 'Poppins', sans-serif;
-    --font-size-base: 16px;
-    --font-size-sm: 14px;
-    --font-size-lg: 20px;
-    
-    /* Abstände */
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-xl: 32px;
-  
-    /* Radius */
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-    
-    /* Schatten */
-    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 8px 14px rgba(0, 0, 0, 0.12);
-    --shadow-xl: 0 10px 20px rgba(0, 0, 0, 0.2);
-    
-    /* Übergänge */
-    --transition-fast: 0.2s ease-in-out;
-    --transition-default: 0.3s ease-in-out;
-    --transition-slow: 0.4s ease-in-out;
-    
-    /* Breiten */
-    --max-width: 1200px;
-    --modal-width: 500px;
-  }
-  /* 🌍 Reset */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  
-  /* 🌍 Layout für body */
-  html {
-    height: auto;
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  
-  body {
-    font-family: var(--font-family);
-    background: var(--color-background);
-    color: var(--color-dark);
-    text-align: center;
-    display: flex;
-    flex-direction: column; /* wichtiger Fix */
-    justify-content: flex-start; /* nicht center */
-    align-items: center;
-    min-height: 100vh;
-    overflow: visible; /* oder komplett entfernen */
-    padding: 0;
-    margin: 0;
-  }
-  
-  
-  
-  /* 🌟 Utility-Klassen (optional für später) */
-  .hidden {
-    display: none !important;
-  }
-  
-  .flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .rounded {
-    border-radius: var(--radius-md);
-  }
-  
-  .shadow {
-    box-shadow: var(--shadow-md);
-  }
-  
-  .text-muted {
-    color: var(--color-muted);
-  }
-  
-  .text-error {
-    color: var(--color-error);
-  }
-  
-  .w-full {
-    width: 100%;
-  }
-  
-  .max-w-screen {
-    max-width: var(--max-width);
-    margin: 0 auto;
-  }
-  
-  /* ✅ Richtige Antwort: Sanftes Aufleuchten */
-  @keyframes correctFlash {
-    0% { background-color: var(--color-secondary); transform: scale(1); }
-    50% { background-color: #34d058; transform: scale(1.08); }
-    100% { background-color: var(--color-secondary); transform: scale(1); }
-  }
-  
-  /* ❌ Falsche Antwort: Weiches Wackeln */
-  @keyframes incorrectShake {
-    0%, 100% { transform: translateX(0); }
-    25%, 75% { transform: translateX(-4px); }
-    50% { transform: translateX(4px); }
-  }
+  --color-primary: #007bff;
+  --color-primary-dark: #0056b3;
+  --color-secondary: #28a745;
+  --color-secondary-dark: #218838;
+  --color-error: #dc3545;
+  --color-error-dark: #b52a37;
+  --color-warning: #ffc107;
+  --color-warning-dark: #e0a800;
+  --color-light: #f8f9fa;
+  --color-dark: #222;
+  --color-muted: #555;
+  --color-white: #ffffff;
+  --color-gray: #ddd;
+  --color-background: #f4f6f9;
+  --color-input-bg: rgba(255, 255, 255, 0.95);
+}
 
-/* 🎮 GameContainer – Standard: zwei Spalten bei großen Bildschirmen */
+/* 🖋️ Typografie */
+:root {
+  --font-family: 'Poppins', sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-lg: 20px;
+}
+
+/* 📏 Abstände */
+:root {
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+/* 🔲 Border Radius */
+:root {
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+/* ☁️ Schatten */
+:root {
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 14px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ✨ Übergänge */
+:root {
+  --transition-fast: 0.2s ease-in-out;
+  --transition-default: 0.3s ease-in-out;
+  --transition-slow: 0.4s ease-in-out;
+}
+
+/* 🖥️ Breiten */
+:root {
+  --max-width: 1200px;
+  --modal-width: 500px;
+}
+
+/* 🌍 Reset & Grundlayout */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+html {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--color-background);
+  color: var(--color-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* ✨ Utility-Klassen */
+.hidden {
+  display: none !important;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rounded {
+  border-radius: var(--radius-md);
+}
+
+.shadow {
+  box-shadow: var(--shadow-md);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-screen {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+/* ✅ Korrekte Antwort: Sanftes Aufleuchten */
+@keyframes correctFlash {
+  0%, 100% {
+    background-color: var(--color-secondary);
+    transform: scale(1);
+  }
+  50% {
+    background-color: #34d058;
+    transform: scale(1.08);
+  }
+}
+
+/* ❌ Falsche Antwort: Weiches Wackeln */
+@keyframes incorrectShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25%, 75% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+/* 🎮 GameContainer Layout */
 #gameContainer {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: var(--spacing-xl);
   width: 100%;
+  max-width: var(--max-width);
   padding: var(--spacing-xl);
-  margin: var(--spacing-xl) auto;
+  margin: 0 auto;
   background-color: transparent;
-  transition: all var(--transition-slow);
   box-sizing: border-box;
+  transition: all var(--transition-slow);
 }
 
-/* 📦 Inhaltselemente */
+/* 📦 Game Cards */
 #gameContainer > div {
   width: 100%;
   padding: var(--spacing-lg);
@@ -162,520 +178,549 @@
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-  
-  /* 🧠 Headings */
-  #gameContainer h1,
-  #gameContainer h2,
-  #gameContainer h3 {
-    text-align: center;
-    font-weight: 700;
-    margin-bottom: var(--spacing-sm);
-    color: var(--color-dark);
-  }
-  
-  /* 📝 Formularelemente */
-  #gameContainer input,
-  #gameContainer select,
-  #gameContainer textarea {
-    width: 100%;
-    padding: var(--spacing-md);
-    font-size: 15px;
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    background: var(--color-input-bg);
-    transition: var(--transition-default);
-  }
-  
-  #gameContainer input:focus,
-  #gameContainer select:focus,
-  #gameContainer textarea:focus {
-    border-color: var(--color-primary);
-    background: var(--color-white);
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
-    outline: none;
-  }
-  
-  /* 🎛 Buttons */
-  #gameContainer button {
-    width: 100%;
-    padding: var(--spacing-md);
-    font-size: 16px;
-    font-weight: 600;
-    border: none;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: white;
-    box-shadow: var(--shadow-lg);
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-  }
-  
-  #gameContainer button:hover {
-    background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
-    transform: translateY(-3px);
-  }
-  
-  #gameContainer button:active {
-    transform: scale(0.95);
-  }
-  
-  /* 📱 Responsive Optimierung: ab 768px alles untereinander */
-  @media (max-width: 768px) {
-    #gameContainer {
-      flex-direction: column;
-      padding: var(--spacing-lg);
-    }
-  
-    #gameContainer > div {
-      flex: 1 1 100%;
-      max-width: 100%;
-      min-width: 100%;
-      padding: var(--spacing-md);
-    }
-  }
-  
-  /* 📱 Smartphone: weitere Optimierung */
-  @media (max-width: 480px) {
-    #gameContainer {
-      padding: var(--spacing-md);
-    }
-  
-    #gameContainer > div {
-      padding: var(--spacing-sm);
-    }
-  
-    #gameContainer button {
-      font-size: 14px;
-    }
-  }
-  
-  
-  
-/* 🌑 Modal Hintergrund */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(6px);
-    transition: opacity var(--transition-default);
-  }
-  
-  /* 📜 Modal-Inhalt */
-  .modal-content {
-    background-color: var(--color-white);
-    z-index: 1100;
-    padding: var(--spacing-xl);
-    margin: 8% auto;
-    width: 85%;
-    max-width: var(--modal-width);
-    max-height: 40vh;
-    overflow-y: auto;
-    border-radius: var(--radius-xl);
-    text-align: center;
-    box-shadow: var(--shadow-xl);
-    animation: fadeIn var(--transition-default);
-  }
-  
-  /* ❌ Schließen-Button */
-  .close {
-    position: absolute;
-    top: var(--spacing-sm);
-    right: var(--spacing-md);
-    font-size: 24px;
-    cursor: pointer;
-    color: #666;
-    transition: color var(--transition-default);
-  }
-  
-  .close:hover {
-    color: var(--color-error);
-  }
-  
-  /* 📸 Logo */
-  .container img {
-    width: 130px;
-    border-radius: 50%;
-    display: block;
-    margin: 0 auto var(--spacing-sm);
-    box-shadow: var(--shadow-md);
-  }
-  
-  /* 📢 Überschrift */
-  .container h1 {
-    font-size: 26px;
-    color: var(--color-dark);
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-  
-  /* 📝 Text */
-  .container p {
-    font-size: var(--font-size-base);
-    color: var(--color-muted);
-  }
-  
-  /* ✨ Animation für sanftes Erscheinen */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-15px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* 🌟 Start- und Zurücksetzen-Buttons */
-  #startGame {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: var(--color-white);
-    transition: all var(--transition-default);
-  }
-  
-  #startGame:hover {
-    background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
-  }
-  
-  #resetGame {
-    background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
-    color: var(--color-white);
-    transition: all var(--transition-default);
-  }
-  
-  #resetGame:hover {
-    background: linear-gradient(135deg, var(--color-error-dark), #922024);
-  }
-  
-  /* 📱 Responsives Design */
-  @media (max-width: 768px) {
-    .modal-content {
-      width: 90%;
-      max-height: 50vh;
-      padding: var(--spacing-lg);
-    }
-    #gameContainer {
-      padding: var(--spacing-md);
-      width: 95%;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .modal-content {
-      width: 95%;
-      max-height: 60vh;
-      padding: var(--spacing-md);
-    }
-    #gameContainer {
-      padding: var(--spacing-md);
-      width: 95%;
-    }
-  }
-/* 🎮 Lobby-Container */
-#lobby {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+/* 🧠 Headings */
+#gameContainer h1,
+#gameContainer h2,
+#gameContainer h3 {
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-dark);
+}
+
+/* 📝 Form Controls */
+#gameContainer input,
+#gameContainer select,
+#gameContainer textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: 15px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: var(--color-input-bg);
+  transition: border-color var(--transition-default), box-shadow var(--transition-default);
+}
+
+#gameContainer input:focus,
+#gameContainer select:focus,
+#gameContainer textarea:focus {
+  border-color: var(--color-primary);
+  background: var(--color-white);
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+  outline: none;
+}
+
+/* 🎛 Buttons */
+#gameContainer button {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+#gameContainer button:hover {
+  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
+  transform: translateY(-3px);
+}
+
+#gameContainer button:active {
+  transform: scale(0.95);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 768px) {
+  #gameContainer {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
     padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    width: 100%;
-    max-width: 600px;
-    margin: var(--spacing-md) auto;
-    text-align: center;
-    gap: var(--spacing-md);
   }
   
-  /* 🏷 Titel */
-  #lobby h1 {
-    font-size: var(--font-size-lg);
-    color: var(--color-dark);
-    margin-bottom: var(--spacing-sm);
-  }
-  
-  /* 🔐 Raumcode */
-  #roomCode {
-    font-weight: bold;
-    font-size: 18px;
-    color: var(--color-primary);
-    background: #e9f5ff;
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    display: inline-block;
-    margin-top: 5px;
-  }
-  
-  /* 📂 Deck-Auswahl */
-  #selectDeck {
-    width: 100%;
-    padding: var(--spacing-sm);
-    font-size: var(--font-size-base);
-    border: 1px solid var(--color-gray);
-    border-radius: var(--radius-sm);
-    background-color: var(--color-white);
-    appearance: none;
-    cursor: pointer;
-    outline: none;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-    background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-  }
-  
-  #selectDeck:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
-  }
-  
-  #selectDeck option {
-    font-size: var(--font-size-base);
-    background: var(--color-white);
-    padding: var(--spacing-sm);
-  }
-  
-  /* 🎮 Spielmodus-Auswahl */
-  #gameModeSelection {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    margin: var(--spacing-sm) 0;
-  }
-  
-  #gameModeSelection button {
-    padding: 10px 16px;
-    font-size: var(--font-size-base);
-    border-radius: var(--radius-sm);
-    border: none;
-    cursor: pointer;
-    transition: background var(--transition-fast), transform 0.1s;
-  }
-  
-  /* 🔵 Klassischer Modus */
-  #gameModeSelection button[data-mode="classic"] {
-    background-color: var(--color-primary);
-    color: var(--color-white);
-  }
-  
-  #gameModeSelection button[data-mode="classic"]:hover {
-    background-color: var(--color-primary-dark);
-  }
-  
-  /* ⏱️ Zeitangriff */
-  #gameModeSelection button[data-mode="timeattack"] {
-    background-color: #ff9800;
-    color: var(--color-white);
-  }
-  
-  #gameModeSelection button[data-mode="timeattack"]:hover {
-    background-color: #e68900;
-  }
-  
-  /* ✅ Bereit-Button */
-  #readyButton {
-    background-color: var(--color-secondary);
-    color: var(--color-white);
-    padding: 12px 16px;
-    font-size: var(--font-size-base);
-    border-radius: var(--radius-sm);
-    border: none;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    margin-top: var(--spacing-sm);
-    width: 100%;
-  }
-  
-  #readyButton:hover {
-    background-color: var(--color-secondary-dark);
-  }
-  
-  /* ℹ️ Status-Text */
-  #status {
-    font-size: var(--font-size-sm);
-    color: var(--color-muted);
-    margin-top: var(--spacing-sm);
-  }
-  
-  /* 📱 Mobile Optimierung */
-  @media (max-width: 768px) {
-    #lobby {
-      padding: var(--spacing-md);
-      width: 95%;
-    }
-  
-    #gameModeSelection {
-      flex-direction: column;
-      align-items: center;
-    }
-  
-    #selectDeck {
-      font-size: var(--font-size-base);
-    }
-  
-    #readyButton {
-      font-size: var(--font-size-sm);
-    }
-  }
-  
-  
-  input {
-    width: 100%;
+  #gameContainer > div {
     padding: var(--spacing-md);
-    margin: var(--spacing-sm) 0;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-    background: #f9f9f9;
-    color: var(--color-dark);
-    text-align: center;
-    outline: none;
-    box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.1), 
-                inset -4px -4px 10px rgba(255, 255, 255, 0.7);
-    transition: all var(--transition-default);
   }
-  
-  input:focus {
-    background: var(--color-white);
-    box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.1), 
-                inset -2px -2px 8px rgba(255, 255, 255, 0.8);
-  }
-  
-  input::placeholder {
-    color: #aaa;
-  }
-  
-  button {
-    width: 100%;
-    padding: 14px;
-    margin: var(--spacing-sm) 0;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-    font-weight: bold;
-    cursor: pointer;
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: var(--color-white);
-    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1), 
-                -4px -4px 10px rgba(255, 255, 255, 0.7);
-    transition: all var(--transition-default);
-  }
-  
-  textarea {
-    width: 50%;
-    min-height: 120px;
-    max-height: 300px;
-    resize: vertical;
+}
+
+@media (max-width: 480px) {
+  #gameContainer {
     padding: var(--spacing-md);
-    line-height: 1.5;
-    border-radius: var(--radius-lg);
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    transition: box-shadow var(--transition-fast);
   }
 
-  /* 🧾 Gemeldete Fragen Modal */
-#reportedQuestionsModal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--color-white);
-    padding: var(--spacing-xl);
-    width: 100%;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
-    z-index: 1000;
-    box-sizing: border-box;
-    text-align: left;
+  #gameContainer > div {
+    padding: var(--spacing-sm);
   }
-  
-  /* 🧾 Überschrift */
-  #reportedQuestionsModal h2 {
-    font-size: var(--font-size-xl);
-    color: var(--color-dark);
-    margin-bottom: var(--spacing-md);
-    text-align: center;
-  }
-  
-  /* 📋 Liste der gemeldeten Fragen */
-  #reportedQuestionsList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-  }
-  
-  /* 🧾 Einzelner Eintrag */
-  #reportedQuestionsList li {
-    background: var(--color-light);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    line-height: 1.5;
-    font-size: var(--font-size-base);
-  }
-  
-  /* 📝 Bearbeiten-Button pro Eintrag */
-  #reportedQuestionsList button {
-    margin-top: var(--spacing-sm);
-    padding: 8px 12px;
+
+  #gameContainer button {
     font-size: 14px;
-    border: none;
-    border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s ease-in-out;
   }
-  
-  #reportedQuestionsList button:hover {
-    background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
+}
+
+/* 🌑 Modal Hintergrund */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0; /* ersetzt: left, top, width, height */
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  transition: opacity var(--transition-default);
+}
+
+/* 📜 Modal-Inhalt */
+.modal-content {
+  background-color: var(--color-white);
+  z-index: 1100;
+  padding: var(--spacing-xl);
+  margin: 8% auto;
+  width: 85%;
+  max-width: var(--modal-width);
+  max-height: 40vh;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  animation: fadeIn var(--transition-default);
+}
+
+/* ❌ Schließen-Button */
+.close {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-md);
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--color-muted);
+  transition: color var(--transition-default);
+}
+
+.close:hover {
+  color: var(--color-error);
+}
+
+/* 📸 Logo */
+.container img {
+  width: 130px;
+  border-radius: 50%;
+  margin: 0 auto var(--spacing-sm);
+  box-shadow: var(--shadow-md);
+}
+
+/* 📢 Überschrift */
+.container h1 {
+  font-size: 26px;
+  color: var(--color-dark);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* 📝 Text */
+.container p {
+  font-size: var(--font-size-base);
+  color: var(--color-muted);
+}
+
+/* ✨ Animation für sanftes Erscheinen */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
   }
-  
-  /* ❌ Schließen-Button */
-  #reportedQuestionsModal > button {
-    margin-top: var(--spacing-md);
-    width: 100%;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 🌟 Button Styles (allgemein) */
+#startGame,
+#resetGame {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--color-white);
+  transition: all var(--transition-default);
+  cursor: pointer;
+}
+
+/* 🌟 Spezielle Button-Farben */
+#startGame {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+}
+
+#startGame:hover {
+  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
+}
+
+#resetGame {
+  background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
+}
+
+#resetGame:hover {
+  background: linear-gradient(135deg, var(--color-error-dark), #922024);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 90%;
+    max-height: 50vh;
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    max-height: 60vh;
     padding: var(--spacing-md);
+  }
+}
+/* 🎮 Lobby-Container */
+#lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  margin: var(--spacing-md) auto;
+  text-align: center;
+  gap: var(--spacing-md);
+}
+
+/* 🏷 Titel */
+#lobby h1 {
+  font-size: var(--font-size-lg);
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* 🔐 Raumcode */
+#roomCode {
+  font-weight: bold;
+  font-size: 18px;
+  color: var(--color-primary);
+  background: #e9f5ff;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  display: inline-block;
+  margin-top: var(--spacing-sm);
+}
+
+/* 📂 Deck-Auswahl */
+#selectDeck {
+  width: 100%;
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+#selectDeck:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+/* 📂 Option Styling */
+#selectDeck option {
+  font-size: var(--font-size-base);
+  background: var(--color-white);
+  padding: var(--spacing-sm);
+}
+
+/* 🎮 Spielmodus-Auswahl */
+#gameModeSelection {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+}
+
+#gameModeSelection button {
+  padding: 10px 16px;
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform 0.1s;
+}
+
+/* 🔵 Klassischer Modus */
+#gameModeSelection button[data-mode="classic"] {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+#gameModeSelection button[data-mode="classic"]:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* ⏱️ Zeitangriff */
+#gameModeSelection button[data-mode="timeattack"] {
+  background-color: #ff9800;
+  color: var(--color-white);
+}
+
+#gameModeSelection button[data-mode="timeattack"]:hover {
+  background-color: #e68900;
+}
+
+/* ✅ Bereit-Button */
+#readyButton {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  margin-top: var(--spacing-sm);
+  width: 100%;
+}
+
+#readyButton:hover {
+  background-color: var(--color-secondary-dark);
+}
+
+/* ℹ️ Status-Text */
+#status {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  margin-top: var(--spacing-sm);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 768px) {
+  #lobby {
+    padding: var(--spacing-md);
+    width: 95%;
+  }
+
+  #gameModeSelection {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #selectDeck {
     font-size: var(--font-size-base);
-    border: none;
-    border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s ease-in-out;
   }
-  
-  #reportedQuestionsModal > button:hover {
-    background: linear-gradient(135deg, var(--color-error-dark), #922024);
+
+  #readyButton {
+    font-size: var(--font-size-sm);
   }
-  
-  /* 📱 Responsive */
-  @media (max-width: 480px) {
-    #reportedQuestionsModal {
-      width: 95%;
-      padding: var(--spacing-lg);
-    }
-  
-    #reportedQuestionsList button {
-      width: 100%;
-    }
-  
-    #reportedQuestionsModal > button {
-      width: 100%;
-    }
+}
+
+@media (max-width: 480px) {
+  #lobby {
+    padding: var(--spacing-sm);
   }
-  
+
+  #selectDeck {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs);
+  }
+
+  #gameModeSelection button {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  #readyButton {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs);
+  }
+}
+
+/* ✏️ Input-Felder */
+input {
+  width: 100%;
+  padding: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background: #f9f9f9;
+  color: var(--color-dark);
+  text-align: center;
+  outline: none;
+  box-shadow: 
+    inset 4px 4px 10px rgba(0, 0, 0, 0.1),
+    inset -4px -4px 10px rgba(255, 255, 255, 0.7);
+  transition: all var(--transition-default);
+}
+
+input:focus {
+  background: var(--color-white);
+  box-shadow: 
+    inset 2px 2px 8px rgba(0, 0, 0, 0.1),
+    inset -2px -2px 8px rgba(255, 255, 255, 0.8);
+}
+
+input::placeholder {
+  color: #aaa;
+}
+
+/* 🔘 Button-Styling */
+button {
+  width: 100%;
+  padding: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: bold;
+  cursor: pointer;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: var(--color-white);
+  box-shadow: 
+    4px 4px 10px rgba(0, 0, 0, 0.1), 
+    -4px -4px 10px rgba(255, 255, 255, 0.7);
+  transition: all var(--transition-default);
+}
+
+button:hover {
+  background: linear-gradient(135deg, #45a049, #3e8e41);
+}
+
+/* 📝 Textarea Styling */
+textarea {
+  width: 50%;
+  min-height: 120px;
+  max-height: 300px;
+  resize: vertical;
+  padding: var(--spacing-md);
+  line-height: 1.5;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  transition: box-shadow var(--transition-fast);
+}
+
+textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+  outline: none;
+}
+
+/* 🧾 Modal Fenster */
+#reportedQuestionsModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-white);
+  padding: var(--spacing-xl);
+  width: 100%;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  text-align: left;
+}
+
+/* 🧾 Modal Überschrift */
+#reportedQuestionsModal h2 {
+  font-size: var(--font-size-xl);
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+/* 📋 Liste der gemeldeten Fragen */
+#reportedQuestionsList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: 0;
+  margin: 0;
+}
+
+/* 🧾 Einzelner Eintrag */
+#reportedQuestionsList li {
+  background: var(--color-light);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  line-height: 1.5;
+  font-size: var(--font-size-base);
+}
+
+/* 📝 Bearbeiten-Button */
+#reportedQuestionsList button {
+  margin-top: var(--spacing-sm);
+  padding: 8px 12px;
+  font-size: var(--font-size-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-white);
+  cursor: pointer;
+  transition: background var(--transition-default);
+}
+
+#reportedQuestionsList button:hover {
+  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
+}
+
+/* ❌ Schließen-Button im Modal */
+#reportedQuestionsModal > button {
+  margin-top: var(--spacing-md);
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
+  color: var(--color-white);
+  cursor: pointer;
+  transition: background var(--transition-default);
+}
+
+#reportedQuestionsModal > button:hover {
+  background: linear-gradient(135deg, var(--color-error-dark), #922024);
+}
+
+/* 📱 Mobile Optimierung */
+@media (max-width: 480px) {
+  #reportedQuestionsModal {
+    width: 95%;
+    padding: var(--spacing-lg);
+  }
+
+  #reportedQuestionsList button,
+  #reportedQuestionsModal > button {
+    width: 100%;
+  }
+
+  textarea {
+    width: 90%;
+  }
+}
+
 /* 🧩 Admin Modal – elegant, responsive, modern */
 #adminModal {
   position: fixed;
@@ -687,8 +732,8 @@
   max-height: 90vh;
   padding: var(--spacing-xl);
   background: var(--color-white);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-2xl);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
   overflow-y: auto;
   text-align: left;
   font-family: var(--font-family);
@@ -698,7 +743,7 @@
 
 /* 🔤 Überschriften */
 #adminModal h2 {
-  font-size: 1.6rem;
+  font-size: var(--font-size-lg);
   color: var(--color-dark);
   margin-bottom: var(--spacing-md);
   border-bottom: 1px solid var(--color-gray-light);
@@ -706,7 +751,7 @@
 }
 
 #adminModal h3 {
-  font-size: 1.2rem;
+  font-size: var(--font-size-base);
   color: var(--color-primary);
   margin-top: var(--spacing-lg);
   margin-bottom: var(--spacing-sm);
@@ -722,7 +767,7 @@
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   background-color: var(--color-white);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 #adminModal input:focus,
@@ -731,34 +776,38 @@
   border-color: var(--color-primary);
   box-shadow: 0 0 6px rgba(0, 123, 255, 0.2);
 }
+
+/* 🔘 Button-Styling */
 #adminModal button {
   width: 100%;
   padding: 12px 16px;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
   box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
 }
 
 /* ❌ Schließen-Button */
-#adminModal button:first-of-type {
+#adminModal button.close-btn {
   background-color: var(--color-error);
   color: var(--color-white);
   font-weight: 600;
 }
-#adminModal button:first-of-type:hover {
+
+#adminModal button.close-btn:hover {
   background-color: var(--color-error-dark);
   transform: translateY(-1px);
 }
 
 /* ✅ Primär-Button */
-#adminModal button:not(:first-of-type) {
+#adminModal button.primary-btn {
   background-color: var(--color-primary);
   color: var(--color-white);
 }
-#adminModal button:not(:first-of-type):hover {
+
+#adminModal button.primary-btn:hover {
   background-color: var(--color-primary-dark);
   transform: translateY(-1px);
 }
@@ -773,10 +822,8 @@
   gap: var(--spacing-xs);
 }
 
-
-
 #deckList li span {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-dark);
 }
@@ -785,13 +832,10 @@
 .delete-deck-btn {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: var(--font-size-base);
   color: var(--color-muted);
   cursor: pointer;
-  transition: color 0.2s ease;
-}
-.delete-deck-btn:hover {
-  color: var(--color-error);
+  transition: color var(--transition-fast);
 }
 
 .delete-deck-btn:hover {
@@ -819,12 +863,13 @@
   background: var(--color-light);
   border: 1px solid var(--color-gray-light);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-sm);
   gap: var(--spacing-xs);
 }
+
 /* ✏️ Fragetext */
 .question-item strong {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   color: var(--color-dark);
   width: 100%;
   white-space: nowrap;
@@ -832,7 +877,7 @@
   text-overflow: ellipsis;
 }
 
-/* 🔘 Button-Zeile */
+/* 🔘 Button-Gruppe */
 .question-item .button-group {
   display: flex;
   gap: var(--spacing-xs);
@@ -841,13 +886,13 @@
 /* 🖋 Edit / 🗑 Delete Buttons */
 .question-item button {
   padding: 6px 12px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   color: var(--color-muted);
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: all var(--transition-fast);
 }
 
 .edit-btn:hover {
@@ -861,7 +906,6 @@
   border-color: var(--color-error);
   background-color: rgba(220, 53, 69, 0.05);
 }
-
 
 /* 📱 Responsive Design */
 @media (min-width: 600px) {
@@ -888,472 +932,520 @@
   }
 }
 
-  
 
+/* 🖋️ Edit Question Modal */
+#editQuestionModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-white);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: none;
+  z-index: 1010;
+}
 
-  #editQuestionModal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--color-white);
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    text-align: left;
-    display: none;
-    z-index: 1010;
-  }
-  
-  #editQuestionModal input {
-    width: 100%;
-    padding: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--color-gray);
-  }
-  
-  #editQuestionModal button {
-    margin-top: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--font-size-base);
-    border: none;
-    border-radius: var(--radius-sm);
-    background: var(--color-primary);
-    color: white;
-    cursor: pointer;
-  }
-  
-  #editQuestionModal button:last-of-type {
-    background: var(--color-error);
-    margin-left: var(--spacing-sm);
-  }
-  
+/* ✏️ Eingabefelder im Modal */
+#editQuestionModal input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-gray);
+  font-size: var(--font-size-base);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
 
-  /* 🏠 Home-Container */
+#editQuestionModal input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+}
+
+/* 🔘 Buttons im Modal */
+#editQuestionModal button {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-base);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-white);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+/* ✅ Speichern Button */
+#editQuestionModal button.save-btn {
+  background: var(--color-primary);
+}
+
+#editQuestionModal button.save-btn:hover {
+  background: var(--color-primary-dark);
+}
+
+/* ❌ Löschen Button */
+#editQuestionModal button.delete-btn {
+  background: var(--color-error);
+  margin-left: var(--spacing-sm);
+}
+
+#editQuestionModal button.delete-btn:hover {
+  background: var(--color-error-dark);
+}
+
+/* 🏠 Home-Container */
 #home {
-    background-color: transparent;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    width: 100%;
-    max-width: 600px;
-    margin: var(--spacing-lg) auto;
-    text-align: center;
-    backdrop-filter: blur(12px);
-    box-sizing: border-box;
-  }
-  
-  /* 🏷 Titel */
-  #home h1 {
-    font-size: var(--font-size-xl);
-    color: var(--color-dark);
-    margin-bottom: var(--spacing-sm);
-    font-weight: 700;
-  }
-  
-  /* 📜 Beschreibungstext */
-  #home p {
-    font-size: var(--font-size-base);
-    color: var(--color-muted);
-    margin-bottom: var(--spacing-md);
-  }
-  
-  /* ✍️ Eingabefelder */
-  #home input {
-    width: 100%;
-    padding: var(--spacing-md);
-    margin: var(--spacing-xs) 0;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-gray);
-    font-size: var(--font-size-base);
-    outline: none;
-    transition: all var(--transition-default);
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: inset 4px 4px 10px rgba(0, 0, 0, 0.05), inset -4px -4px 10px rgba(255, 255, 255, 0.7);
-  }
-  
-  #home input:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
-    background: var(--color-white);
-  }
-  
-  /* 🎛 Buttons */
-  #home button {
-    width: 220px;
-    padding: var(--spacing-md);
-    margin-top: var(--spacing-sm);
-    border-radius: var(--radius-md);
-    border: none;
-    font-size: var(--font-size-base);
-    cursor: pointer;
-    transition: all var(--transition-default);
-    box-shadow: var(--shadow-md);
-  }
-  
-  #home button:first-of-type {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: var(--color-white);
-  }
-  
-  #home button:first-of-type:hover {
-    background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-  }
-  
-  #home button:last-of-type {
-    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
-    color: var(--color-white);
-  }
-  
-  #home button:last-of-type:hover {
-    background: linear-gradient(135deg, var(--color-secondary-dark), #1e7e34);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-  }
-  
-  /* ⚠️ Fehlermeldung */
-  #error {
-    color: var(--color-error);
-    font-size: var(--font-size-sm);
-    margin-top: var(--spacing-sm);
-  }
-  
-  /* 📱 Responsives Verhalten */
-  @media (max-width: 768px) {
-    #home {
-      padding: var(--spacing-lg);
-      max-width: 90%;
-    }
-  
-    #home button {
-      width: 100%;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    #home {
-      padding: var(--spacing-md);
-    }
-  
-    #home h1 {
-      font-size: var(--font-size-lg);
-    }
-  
-    #home p {
-      font-size: var(--font-size-sm);
-    }
-  
-    #home input {
-      font-size: var(--font-size-sm);
-    }
-  
-    #home button {
-      font-size: var(--font-size-sm);
-    }
-  }
-  
-  
-/* Leaderboard-Container */
-#leaderboard {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    width: 500px;
-    max-width: 100%;
-    margin: auto;
-    text-align: center;
-  }
-  
-  #leaderboard h3 {
-    font-size: var(--font-size-lg);
-    color: var(--color-dark);
-    margin-bottom: var(--spacing-md);
-  }
-  
-  #leaderboard ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-  }
-  
-  #leaderboard ul li {
-    background: var(--color-white);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-xs);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-    font-size: var(--font-size-base);
-    color: var(--color-dark);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background 0.2s ease-in-out;
-  }
-  
-  #leaderboard ul li:hover {
-    background: var(--color-light);
-  }
-  
-  @media (max-width: 480px) {
-    #leaderboard {
-      width: 90%;
-    }
-  
-    #leaderboard h3 {
-      font-size: var(--font-size-base);
-    }
-  
-    #leaderboard ul li {
-      font-size: var(--font-size-sm);
-    }
-  }
-  
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  margin: var(--spacing-lg) auto;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+}
 
+/* 🏷 Titel */
+#home h1 {
+  font-size: var(--font-size-xl);
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-sm);
+  font-weight: 700;
+}
+
+/* 📜 Beschreibungstext */
+#home p {
+  font-size: var(--font-size-base);
+  color: var(--color-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+/* ✍️ Eingabefelder im Home */
+#home input {
+  width: 100%;
+  padding: var(--spacing-md);
+  margin: var(--spacing-xs) 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray);
+  font-size: var(--font-size-base);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    inset 4px 4px 10px rgba(0, 0, 0, 0.05),
+    inset -4px -4px 10px rgba(255, 255, 255, 0.7);
+  transition: all var(--transition-default);
+}
+
+#home input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+  background: var(--color-white);
+}
+
+/* 🎛 Buttons im Home */
+#home button {
+  width: 220px;
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  border: none;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-default);
+  box-shadow: var(--shadow-md);
+}
+
+/* ✅ Primary Button */
+#home button.primary-btn {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-white);
+}
+
+#home button.primary-btn:hover {
+  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ✅ Secondary Button */
+#home button.secondary-btn {
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+  color: var(--color-white);
+}
+
+#home button.secondary-btn:hover {
+  background: linear-gradient(135deg, var(--color-secondary-dark), #1e7e34);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ⚠️ Fehlermeldung */
+#error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 768px) {
+  #home {
+    padding: var(--spacing-lg);
+    max-width: 90%;
+  }
+
+  #home button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  #home {
+    padding: var(--spacing-md);
+  }
+
+  #home h1 {
+    font-size: var(--font-size-lg);
+  }
+
+  #home p {
+    font-size: var(--font-size-sm);
+  }
+
+  #home input {
+    font-size: var(--font-size-sm);
+  }
+
+  #home button {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* 🏆 Leaderboard-Container */
+#leaderboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  width: 500px;
+  max-width: 100%;
+  margin: auto;
+  text-align: center;
+}
+
+/* 🏅 Leaderboard Titel */
+#leaderboard h3 {
+  font-size: var(--font-size-lg);
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-md);
+}
+
+/* 📋 Leaderboard Liste */
+#leaderboard ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+#leaderboard ul li {
+  background: var(--color-white);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-base);
+  color: var(--color-dark);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background var(--transition-fast);
+}
+
+#leaderboard ul li:hover {
+  background: var(--color-light);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 480px) {
+  #leaderboard {
+    width: 90%;
+  }
+
+  #leaderboard h3 {
+    font-size: var(--font-size-base);
+  }
+
+  #leaderboard ul li {
+    font-size: var(--font-size-sm);
+  }
+}
 
 /* 🔔 Benachrichtigungen */
 .notification {
-    position: fixed;
-    top: var(--spacing-md);
-    right: var(--spacing-md);
-    z-index: 1000;
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    font-size: var(--font-size-base);
-    font-weight: 500;
-    color: var(--color-white);
-    cursor: pointer;
-    opacity: 0.95;
-    transition: opacity var(--transition-default), transform var(--transition-default);
-    box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(8px);
-  }
-  
-  .notification:hover {
-    opacity: 1;
-    transform: translateY(-4px);
-  }
-  
-  .notification.info {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  }
-  
-  .notification.success {
-    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
-  }
-  
-  .notification.warning {
-    background: linear-gradient(135deg, var(--color-warning), var(--color-warning-dark));
-    color: var(--color-black);
-  }
-  
-  .notification.error {
-    background: linear-gradient(135deg, var(--color-error), #c82333);
-  }
-  
-  /* 📎 Footer */
+  position: fixed;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 1000;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-white);
+  cursor: pointer;
+  opacity: 0.95;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-lg);
+  transition: opacity var(--transition-default), transform var(--transition-default);
+}
+
+.notification:hover {
+  opacity: 1;
+  transform: translateY(-4px);
+}
+
+/* 🎨 Farbvarianten */
+.notification.info {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+}
+
+.notification.success {
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+}
+
+.notification.warning {
+  background: linear-gradient(135deg, var(--color-warning), var(--color-warning-dark));
+  color: var(--color-dark);
+}
+
+.notification.error {
+  background: linear-gradient(135deg, var(--color-error), #c82333);
+}
+
+/* 📎 Footer */
+.footer {
+  background: transparent;
+  color: var(--color-dark);
+  text-align: center;
+  padding: 0.1rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  position: fixed;
+  left: 0.5rem;
+  top: 50%;
+  transform: rotate(-90deg) translate(-50%, -50%);
+  transform-origin: left top;
+  white-space: nowrap;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.footer:hover {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-md);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 768px) {
   .footer {
-    background: transparent;
-    color: var(--color-dark);
-    text-align: center;
-    padding: 0.1rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    position: fixed;
-    left: 0.5rem;
-    top: 50%;
-    transform: rotate(-90deg) translate(-50%, -50%);
-    transform-origin: left top;
-    white-space: nowrap;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    left: 0.6rem;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
   }
-  
-  .footer:hover {
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 480px) {
+  .footer {
+    left: 0.4rem;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--radius-sm);
   }
-  
-  @media (max-width: 768px) {
-    .footer {
-      left: 0.6rem;
-      font-size: 0.85rem;
-      padding: 0.6rem 1rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .footer {
-      left: 0.4rem;
-      font-size: 0.8rem;
-      padding: 0.5rem 0.8rem;
-      border-radius: var(--radius-sm);
-    }
+}
+
+/* 🌑 Modal Hintergrund */
+.modal-backdrop {
+  position: fixed;
+  inset: 0; /* ersetzt top, left, width, height */
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* 📦 Modal Inhalt */
+.modal-content {
+  background: var(--color-white);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+/* 🔤 Überschrift im Modal */
+.modal-content h3 {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-error);
+}
+
+/* 📝 Beschreibungstext */
+.modal-content p {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-dark);
+}
+
+/* 🔘 Modal Aktionen */
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.modal-actions button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+/* ❌ Danger Button */
+.modal-actions .danger {
+  background: var(--color-error);
+  color: var(--color-white);
+}
+
+.modal-actions .danger:hover {
+  background: var(--color-error-dark);
+}
+
+/* 🔲 Neutraler Button */
+.modal-actions button:not(.danger) {
+  background: var(--color-gray-light);
+  color: var(--color-dark);
+}
+
+.modal-actions button:not(.danger):hover {
+  background: var(--color-gray);
+}
+
+/* 📝 Edit Reported Question Section */
+#editReportedQuestionSection {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 90%;
+  max-width: 480px;
+  background: var(--color-white);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  font-family: var(--font-family);
+}
+
+/* 🧠 Überschrift */
+#editReportedQuestionSection h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-sm);
+  text-align: center;
+}
+
+/* 🏷️ Label */
+#editReportedQuestionSection label {
+  font-weight: 500;
+  margin-top: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ✏️ Eingabefelder */
+#editReportedQuestionSection input[type="text"],
+#editReportedQuestionSection input[type="number"] {
+  width: 100%;
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-md);
+  background: var(--color-light);
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+#editReportedQuestionSection input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.15);
+}
+
+/* 🔘 Buttons im Edit Modal */
+#editReportedQuestionSection button {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-base);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-top: var(--spacing-sm);
+}
+
+/* ✅ Validieren-Button */
+#editReportedQuestionSection button.save-btn {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+#editReportedQuestionSection button.save-btn:hover {
+  background: var(--color-primary-dark);
+}
+
+/* ❌ Abbrechen-Button */
+#editReportedQuestionSection button.cancel-btn {
+  background: var(--color-gray-light);
+  color: var(--color-dark);
+}
+
+#editReportedQuestionSection button.cancel-btn:hover {
+  background: var(--color-gray);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 480px) {
+  .modal-content {
+    max-width: 95%;
   }
 
-  .modal-backdrop {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-  
-  .modal-content {
-    background: var(--color-white);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-  }
-  
-  .modal-content h3 {
-    margin-bottom: var(--spacing-sm);
-    color: var(--color-error);
-  }
-  
-  .modal-content p {
-    margin-bottom: var(--spacing-md);
-    color: var(--color-dark);
-  }
-  
-  .modal-actions {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-sm);
-  }
-  
-  .modal-actions button {
-    padding: 10px 18px;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: 1rem;
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-  
-  .modal-actions .danger {
-    background: var(--color-error);
-    color: white;
-  }
-  .modal-actions .danger:hover {
-    background: var(--color-error-dark);
-  }
-  .modal-actions button:not(.danger) {
-    background: var(--color-gray-light);
-    color: var(--color-dark);
-  }
-  .modal-actions button:not(.danger):hover {
-    background: var(--color-gray);
-  }
-  
   #editReportedQuestionSection {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
-  
-    width: 90%;
-    max-width: 480px;
-    background: var(--color-white);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
-  
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    font-family: var(--font-family);
+    max-width: 95%;
+    padding: var(--spacing-lg);
   }
-  
-  /* 🧠 Überschrift */
-  #editReportedQuestionSection h2 {
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: var(--color-dark);
-    margin-bottom: var(--spacing-sm);
-    text-align: center;
-  }
-  
-  /* 🏷️ Label */
-  #editReportedQuestionSection label {
-    font-weight: 500;
-    margin-top: var(--spacing-sm);
-    margin-bottom: 4px;
-    color: var(--color-muted);
-    font-size: 0.95rem;
-  }
-  
-  /* ✏️ Eingabefelder */
-  #editReportedQuestionSection input[type="text"],
-  #editReportedQuestionSection input[type="number"] {
+
+  .modal-actions button {
     width: 100%;
-    padding: var(--spacing-sm);
-    font-size: 1rem;
-    border: 1px solid var(--color-gray);
-    border-radius: var(--radius-md);
-    background: var(--color-light);
-    box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
   }
-  
-  #editReportedQuestionSection input:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 6px rgba(0, 123, 255, 0.15);
-  }
-  
-  /* 🔘 Buttons */
-  #editReportedQuestionSection button {
-    padding: 10px 16px;
-    font-size: 1rem;
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    margin-top: var(--spacing-sm);
-  }
-  
-  /* ✅ Validieren-Button */
-  #editReportedQuestionSection button:first-of-type {
-    background: var(--color-primary);
-    color: white;
-  }
-  
-  #editReportedQuestionSection button:first-of-type:hover {
-    background: var(--color-primary-dark);
-  }
-  
-  /* ❌ Abbrechen-Button */
-  #editReportedQuestionSection button:last-of-type {
-    background: var(--color-gray-light);
-    color: var(--color-dark);
-  }
-  
-  #editReportedQuestionSection button:last-of-type:hover {
-    background: var(--color-gray);
-  }
-  
+}
