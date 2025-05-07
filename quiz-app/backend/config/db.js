@@ -1,46 +1,48 @@
-// Importiert das Mongoose-Modul für die Arbeit mit MongoDB
+// Importiert notwendige Module
 const mongoose = require('mongoose');
-
-// Lädt Umgebungsvariablen aus der .env-Datei (z. B. MONGO_URI)
-require('dotenv').config(); // Falls noch nicht geladen
-
-// Chalk ermöglicht farbige Konsolenausgaben (zur besseren Lesbarkeit)
+require('dotenv').config(); // Lädt Umgebungsvariablen aus der .env-Datei
 const chalk = require('chalk');
 
-// Asynchrone Funktion zur Herstellung einer Verbindung zur MongoDB
+// Asynchrone Funktion zur Herstellung der Verbindung zur MongoDB
 const connectDB = async () => {
     console.log(chalk.blue('[MongoDB] Verbindung wird hergestellt...'));
 
-    try {
-        // Verbindet sich mit der MongoDB über die Umgebungsvariable MONGO_URI
-        const conn = await mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,         // Nutzt den neuen URL-Parser
-            useUnifiedTopology: true,      // Verwendet den neuen Server-Discovery-Mechanismus
-        });
+    // Überprüft, ob die Umgebungsvariable korrekt geladen wurde
+    if (!process.env.MONGO_URI) {
+        console.error(chalk.red('[MongoDB] Fehler: MONGO_URI ist nicht definiert. Überprüfe deine .env Datei.'));
+        process.exit(1);
+    }
 
-        // ✅ Erfolgreiche Verbindung zur Datenbank
-        console.log(chalk.greenBright('\n✔️  MongoDB-Verbindung hergestellt!'));
+    // Verbindungsversuch
+    try {
+        const conn = await mongoose.connect(process.env.MONGO_URI);
+
+        // Erfolgreiche Verbindung
+        console.log(chalk.greenBright('\n✔️  MongoDB-Verbindung erfolgreich hergestellt!'));
         console.log(chalk.cyanBright(`🔗 Host: ${chalk.white(conn.connection.host)}`));
         console.log(chalk.cyanBright(`📂 Datenbank: ${chalk.white(conn.connection.name)}\n`));
-
-
     } catch (error) {
-        // Gibt bei einem Verbindungsfehler eine Fehlermeldung aus
+        // Fehlerbehandlung mit detaillierter Ausgabe
         console.error(chalk.red(`[MongoDB] Fehler: ${error.message}`));
 
-        // Zusätzliche Hinweise je nach Fehlertyp
-        if (error.message.includes('ECONNREFUSED')) {
-            console.error(chalk.yellow('[MongoDB] Verbindung wurde abgelehnt. Läuft dein MongoDB-Server?'));
-        } else if (error.message.includes('authentication')) {
-            console.error(chalk.yellow('[MongoDB] Authentifizierungsfehler. Überprüfe Benutzername/Passwort in der .env Datei.'));
-        } else {
-            console.error(chalk.yellow('[MongoDB] Ein unerwarteter Fehler ist aufgetreten.'));
+        switch (true) {
+            case error.message.includes('ECONNREFUSED'):
+                console.error(chalk.yellow('[MongoDB] Verbindung wurde abgelehnt. Läuft dein MongoDB-Server?'));
+                break;
+            case error.message.includes('authentication'):
+                console.error(chalk.yellow('[MongoDB] Authentifizierungsfehler. Überprüfe Benutzername/Passwort in der .env Datei.'));
+                break;
+            case error.message.includes('ENOTFOUND'):
+                console.error(chalk.yellow('[MongoDB] Host konnte nicht gefunden werden. Überprüfe die URI.'));
+                break;
+            default:
+                console.error(chalk.yellow('[MongoDB] Ein unerwarteter Fehler ist aufgetreten.'));
         }
 
-        // Beendet die Anwendung mit Exit-Code 1 bei einem Verbindungsfehler
+        // Anwendung mit Fehlercode 1 beenden
         process.exit(1);
     }
 };
 
-// Exportiert die Funktion zur Verwendung in anderen Dateien
+// Export der Funktion zur Verwendung in anderen Dateien
 module.exports = connectDB;
