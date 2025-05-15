@@ -1,20 +1,26 @@
 // Importiert das Mongoose-Modul, um mit MongoDB-Daten zu arbeiten
 const mongoose = require('mongoose');
 
-// Definiert das Schema für ein QuizDeck – also eine Sammlung von Fragen zu einem Thema
+// Definiert das Schema für ein QuizDeck (Sammlung von Fragen zu einem Thema)
 const QuizDeckSchema = new mongoose.Schema({
-    // Der Name des Decks (z. B. "JavaScript Grundlagen" oder "Mathe 5. Klasse")
-    name: { 
-        type: String, 
-        required: true 
-    },
+  // Name des Decks (z. B. "JavaScript Grundlagen", "Mathe 5. Klasse")
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 100
+  },
 
-    // Eine Liste von referenzierten Fragen (ObjectIds), die zu diesem Deck gehören
-    questions: [{ 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Question' 
-    }]
+  // Liste von Fragen (Referenzen auf Question-Objekte)
+  questions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Question'
+  }]
+}, {
+  // Automatische Timestamps für createdAt und updatedAt
+  timestamps: true
 });
 
-// Exportiert das Modell 'QuizDeck', damit es in anderen Dateien verwendet werden kann
+// Exportiert das Modell 'QuizDeck' zur Verwendung in anderen Modulen
 module.exports = mongoose.model('QuizDeck', QuizDeckSchema);

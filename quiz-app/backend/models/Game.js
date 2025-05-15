@@ -1,20 +1,40 @@
-// Importiert das Mongoose-Modul, um mit MongoDB zu arbeiten
+// Import Mongoose für die Arbeit mit MongoDB
 const mongoose = require('mongoose');
 
-// Definiert ein neues Schema für ein "Game"-Dokument in der MongoDB
+// Game-Schema für Multiplayer- oder Quizräume
 const GameSchema = new mongoose.Schema({
-  // Eindeutige ID für den Raum (z. B. für Multiplayer-Spiele oder Quizräume)
-  roomId: String,
+  // Eindeutige Raum-ID (z. B. "room-abc123")
+  roomId: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
 
-  // Liste der Spieler im Spiel – referenziert User-Dokumente über ihre ObjectIds
-  players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  // Liste der Spieler (Verknüpfung zu User-Dokumenten)
+  players: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }],
 
-  // Referenz auf ein QuizDeck-Dokument, das die Fragen enthält
-  quizDeck: { type: mongoose.Schema.Types.ObjectId, ref: 'QuizDeck' },
+  // Referenz auf das QuizDeck (enthält die Fragen)
+  quizDeck: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'QuizDeck',
+    required: true
+  },
 
-  // Status des Spiels – z. B. 'waiting', 'running', 'finished'; Standard ist 'waiting'
-  status: { type: String, default: 'waiting' },
+  // Spielstatus: 'waiting', 'running', 'finished'
+  status: {
+    type: String,
+    enum: ['waiting', 'running', 'finished'],
+    default: 'waiting'
+  }
+}, {
+  // Automatische Zeitstempel für createdAt und updatedAt
+  timestamps: true
 });
 
-// Exportiert das Modell 'Game', damit es in anderen Dateien verwendet werden kann
+// Exportiere das Game-Modell zur weiteren Nutzung
 module.exports = mongoose.model('Game', GameSchema);

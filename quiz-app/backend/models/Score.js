@@ -1,34 +1,42 @@
-// Importiert das Mongoose-Modul, um mit MongoDB-Datenbanken zu arbeiten
+// Importiert das Mongoose-Modul zur Arbeit mit MongoDB
 const mongoose = require('mongoose');
 
-// Definiert das Schema für einen gespeicherten Punktestand eines Nutzers
+// Definiert das Schema für gespeicherte Punktestände eines Users
 const ScoreSchema = new mongoose.Schema({
-    // Referenz auf den User, der diesen Score erreicht hat
-    userId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true 
-    },
+  // Referenz auf den User, der den Score erreicht hat
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
 
-    // Der Benutzername – wird gespeichert, um den Score auch bei gelöschtem User anzeigen zu können
-    username: { 
-        type: String, 
-        required: true 
-    },
+  // 🧾 Benutzername (wird gespeichert, auch wenn der User später gelöscht wird)
+  username: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 50
+  },
 
-    // Referenz auf das zugehörige QuizDeck
-    deckId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'QuizDeck', // Hinweis: früher 'Deck', jetzt klarer benannt
-        required: true 
-    },
+  // Referenz auf das zugehörige QuizDeck
+  deckId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'QuizDeck',
+    required: true
+  },
 
-    // Der erreichte Punktestand (z. B. Anzahl richtiger Antworten)
-    score: { 
-        type: Number, 
-        required: true 
-    }
+  // Erreichter Punktestand (z. B. Anzahl korrekter Antworten)
+  score: {
+    type: Number,
+    required: true,
+    min: 0
+  }
+
+}, {
+  // Automatische Timestamps für createdAt und updatedAt
+  timestamps: true
 });
 
-// Exportiert das Score-Modell, damit es in anderen Modulen verwendet werden kann
+// Exportiert das Score-Modell
 module.exports = mongoose.model('Score', ScoreSchema);
