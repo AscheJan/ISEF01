@@ -1,69 +1,66 @@
-/* 🎨 Farbpalette */
+/* 🎨 Design-Variables */
 :root {
-  --color-primary: #007bff;
-  --color-primary-dark: #0056b3;
-  --color-secondary: #28a745;
-  --color-secondary-dark: #218838;
-  --color-error: #dc3545;
-  --color-error-dark: #b52a37;
-  --color-warning: #ffc107;
-  --color-warning-dark: #e0a800;
-  --color-light: #f8f9fa;
-  --color-dark: #222;
-  --color-muted: #555;
+  /* Farbpalette */
+  --color-primary: #1e90ff;
+  --color-primary-dark: #1a78d1;
+  --color-secondary: #20c997;
+  --color-secondary-dark: #198f73;
+  --color-error: #e55353;
+  --color-error-dark: #b23e3e;
+  --color-warning: #ffcd38;
+  --color-warning-dark: #d1a21e;
+  --color-light: #f1f3f5;
+  --color-dark: #343a40;
+  --color-muted: #6c757d;
   --color-white: #ffffff;
-  --color-gray: #ddd;
-  --color-background: #f4f6f9;
-  --color-input-bg: rgba(255, 255, 255, 0.95);
-}
+  --color-gray: #ced4da;
+  --color-background: #eef2f6;
+  --color-input-bg: rgba(255, 255, 255, 0.9);
 
-/* 🖋️ Typografie */
-:root {
+  /* Typografie */
   --font-family: 'Poppins', sans-serif;
   --font-size-base: 16px;
   --font-size-sm: 14px;
   --font-size-lg: 20px;
-}
 
-/* 📏 Abstände */
-:root {
+  /* Abstände */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
-}
 
-/* 🔲 Border Radius */
-:root {
+  /* Border Radius */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-}
 
-/* ☁️ Schatten */
-:root {
-  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 14px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
+  /* Schatten */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 8px 14px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 10px 20px rgba(0, 0, 0, 0.15);
 
-/* ✨ Übergänge */
-:root {
+  /* Übergänge */
   --transition-fast: 0.2s ease-in-out;
   --transition-default: 0.3s ease-in-out;
   --transition-slow: 0.4s ease-in-out;
-}
 
-/* 🖥️ Breiten */
-:root {
+  --anim-duration-fast: 0.3s;
+  --anim-duration-default: 0.6s;
+  --anim-duration-slow: 1s;
+  --anim-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --anim-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --anim-ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Layout-Breiten */
   --max-width: 1200px;
   --modal-width: 500px;
 }
 
-/* 🌍 Reset & Grundlayout */
+
+/* 🌍 Reset & Basis-Layout */
 *,
 *::before,
 *::after {
@@ -74,485 +71,54 @@
 }
 
 html {
+  font-size: var(--font-size-base);
   min-height: 100vh;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-family);
-  background: var(--color-background);
+  background-color: var(--color-background);
   color: var(--color-dark);
+  line-height: 1.6;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
 }
 
-/* ✨ Utility-Klassen */
-.hidden {
-  display: none !important;
-}
-
-.flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.rounded {
-  border-radius: var(--radius-md);
-}
-
-.shadow {
-  box-shadow: var(--shadow-md);
-}
-
-.text-muted {
-  color: var(--color-muted);
-}
-
-.text-error {
-  color: var(--color-error);
-}
-
-.w-full {
-  width: 100%;
-}
-
-.max-w-screen {
-  max-width: var(--max-width);
-  margin: 0 auto;
-}
-
-/* ✅ Korrekte Antwort: Sanftes Aufleuchten */
-@keyframes correctFlash {
-  0%, 100% {
-    background-color: var(--color-secondary);
-    transform: scale(1);
-  }
-  50% {
-    background-color: #34d058;
-    transform: scale(1.08);
-  }
-}
-
-/* ❌ Falsche Antwort: Weiches Wackeln */
-@keyframes incorrectShake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  25%, 75% {
-    transform: translateX(-4px);
-  }
-  50% {
-    transform: translateX(4px);
-  }
-}
-
-
-/* 🎮 GameContainer Layout */
-#gameContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: var(--spacing-xl);
-  width: 100%;
-  max-width: var(--max-width);
-  padding: var(--spacing-xl);
-  margin: 0 auto;
-  background-color: transparent;
-  box-sizing: border-box;
-  transition: all var(--transition-slow);
-}
-
-/* 📦 Game Cards */
-#gameContainer > div {
-  width: 100%;
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  background: var(--color-white);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  box-sizing: border-box;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-/* 🧠 Headings */
-#gameContainer h1,
-#gameContainer h2,
-#gameContainer h3 {
-  text-align: center;
-  font-weight: 700;
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-dark);
-}
-
-/* 📝 Form Controls */
-#gameContainer input,
-#gameContainer select,
-#gameContainer textarea {
-  width: 100%;
-  padding: var(--spacing-md);
-  font-size: 15px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  background: var(--color-input-bg);
-  transition: border-color var(--transition-default), box-shadow var(--transition-default);
-}
-
-#gameContainer input:focus,
-#gameContainer select:focus,
-#gameContainer textarea:focus {
-  border-color: var(--color-primary);
-  background: var(--color-white);
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
-  outline: none;
-}
-
-/* 🎛 Buttons */
-#gameContainer button {
-  width: 100%;
-  padding: var(--spacing-md);
-  font-size: 16px;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  color: white;
-  box-shadow: var(--shadow-lg);
-  cursor: pointer;
-  transition: transform var(--transition-fast), background var(--transition-fast);
-}
-
-#gameContainer button:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
-  transform: translateY(-3px);
-}
-
-#gameContainer button:active {
-  transform: scale(0.95);
-}
-
-/* 📱 Responsive Anpassungen */
-@media (max-width: 768px) {
-  #gameContainer {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg);
-  }
-  
-  #gameContainer > div {
-    padding: var(--spacing-md);
-  }
-}
-
-@media (max-width: 480px) {
-  #gameContainer {
-    padding: var(--spacing-md);
-  }
-
-  #gameContainer > div {
-    padding: var(--spacing-sm);
-  }
-
-  #gameContainer button {
-    font-size: 14px;
-  }
-}
-
-/* 🌑 Modal Hintergrund */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  inset: 0; /* ersetzt: left, top, width, height */
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(6px);
-  transition: opacity var(--transition-default);
-}
-
-/* 📜 Modal-Inhalt */
-.modal-content {
-  background-color: var(--color-white);
-  z-index: 1100;
-  padding: var(--spacing-xl);
-  margin: 8% auto;
-  width: 85%;
-  max-width: var(--modal-width);
-  max-height: 40vh;
-  overflow-y: auto;
-  border-radius: var(--radius-xl);
-  text-align: center;
-  box-shadow: var(--shadow-xl);
-  animation: fadeIn var(--transition-default);
-}
-
-/* ❌ Schließen-Button */
-.close {
-  position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-md);
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--color-muted);
-  transition: color var(--transition-default);
-}
-
-.close:hover {
-  color: var(--color-error);
-}
-
-/* 📸 Logo */
-.container img {
-  width: 130px;
-  border-radius: 50%;
-  margin: 0 auto var(--spacing-sm);
-  box-shadow: var(--shadow-md);
-}
-
-/* 📢 Überschrift */
-.container h1 {
-  font-size: 26px;
-  color: var(--color-dark);
-  font-weight: 600;
-  margin-bottom: var(--spacing-sm);
-}
-
-/* 📝 Text */
-.container p {
-  font-size: var(--font-size-base);
-  color: var(--color-muted);
-}
-
-/* ✨ Animation für sanftes Erscheinen */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 🌟 Button Styles (allgemein) */
-#startGame,
-#resetGame {
-  width: 100%;
-  padding: var(--spacing-md);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-lg);
-  color: var(--color-white);
-  transition: all var(--transition-default);
-  cursor: pointer;
-}
-
-/* 🌟 Spezielle Button-Farben */
-#startGame {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-}
-
-#startGame:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
-}
-
-#resetGame {
-  background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
-}
-
-#resetGame:hover {
-  background: linear-gradient(135deg, var(--color-error-dark), #922024);
-}
-
-/* 📱 Responsive Anpassungen */
-@media (max-width: 768px) {
-  .modal-content {
-    width: 90%;
-    max-height: 50vh;
-    padding: var(--spacing-lg);
-  }
-}
-
-@media (max-width: 480px) {
-  .modal-content {
-    width: 95%;
-    max-height: 60vh;
-    padding: var(--spacing-md);
-  }
-}
-/* 🎮 Lobby-Container */
-#lobby {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  width: 100%;
-  max-width: 600px;
-  margin: var(--spacing-md) auto;
-  text-align: center;
-  gap: var(--spacing-md);
-}
-
-/* 🏷 Titel */
-#lobby h1 {
-  font-size: var(--font-size-lg);
-  color: var(--color-dark);
-  margin-bottom: var(--spacing-sm);
-}
-
-/* 🔐 Raumcode */
-#roomCode {
-  font-weight: bold;
-  font-size: 18px;
+/* 🖋️ Links, Bilder & Buttons */
+a {
   color: var(--color-primary);
-  background: #e9f5ff;
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  display: inline-block;
-  margin-top: var(--spacing-sm);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+a:hover,
+a:focus {
+  color: var(--color-primary-dark);
 }
 
-/* 📂 Deck-Auswahl */
-#selectDeck {
-  width: 100%;
-  padding: var(--spacing-sm);
-  font-size: var(--font-size-base);
-  border: 1px solid var(--color-gray);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-white);
-  appearance: none;
-  cursor: pointer;
+img,
+picture,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  background: none;
+  border: none;
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
 }
 
-#selectDeck:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
-}
-
-/* 📂 Option Styling */
-#selectDeck option {
-  font-size: var(--font-size-base);
-  background: var(--color-white);
-  padding: var(--spacing-sm);
-}
-
-/* 🎮 Spielmodus-Auswahl */
-#gameModeSelection {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  margin: var(--spacing-sm) 0;
-}
-
-#gameModeSelection button {
-  padding: 10px 16px;
-  font-size: var(--font-size-base);
-  border-radius: var(--radius-sm);
-  border: none;
-  cursor: pointer;
-  transition: background var(--transition-fast), transform 0.1s;
-}
-
-/* 🔵 Klassischer Modus */
-#gameModeSelection button[data-mode="classic"] {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-}
-
-#gameModeSelection button[data-mode="classic"]:hover {
-  background-color: var(--color-primary-dark);
-}
-
-/* ⏱️ Zeitangriff */
-#gameModeSelection button[data-mode="timeattack"] {
-  background-color: #ff9800;
-  color: var(--color-white);
-}
-
-#gameModeSelection button[data-mode="timeattack"]:hover {
-  background-color: #e68900;
-}
-
-/* ✅ Bereit-Button */
-#readyButton {
-  background-color: var(--color-secondary);
-  color: var(--color-white);
-  padding: var(--spacing-md);
-  font-size: var(--font-size-base);
-  border-radius: var(--radius-sm);
-  border: none;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-  margin-top: var(--spacing-sm);
-  width: 100%;
-}
-
-#readyButton:hover {
-  background-color: var(--color-secondary-dark);
-}
-
-/* ℹ️ Status-Text */
-#status {
-  font-size: var(--font-size-sm);
-  color: var(--color-muted);
-  margin-top: var(--spacing-sm);
-}
-
-/* 📱 Responsive Anpassungen */
-@media (max-width: 768px) {
-  #lobby {
-    padding: var(--spacing-md);
-    width: 95%;
-  }
-
-  #gameModeSelection {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  #selectDeck {
-    font-size: var(--font-size-base);
-  }
-
-  #readyButton {
-    font-size: var(--font-size-sm);
-  }
-}
-
-@media (max-width: 480px) {
-  #lobby {
-    padding: var(--spacing-sm);
-  }
-
-  #selectDeck {
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-xs);
-  }
-
-  #gameModeSelection button {
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-
-  #readyButton {
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-xs);
-  }
-}
 
 /* ✏️ Input-Felder */
 input {
@@ -624,6 +190,556 @@ textarea:focus {
   outline: none;
 }
 
+/* 📐 Container & Layout */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: calc(-1 * var(--spacing-md) / 2);
+}
+.col {
+  flex: 1 1 0;
+  padding: calc(var(--spacing-md) / 2);
+}
+
+/* ✨ Utility-Klassen */
+/* Display */
+.hidden       { display: none !important; }
+.block        { display: block !important; }
+.inline-block { display: inline-block !important; }
+.flex         { display: flex !important; }
+.flex-center  { display: flex !important; justify-content: center; align-items: center; }
+.grid         { display: grid !important; }
+
+/* Spacing (Margin & Padding) */
+.m-0   { margin: 0 !important; }
+.mt-1  { margin-top: var(--spacing-xs) !important; }
+.mt-2  { margin-top: var(--spacing-sm) !important; }
+.mt-3  { margin-top: var(--spacing-md) !important; }
+.mb-3  { margin-bottom: var(--spacing-md) !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+.p-1   { padding: var(--spacing-xs) !important; }
+.p-2   { padding: var(--spacing-sm) !important; }
+.p-3   { padding: var(--spacing-md) !important; }
+
+/* Sizing */
+.w-full      { width: 100% !important; }
+.h-full      { height: 100% !important; }
+.max-w-screen { max-width: var(--max-width) !important; }
+
+/* Typography */
+.text-left   { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-right  { text-align: right !important; }
+.text-sm     { font-size: var(--font-size-sm) !important; }
+.text-lg     { font-size: var(--font-size-lg) !important; }
+.text-muted   { color: var(--color-muted) !important; }
+.text-error   { color: var(--color-error) !important; }
+
+/* Backgrounds */
+.bg-primary      { background-color: var(--color-primary) !important; }
+.bg-secondary    { background-color: var(--color-secondary) !important; }
+.bg-light        { background-color: var(--color-light) !important; }
+.bg-white        { background-color: var(--color-white) !important; }
+.bg-transparent  { background-color: transparent !important; }
+
+/* Borders & Radius */
+.rounded        { border-radius: var(--radius-md) !important; }
+.rounded-sm     { border-radius: var(--radius-sm) !important; }
+.rounded-lg     { border-radius: var(--radius-lg) !important; }
+.border         { border: 1px solid var(--color-gray) !important; }
+
+/* Shadows */
+.shadow         { box-shadow: var(--shadow-md) !important; }
+.shadow-sm      { box-shadow: var(--shadow-sm) !important; }
+.shadow-lg      { box-shadow: var(--shadow-lg) !important; }
+
+/* Overflow & Position */
+.overflow-hidden { overflow: hidden !important; }
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+
+/* Interactivity */
+.pointer        { cursor: pointer !important; }
+.no-select      { user-select: none !important; }
+
+/* Übergänge & Animation */
+.transition     { transition: all var(--transition-default) !important; }
+.transition-fast { transition: all var(--transition-fast) !important; }
+
+
+
+/* ✅ Sanftes Aufleuchten – richtige Antwort */
+@keyframes correctFlash {
+  0%, 100% {
+    background-color: var(--color-secondary);
+    transform: scale(1);
+  }
+  50% {
+    background-color: var(--color-secondary-dark);
+    transform: scale(1.1);
+  }
+}
+
+/* ❌ Weiches Wackeln – falsche Antwort */
+@keyframes incorrectShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-6px);
+  }
+  40%, 80% {
+    transform: translateX(6px);
+  }
+}
+
+/* ✨ Sanftes Einblenden */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ➕ Zusätzliche Animation: Pulsieren */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/* 📦 Animations-Klassen */
+.animate-correct {
+  animation: correctFlash var(--anim-duration-default) var(--anim-ease-in-out) both;
+}
+
+.animate-incorrect {
+  animation: incorrectShake var(--anim-duration-fast) var(--anim-ease-in-out) both;
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--anim-duration-default) var(--anim-ease-out) both;
+}
+
+.animate-pulse {
+  animation: pulse var(--anim-duration-slow) var(--anim-ease-in-out) infinite;
+}
+
+/* 🎮 GameContainer Layout */
+#gameContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--spacing-xl);
+  width: 100%;
+  max-width: var(--max-width);
+  padding: var(--spacing-xl);
+  margin: 0 auto;
+  background-color: transparent;
+  transition: var(--transition-slow);
+  box-sizing: border-box;
+}
+
+/* 📦 Game Cards */
+#gameContainer > .card {
+  background-color: var(--color-white);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
+}
+#gameContainer > .card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 🧠 Headings */
+#gameContainer h1,
+#gameContainer h2,
+#gameContainer h3 {
+  width: 100%;
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-dark);
+  font-size: var(--font-size-lg);
+}
+
+/* 📝 Form Controls */
+#gameContainer input,
+#gameContainer select,
+#gameContainer textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-md);
+  background-color: var(--color-input-bg);
+  transition: border-color var(--transition-default), box-shadow var(--transition-default);
+  box-sizing: border-box;
+}
+#gameContainer input:focus,
+#gameContainer select:focus,
+#gameContainer textarea:focus {
+  border-color: var(--color-primary);
+  background-color: var(--color-white);
+  box-shadow: 0 0 8px rgba(30, 144, 255, 0.3);
+  outline: none;
+}
+
+/* 🎛 Buttons */
+#gameContainer button {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-white);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+#gameContainer button:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+}
+#gameContainer button:active {
+  transform: scale(0.97);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 768px) {
+  #gameContainer {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+  }
+  #gameContainer > .card {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  #gameContainer {
+    padding: var(--spacing-md);
+  }
+  #gameContainer > .card {
+    padding: var(--spacing-sm);
+  }
+  #gameContainer button {
+    font-size: var(--font-size-sm);
+  }
+}
+
+
+
+/* 🌑 Modal Hintergrund */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0; /* ersetzt: left, top, width, height */
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  transition: opacity var(--transition-default);
+}
+
+/* 📜 Modal-Inhalt */
+.modal-content {
+  background-color: var(--color-white);
+  z-index: 1100;
+  padding: var(--spacing-xl);
+  margin: 8% auto;
+  width: 85%;
+  max-width: var(--modal-width);
+  max-height: 40vh;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  animation: fadeIn var(--transition-default);
+}
+
+/* ❌ Schließen-Button */
+.close {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-md);
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--color-muted);
+  transition: color var(--transition-default);
+}
+
+.close:hover {
+  color: var(--color-error);
+}
+
+/* 📸 Logo */
+.container img {
+  width: 130px;
+  border-radius: 50%;
+  margin: 0 auto var(--spacing-sm);
+  box-shadow: var(--shadow-md);
+}
+
+/* 📢 Überschrift */
+.container h1 {
+  font-size: 26px;
+  color: var(--color-dark);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* 📝 Text */
+.container p {
+  font-size: var(--font-size-base);
+  color: var(--color-muted);
+}
+
+
+
+/* 🌟 Button Styles (allgemein) */
+#startGame,
+#resetGame {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--color-white);
+  transition: all var(--transition-default);
+  cursor: pointer;
+}
+
+/* 🌟 Spezielle Button-Farben */
+#startGame {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+}
+
+#startGame:hover {
+  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
+}
+
+#resetGame {
+  background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
+}
+
+#resetGame:hover {
+  background: linear-gradient(135deg, var(--color-error-dark), #922024);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 90%;
+    max-height: 50vh;
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    max-height: 60vh;
+    padding: var(--spacing-md);
+  }
+}
+
+
+/* 🎮 Lobby-Container */
+#lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  margin: var(--spacing-md) auto;
+  text-align: center;
+  gap: var(--spacing-md);
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-default), transform var(--transition-fast);
+  box-sizing: border-box;
+}
+#lobby:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* 🏷️ Titel */
+#lobby h1 {
+  font-size: var(--font-size-lg);
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* 🔐 Raumcode */
+#roomCode {
+  font-weight: bold;
+  font-size: var(--font-size-base);
+  color: var(--color-primary);
+  background-color: rgba(30, 144, 255, 0.1);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  display: inline-block;
+  margin-top: var(--spacing-sm);
+}
+
+/* 📂 Deck-Auswahl */
+#selectDeck {
+  width: 100%;
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-md);
+  background-color: var(--color-white);
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%236c757d' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-md) center;
+  background-size: 1rem;
+  box-sizing: border-box;
+}
+#selectDeck:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 4px rgba(30, 144, 255, 0.3);
+}
+
+/* 🎛️ Option Styling */
+#selectDeck option {
+  font-size: var(--font-size-base);
+  background-color: var(--color-white);
+  padding: var(--spacing-sm);
+}
+
+/* 🎮 Spielmodus-Auswahl */
+#gameModeSelection {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+}
+#gameModeSelection button {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+/* 🔵 Klassischer Modus */
+#gameModeSelection button[data-mode="classic"] {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+#gameModeSelection button[data-mode="classic"]:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* ⏱️ Zeitangriff */
+#gameModeSelection button[data-mode="timeattack"] {
+  background-color: var(--color-warning);
+  color: var(--color-white);
+}
+#gameModeSelection button[data-mode="timeattack"]:hover {
+  background-color: var(--color-warning-dark);
+}
+
+/* ✅ Bereit-Button */
+#readyButton {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+  color: var(--color-white);
+  box-shadow: var(--shadow-md);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  margin-top: var(--spacing-sm);
+}
+#readyButton:hover {
+  background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary));
+  transform: translateY(-2px);
+}
+
+/* ℹ️ Status-Text */
+#status {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  margin-top: var(--spacing-sm);
+}
+
+/* 📱 Responsive Anpassungen */
+@media (max-width: 768px) {
+  #lobby {
+    padding: var(--spacing-md);
+    width: 95%;
+  }
+  #gameModeSelection {
+    flex-direction: column;
+    align-items: center;
+  }
+  #selectDeck {
+    font-size: var(--font-size-base);
+  }
+  #readyButton {
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  #lobby {
+    padding: var(--spacing-sm);
+  }
+  #selectDeck {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs);
+  }
+  #gameModeSelection button {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  #readyButton {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs);
+  }
+}
+
 /* 🧾 Modal Fenster */
 #reportedQuestionsModal {
   position: fixed;
@@ -641,10 +757,24 @@ textarea:focus {
   z-index: 1000;
   text-align: left;
 }
+reportedQuestionsModal .modal-content {
+  background-color: var(--color-white);
+  width: 100%;
+  max-width: 90vw;
+  max-height: 90vh;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  overflow-y: auto;
+  position: relative;
+  transform: translateY(-10px);
+  animation: fadeIn var(--anim-duration-default) var(--anim-ease-out) both;
+  box-sizing: border-box;
+}
 
-/* 🧾 Modal Überschrift */
+/* 🧾 Modal-Überschrift */
 #reportedQuestionsModal h2 {
-  font-size: var(--font-size-xl);
+  font-size: calc(var(--font-size-lg) + 4px);
   color: var(--color-dark);
   margin-bottom: var(--spacing-md);
   text-align: center;
@@ -653,44 +783,49 @@ textarea:focus {
 /* 📋 Liste der gemeldeten Fragen */
 #reportedQuestionsList {
   list-style: none;
+  margin: 0 0 var(--spacing-md);
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  padding: 0;
-  margin: 0;
 }
 
 /* 🧾 Einzelner Eintrag */
 #reportedQuestionsList li {
-  background: var(--color-light);
+  background-color: var(--color-light);
   padding: var(--spacing-md);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
   font-size: var(--font-size-base);
+  line-height: 1.5;
+  box-sizing: border-box;
 }
 
 /* 📝 Bearbeiten-Button */
 #reportedQuestionsList button {
-  margin-top: var(--spacing-sm);
-  padding: 8px 12px;
+  align-self: flex-end;
+  padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-sm);
   border: none;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: var(--color-white);
   cursor: pointer;
-  transition: background var(--transition-default);
+  transition: transform var(--transition-fast), background var(--transition-default);
 }
-
 #reportedQuestionsList button:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
 }
 
 /* ❌ Schließen-Button im Modal */
 #reportedQuestionsModal > button {
-  margin-top: var(--spacing-md);
+  display: block;
   width: 100%;
+  margin-top: var(--spacing-md);
   padding: var(--spacing-md);
   font-size: var(--font-size-base);
   border: none;
@@ -698,32 +833,30 @@ textarea:focus {
   background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
   color: var(--color-white);
   cursor: pointer;
-  transition: background var(--transition-default);
+  transition: transform var(--transition-fast), background var(--transition-default);
 }
-
 #reportedQuestionsModal > button:hover {
-  background: linear-gradient(135deg, var(--color-error-dark), #922024);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, var(--color-error-dark), var(--color-error));
 }
 
 /* 📱 Mobile Optimierung */
 @media (max-width: 480px) {
-  #reportedQuestionsModal {
-    width: 95%;
+  #reportedQuestionsModal .modal-content {
     padding: var(--spacing-lg);
+    max-height: 80vh;
   }
-
   #reportedQuestionsList button,
   #reportedQuestionsModal > button {
     width: 100%;
-  }
-
-  textarea {
-    width: 90%;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm);
   }
 }
 /* ##########################################
    🧩 Admin Modal – Modern, Clean & Scrollable
    ########################################## */
+
    #adminModal {
     position: fixed;
     inset: 0;
@@ -731,7 +864,7 @@ textarea:focus {
     align-items: center;
     justify-content: center;
     padding: var(--spacing-lg);
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--color-dark);
     z-index: 1000;
     box-sizing: border-box;
   
@@ -756,85 +889,81 @@ textarea:focus {
     font-family: var(--font-family);
     box-sizing: border-box;
   }
-  
-  /* Custom scrollbar */
-  #adminModal .modal-content {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-gray) var(--color-light);
-  }
-  #adminModal .modal-content::-webkit-scrollbar {
-    width: 8px;
-  }
-  #adminModal .modal-content::-webkit-scrollbar-track {
-    background: var(--color-light);
-    border-radius: var(--radius-sm);
-  }
-  #adminModal .modal-content::-webkit-scrollbar-thumb {
-    background: var(--color-gray);
-    border-radius: var(--radius-sm);
-  }
-  
-  /* 🔤 Headings */
-  #adminModal h2 {
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-    color: var(--color-dark);
-    margin: 0 0 var(--spacing-md);
-    border-bottom: 2px solid var(--color-gray-light);
-    padding-bottom: var(--spacing-sm);
-  }
-  #adminModal h3 {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: var(--color-primary);
-    margin: var(--spacing-lg) 0 var(--spacing-sm);
-  }
-  
-  /* 📝 Form Layout */
-  #adminModal form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    grid-gap: var(--spacing-md);
-  }
-  #adminModal label {
-    display: block;
-    font-size: var(--font-size-sm);
-    color: var(--color-gray-dark);
-    margin-bottom: var(--spacing-xs);
-  }
-  
-  /* Inputs, selects, textareas */
-  #adminModal input,
-  #adminModal select,
-  #adminModal textarea {
-    width: 100%;
-    padding: var(--spacing-md);
-    border: 1px solid var(--color-gray);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-    background-color: var(--color-white);
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  }
-  #adminModal input:focus,
-  #adminModal select:focus,
-  #adminModal textarea:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
-  }
-  
+#adminModal .modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+#adminModal .modal-content::-webkit-scrollbar-track {
+  background: var(--color-light);
+  border-radius: var(--radius-sm);
+}
+#adminModal .modal-content::-webkit-scrollbar-thumb {
+  background: var(--color-gray);
+  border-radius: var(--radius-sm);
+}
+
+/* 🔤 Headings */
+#adminModal h2 {
+  font-size: calc(var(--font-size-lg) + 4px);
+  font-weight: 700;
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+  border-bottom: 2px solid var(--color-gray);
+  padding-bottom: var(--spacing-sm);
+}
+#adminModal h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: var(--spacing-lg) 0 var(--spacing-sm);
+}
+
+/* 📝 Form Layout */
+#adminModal form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+#adminModal label {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  margin-bottom: var(--spacing-xs);
+  display: block;
+}
+
+/* ✏️ Inputs, Selects, Textareas */
+#adminModal input,
+#adminModal select,
+#adminModal textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-md);
+  background-color: var(--color-white);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
+}
+#adminModal input:focus,
+#adminModal select:focus,
+#adminModal textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 8px rgba(30, 144, 255, 0.25);
+}
+
 /* 🔘 Button Group */
 #adminModal .button-group {
   display: flex;
-  justify-content: flex-end;      /* Buttons rechtsbündig anordnen */
-  gap: var(--spacing-md);
+  justify-content: flex-end;
   flex-wrap: wrap;
+  gap: var(--spacing-md);
   margin-top: var(--spacing-lg);
 }
 
-/* 🗲 Gemeinsame Button-Basis */
+/* 🗲 Common Button Base */
 #adminModal .button-group button {
-  flex: 0 1 150px;                /* fixe Basisbreite, lässt minimal schrumpfen */
+  flex: 0 1 150px;
   padding: calc(var(--spacing-sm) * 1.5) var(--spacing-lg);
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -847,34 +976,32 @@ textarea:focus {
     background-color var(--transition-fast),
     transform var(--transition-fast),
     box-shadow var(--transition-fast);
+  box-sizing: border-box;
 }
 
-/* ✅ Primär-Button */
+/* ✅ Primary Button */
 #adminModal .button-group button.primary-btn {
   background-color: var(--color-primary);
   color: var(--color-white);
 }
-
 #adminModal .button-group button.primary-btn:hover {
   background-color: var(--color-primary-dark);
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
 
-/* ❌ Sekundär/Schließen-Button */
+/* ❌ Close Button */
 #adminModal .button-group button.close-btn {
-  background-color: var(--color-error-light);
-  color: var(--color-error-dark);
-}
-
-#adminModal .button-group button.close-btn:hover {
   background-color: var(--color-error);
   color: var(--color-white);
+}
+#adminModal .button-group button.close-btn:hover {
+  background-color: var(--color-error-dark);
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
 
-/* 📱 Responsive: Buttons full-width auf kleinen Bildschirmen */
+/* 📱 Responsive: Full-Width Buttons on Small Screens */
 @media (max-width: 480px) {
   #adminModal .button-group {
     justify-content: center;
@@ -886,24 +1013,14 @@ textarea:focus {
 }
 
   
-  /* ✅ Primary Button */
-  #adminModal button.primary-btn {
-    background-color: var(--color-primary);
-    color: var(--color-white);
-  }
-  #adminModal button.primary-btn:hover {
-    background-color: var(--color-primary-dark);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  /* ##########################################
-     🧾 Deck List – Uniform & Responsive
-     ########################################## */
-  #deckList {
+
+/* ##########################################
+   🗂️ Deck List
+   ########################################## */
+   #deckList {
     list-style: none;
-    padding: 0;
     margin: 0 0 var(--spacing-md);
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
@@ -913,14 +1030,16 @@ textarea:focus {
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-sm) var(--spacing-md);
-    background: var(--color-light);
-    border: 1px solid var(--color-gray-light);
+    background-color: var(--color-light);
+    border: 1px solid var(--color-gray);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-xs);
-    transition: box-shadow var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+    box-sizing: border-box;
   }
   #deckList li:hover {
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
   }
   #deckList li span {
     flex: 1;
@@ -944,20 +1063,22 @@ textarea:focus {
     color: var(--color-muted);
     cursor: pointer;
     border-radius: var(--radius-sm);
-    transition: background-color var(--transition-fast), color var(--transition-fast);
+    transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+    box-sizing: border-box;
   }
   #deckList li button:hover {
     color: var(--color-error);
     background-color: rgba(220, 53, 69, 0.1);
+    transform: translateY(-1px);
   }
   
   /* ##########################################
-     🧾 Question List – Card Grid Layout
+     📝 Admin Question List – Card Grid Layout
      ########################################## */
   #adminQuestionList {
     list-style: none;
-    padding: 0;
     margin: var(--spacing-md) 0;
+    padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--spacing-md);
@@ -967,14 +1088,15 @@ textarea:focus {
     flex-direction: column;
     justify-content: space-between;
     padding: var(--spacing-md);
-    background: var(--color-white);
-    border: 1px solid var(--color-gray-light);
+    background-color: var(--color-white);
+    border: 1px solid var(--color-gray);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-xs);
+    box-shadow: var(--shadow-sm);
     transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+    box-sizing: border-box;
   }
   .question-item:hover {
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
   }
   .question-item strong {
@@ -998,32 +1120,26 @@ textarea:focus {
     border-radius: var(--radius-sm);
     color: var(--color-muted);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+    box-sizing: border-box;
   }
-  .edit-btn:hover {
+  .question-item button.edit-btn:hover {
     color: var(--color-primary);
     border-color: var(--color-primary);
-    background-color: rgba(0, 123, 255, 0.05);
+    background-color: rgba(30, 144, 255, 0.05);
+    transform: translateY(-1px);
   }
-  .delete-btn:hover {
+  .question-item button.delete-btn:hover {
     color: var(--color-error);
     border-color: var(--color-error);
     background-color: rgba(220, 53, 69, 0.05);
+    transform: translateY(-1px);
   }
   
   /* ##########################################
      📱 Responsive Adjustments
      ########################################## */
   @media (max-width: 600px) {
-    #adminModal .modal-content {
-      padding: var(--spacing-md);
-    }
-    #adminModal h2 {
-      font-size: var(--font-size-lg);
-    }
-    #adminQuestionList {
-      grid-template-columns: 1fr;
-    }
     #deckList li,
     .question-item {
       padding: var(--spacing-sm);
@@ -1032,7 +1148,11 @@ textarea:focus {
     .question-item button {
       width: 100%;
     }
+    #adminQuestionList {
+      grid-template-columns: 1fr;
+    }
   }
+  
   
 
 
@@ -1054,77 +1174,137 @@ textarea:focus {
   z-index: 1010;
 }
 
-/* ✏️ Eingabefelder im Modal */
-#editQuestionModal input {
+/* ✏️ Modal-Content */
+#editQuestionModal .modal-content {
+  background-color: var(--color-white);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  position: relative;
+  transform: translateY(-10px);
+  animation: fadeIn var(--anim-duration-default) var(--anim-ease-out) both;
+  box-sizing: border-box;
+}
+
+/* 🔤 Überschrift */
+#editQuestionModal .modal-content h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-dark);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+/* ✏️ Eingabefelder */
+#editQuestionModal .modal-content input {
   width: 100%;
   padding: var(--spacing-sm);
   margin-bottom: var(--spacing-sm);
-  border-radius: var(--radius-sm);
   border: 1px solid var(--color-gray);
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-base);
-  outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
 }
-
-#editQuestionModal input:focus {
+#editQuestionModal .modal-content input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 6px rgba(30, 144, 255, 0.3);
+  outline: none;
 }
 
-/* 🔘 Buttons im Modal */
-#editQuestionModal button {
-  margin-top: var(--spacing-sm);
+/* 🔘 Button-Container */
+#editQuestionModal .modal-content .button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+/* 🟢 Speichern */
+#editQuestionModal .modal-content button.save-btn {
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-base);
+  font-weight: 600;
+  background-color: var(--color-primary);
+  color: var(--color-white);
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--color-white);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  box-sizing: border-box;
+}
+#editQuestionModal .modal-content button.save-btn:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
 }
 
-/* ✅ Speichern Button */
-#editQuestionModal button.save-btn {
-  background: var(--color-primary);
+/* 🔴 Löschen */
+#editQuestionModal .modal-content button.delete-btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  background-color: var(--color-error);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  box-sizing: border-box;
+}
+#editQuestionModal .modal-content button.delete-btn:hover {
+  background-color: var(--color-error-dark);
+  transform: translateY(-2px);
 }
 
-#editQuestionModal button.save-btn:hover {
-  background: var(--color-primary-dark);
-}
-
-/* ❌ Löschen Button */
-#editQuestionModal button.delete-btn {
-  background: var(--color-error);
-  margin-left: var(--spacing-sm);
-}
-
-#editQuestionModal button.delete-btn:hover {
-  background: var(--color-error-dark);
+/* 📱 Mobile Anpassung */
+@media (max-width: 480px) {
+  #editQuestionModal .modal-content {
+    padding: var(--spacing-md);
+    max-height: 80vh;
+  }
+  #editQuestionModal .modal-content .button-group {
+    flex-direction: column;
+  }
+  #editQuestionModal .modal-content button {
+    width: 100%;
+    padding: var(--spacing-sm);
+  }
 }
 
 /* 🏠 Home-Container */
 #home {
-  background-color: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-lg);
   width: 100%;
   max-width: 600px;
   margin: var(--spacing-lg) auto;
-  text-align: center;
+  padding: var(--spacing-xl);
+  background-color: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  text-align: center;
   box-sizing: border-box;
+  transition: box-shadow var(--transition-default), transform var(--transition-fast);
+}
+#home:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
-/* 🏷 Titel */
+/* 🏷️ Titel */
 #home h1 {
   font-size: var(--font-size-xl);
+  font-weight: 700;
   color: var(--color-dark);
   margin-bottom: var(--spacing-sm);
-  font-weight: 700;
 }
 
 /* 📜 Beschreibungstext */
@@ -1132,6 +1312,7 @@ textarea:focus {
   font-size: var(--font-size-base);
   color: var(--color-muted);
   margin-bottom: var(--spacing-md);
+  line-height: 1.5;
 }
 
 /* ✍️ Eingabefelder im Home */
@@ -1139,20 +1320,21 @@ textarea:focus {
   width: 100%;
   padding: var(--spacing-md);
   margin: var(--spacing-xs) 0;
-  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-base);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 
+  background-color: var(--color-input-bg);
+  box-shadow:
     inset 4px 4px 10px rgba(0, 0, 0, 0.05),
     inset -4px -4px 10px rgba(255, 255, 255, 0.7);
-  transition: all var(--transition-default);
+  transition: border-color var(--transition-default), box-shadow var(--transition-default), background-color var(--transition-default);
+  box-sizing: border-box;
 }
-
 #home input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
-  background: var(--color-white);
+  background-color: var(--color-white);
+  box-shadow: 0 0 8px rgba(30, 144, 255, 0.4);
+  outline: none;
 }
 
 /* 🎛 Buttons im Home */
@@ -1160,12 +1342,14 @@ textarea:focus {
   width: 220px;
   padding: var(--spacing-md);
   margin-top: var(--spacing-sm);
-  border-radius: var(--radius-md);
-  border: none;
   font-size: var(--font-size-base);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-default);
   box-shadow: var(--shadow-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-default);
+  box-sizing: border-box;
 }
 
 /* ✅ Primary Button */
@@ -1173,11 +1357,10 @@ textarea:focus {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: var(--color-white);
 }
-
 #home button.primary-btn:hover {
-  background: linear-gradient(135deg, var(--color-primary-dark), #003d80);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
 }
 
 /* ✅ Secondary Button */
@@ -1185,27 +1368,25 @@ textarea:focus {
   background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
   color: var(--color-white);
 }
-
 #home button.secondary-btn:hover {
-  background: linear-gradient(135deg, var(--color-secondary-dark), #1e7e34);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-secondary));
 }
 
 /* ⚠️ Fehlermeldung */
 #error {
-  color: var(--color-error);
   font-size: var(--font-size-sm);
+  color: var(--color-error);
   margin-top: var(--spacing-sm);
 }
 
 /* 📱 Responsive Anpassungen */
 @media (max-width: 768px) {
   #home {
-    padding: var(--spacing-lg);
     max-width: 90%;
+    padding: var(--spacing-lg);
   }
-
   #home button {
     width: 100%;
   }
@@ -1215,22 +1396,10 @@ textarea:focus {
   #home {
     padding: var(--spacing-md);
   }
-
-  #home h1 {
-    font-size: var(--font-size-lg);
-  }
-
-  #home p {
-    font-size: var(--font-size-sm);
-  }
-
-  #home input {
-    font-size: var(--font-size-sm);
-  }
-
-  #home button {
-    font-size: var(--font-size-sm);
-  }
+  #home h1 { font-size: var(--font-size-lg); }
+  #home p  { font-size: var(--font-size-sm); }
+  #home input,
+  #home button { font-size: var(--font-size-sm); }
 }
 
 /* 🏆 Leaderboard-Container */
@@ -1238,65 +1407,76 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: transparent;
   padding: var(--spacing-lg);
+  margin: var(--spacing-lg) auto;
+  width: 100%;
+  max-width: 500px;
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
   border-radius: var(--radius-lg);
-  width: 500px;
-  max-width: 100%;
-  margin: auto;
+  box-shadow: var(--shadow-md);
   text-align: center;
+  transition: box-shadow var(--transition-default), transform var(--transition-fast);
+  box-sizing: border-box;
+}
+#leaderboard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
-/* 🏅 Leaderboard Titel */
+/* 🏅 Leaderboard-Titel */
 #leaderboard h3 {
   font-size: var(--font-size-lg);
+  font-weight: 600;
   color: var(--color-dark);
   margin-bottom: var(--spacing-md);
 }
 
-/* 📋 Leaderboard Liste */
+/* 📋 Leaderboard-Liste */
 #leaderboard ul {
   list-style: none;
   padding: 0;
   margin: 0;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
 }
 
 #leaderboard ul li {
-  background: var(--color-white);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-xs);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  font-size: var(--font-size-base);
-  color: var(--color-dark);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background var(--transition-fast);
+  padding: var(--spacing-md);
+  background-color: var(--color-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-base);
+  color: var(--color-dark);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  box-sizing: border-box;
 }
-
 #leaderboard ul li:hover {
-  background: var(--color-light);
+  background-color: var(--color-light);
+  transform: translateY(-1px);
 }
 
 /* 📱 Responsive Anpassungen */
 @media (max-width: 480px) {
   #leaderboard {
-    width: 90%;
+    max-width: 90%;
+    padding: var(--spacing-md);
   }
-
   #leaderboard h3 {
     font-size: var(--font-size-base);
   }
-
   #leaderboard ul li {
     font-size: var(--font-size-sm);
+    padding: var(--spacing-sm);
   }
 }
 
-/* 🔔 Benachrichtigungen */
+/* 🔔 Notification Base */
 .notification {
   position: fixed;
   top: var(--spacing-md);
@@ -1307,150 +1487,92 @@ textarea:focus {
   font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-white);
-  cursor: pointer;
-  opacity: 0.95;
   backdrop-filter: blur(8px);
   box-shadow: var(--shadow-lg);
-  transition: opacity var(--transition-default), transform var(--transition-default);
+  cursor: pointer;
+  opacity: 0.95;
+  transition:
+    opacity var(--transition-default),
+    transform var(--transition-default),
+    background-color var(--transition-fast);
+  box-sizing: border-box;
 }
-
 .notification:hover {
   opacity: 1;
   transform: translateY(-4px);
 }
 
-/* 🎨 Farbvarianten */
+/* 🎨 Notification Variants */
 .notification.info {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
 }
-
 .notification.success {
   background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
 }
-
 .notification.warning {
   background: linear-gradient(135deg, var(--color-warning), var(--color-warning-dark));
   color: var(--color-dark);
 }
-
 .notification.error {
-  background: linear-gradient(135deg, var(--color-error), #c82333);
+  background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
+}
+
+/* 📱 Responsive Tweaks */
+@media (max-width: 480px) {
+  .notification {
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    width: calc(100% - 2 * var(--spacing-sm));
+    max-width: 300px;
+  }
 }
 
 /* 📎 Footer */
 .footer {
-  background: transparent;
-  color: var(--color-dark);
-  text-align: center;
-  padding: 0.1rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
   position: fixed;
-  left: 0.5rem;
+  left: var(--spacing-sm);
   top: 50%;
   transform: rotate(-90deg) translate(-50%, -50%);
   transform-origin: left top;
   white-space: nowrap;
+  background-color: transparent;
+  color: var(--color-dark);
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  text-align: center;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
 }
-
 .footer:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background-color: var(--color-white);
   box-shadow: var(--shadow-md);
 }
 
 /* 📱 Responsive Anpassungen */
 @media (max-width: 768px) {
   .footer {
-    left: 0.6rem;
-    font-size: 0.85rem;
-    padding: 0.6rem 1rem;
+    left: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
   }
 }
 
 @media (max-width: 480px) {
   .footer {
-    left: 0.4rem;
-    font-size: 0.8rem;
-    padding: 0.5rem 0.8rem;
+    left: var(--spacing-xs);
+    font-size: var(--font-size-xs, 0.8rem);
+    padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-sm);
   }
 }
 
 
-
-/* 🌑 Modal Hintergrund */
-.modal-backdrop {
-  position: fixed;
-  inset: 0; /* ersetzt top, left, width, height */
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-/* 📦 Modal Inhalt */
-.modal-content {
-  background: var(--color-white);
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-}
-
-/* 🔤 Überschrift im Modal */
-.modal-content h3 {
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-error);
-}
-
-/* 📝 Beschreibungstext */
-.modal-content p {
-  margin-bottom: var(--spacing-md);
-  color: var(--color-dark);
-}
-
-/* 🔘 Modal Aktionen */
-.modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-sm);
-}
-
-.modal-actions button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-/* ❌ Danger Button */
-.modal-actions .danger {
-  background: var(--color-error);
-  color: var(--color-white);
-}
-
-.modal-actions .danger:hover {
-  background: var(--color-error-dark);
-}
-
-/* 🔲 Neutraler Button */
-.modal-actions button:not(.danger) {
-  background: var(--color-gray-light);
-  color: var(--color-dark);
-}
-
-.modal-actions button:not(.danger):hover {
-  background: var(--color-gray);
-}
 
 /* 📝 Edit Reported Question Section */
 #editReportedQuestionSection {
@@ -1482,11 +1604,11 @@ textarea:focus {
 
 /* 🏷️ Label */
 #editReportedQuestionSection label {
-  font-weight: 500;
-  margin-top: var(--spacing-sm);
-  margin-bottom: var(--spacing-xs);
-  color: var(--color-muted);
+  display: block;
   font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-muted);
+  margin: var(--spacing-sm) 0 var(--spacing-xs);
 }
 
 /* ✏️ Eingabefelder */
@@ -1495,65 +1617,76 @@ textarea:focus {
   width: 100%;
   padding: var(--spacing-sm);
   font-size: var(--font-size-base);
+  background-color: var(--color-light);
   border: 1px solid var(--color-gray);
   border-radius: var(--radius-md);
-  background: var(--color-light);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
   box-sizing: border-box;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
-
 #editReportedQuestionSection input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 6px rgba(0, 123, 255, 0.15);
+  background-color: var(--color-white);
+  box-shadow: 0 0 6px rgba(30, 144, 255, 0.15);
 }
 
 /* 🔘 Buttons im Edit Modal */
-#editReportedQuestionSection button {
+#editReportedQuestionSection .button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+#editReportedQuestionSection .button-group button {
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-base);
+  font-weight: 600;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-fast);
-  margin-top: var(--spacing-sm);
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
 }
 
 /* ✅ Validieren-Button */
-#editReportedQuestionSection button.save-btn {
-  background: var(--color-primary);
+#editReportedQuestionSection .button-group .save-btn {
+  background-color: var(--color-primary);
   color: var(--color-white);
 }
-
-#editReportedQuestionSection button.save-btn:hover {
-  background: var(--color-primary-dark);
+#editReportedQuestionSection .button-group .save-btn:hover {
+  transform: translateY(-2px);
+  background-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ❌ Abbrechen-Button */
-#editReportedQuestionSection button.cancel-btn {
-  background: var(--color-gray-light);
+#editReportedQuestionSection .button-group .cancel-btn {
+  background-color: var(--color-gray);
   color: var(--color-dark);
 }
-
-#editReportedQuestionSection button.cancel-btn:hover {
-  background: var(--color-gray);
+#editReportedQuestionSection .button-group .cancel-btn:hover {
+  transform: translateY(-2px);
+  background-color: var(--color-gray-light);
+  box-shadow: var(--shadow-sm);
 }
 
 /* 📱 Responsive Anpassungen */
 @media (max-width: 480px) {
-  .modal-content {
-    max-width: 95%;
-  }
-
-  #editReportedQuestionSection {
-    max-width: 95%;
+  #editReportedQuestionSection .modal-content {
     padding: var(--spacing-lg);
+    max-height: 90vh;
   }
-
-  .modal-actions button {
+  #editReportedQuestionSection .button-group {
+    flex-direction: column;
+  }
+  #editReportedQuestionSection .button-group button {
     width: 100%;
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
   }
 }
+
 /* ganz ans Ende deiner CSS packen */
 #answerOptions button.correct {
   background: #4caf50 !important;              /* ersetzt gradient komplett */
