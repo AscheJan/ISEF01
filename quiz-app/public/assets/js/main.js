@@ -1,55 +1,93 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // 1) Basis-Initialisierung
     checkAndHandleLoginStatus();
     initializeApp();
-
-
+  
+    // 2) Admin-Deck-Wechsel (bleibt wie gehabt)
     const selectDeckAdmin = document.getElementById("selectDeckAdmin");
-
     if (!selectDeckAdmin) {
-        console.error("❌ Fehler: `selectDeckAdmin` wurde nicht gefunden!");
-        return;
+      console.error("❌ Fehler: `selectDeckAdmin` wurde nicht gefunden!");
+      return;
     }
-
-
-    selectDeckAdmin.addEventListener("change", function () {
-        const selectedDeck = selectDeckAdmin.value;
-
-        if (!selectedDeck || selectedDeck === "") {
-            console.warn("⚠️ Kein Deck ausgewählt!");
-            return;
-        }
-
-        loadAdminQuestions();
+    selectDeckAdmin.addEventListener("change", () => {
+      if (!selectDeckAdmin.value) {
+        console.warn("⚠️ Kein Deck ausgewählt!");
+        return;
+      }
+      loadAdminQuestions();
     });
-
+  
+    // 3) Ready-Button initial holen
     const readyButton = document.getElementById("readyButton");
-    const statusText = document.getElementById("status"); // ✅ Korrekte Initialisierung
-
+    const statusText  = document.getElementById("status");
+  
     if (!readyButton || !statusText) {
-        console.error("❌ Fehler: 'readyButton' oder 'statusText' nicht gefunden!");
-        return;
+      console.error("❌ Fehler: 'readyButton' oder 'status' nicht gefunden!");
+      return;
     }
-
-    // 🎯 "Bereit"-Button Logik mit Countdown
-    readyButton.addEventListener("click", function () {
-        if (!gameState.selectedDeck || !gameState.selectedGameMode) {
-            showNotification("Bitte wähle zuerst ein Deck und einen Spielmodus!");
-            return;
-        }
-
-        gameState.isReady = !gameState.isReady;
-
-        if (gameState.isReady) {
-            readyButton.innerText = "Nicht bereit";
-            statusText.innerText = `Das Quiz startet in ${gameState.countdownValue} Sekunden...`;
-            startCountdown();
-        } else {
-            readyButton.innerText = "Bereit";
-            statusText.innerText = "Bitte wähle ein Deck und klicke 'Bereit'.";
-            stopCountdown();
-        }
+  
+    // 4) Klick-Handler für den Ready-Button
+    readyButton.addEventListener("click", () => {
+      // a) Lokales Toggle
+      gameState.isReady = !gameState.isReady;
+      readyButton.innerText = gameState.isReady ? "Nicht bereit" : "Bereit";
+  
+      // b) UI-Status aktualisieren
+      if (gameState.isReady) {
+        statusText.innerText = `Das Quiz startet in ${gameState.countdownValue} Sekunden...`;
+        startCountdown();
+      } else {
+        statusText.innerText = "Bitte wähle ein Deck und klicke 'Bereit'.";
+        stopCountdown();
+      }
+  
+      // c) Socket-Emit: Meinen Ready-Status an den Server
+      socket.emit("playerReady", { roomCode: currentRoom, playerId });
+  
+      // d) Wenn ich Host bin, alle anderen automatisch auf "ready" setzen
+      if (isHost) {
+        socket.emit("hostReadyAll", { roomCode: currentRoom });
+      }
     });
-});
+
+ 
+
+
+
+      // guard für den <p id="deleteModalText">
+  const deleteModalText = document.getElementById("deleteModalText");
+  if (!deleteModalText) {
+    console.warn("⚠️ Kein Element mit id=deleteModalText gefunden!");
+  }
+
+  // confirmDeleteBtn erst hier holen und Listener anhängen
+  const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener("click", async () => {
+      const { questionId, deckId } = pendingDelete;
+      closeDeleteModal();
+      const token = localStorage.getItem("token");
+      try {
+        const resp = await fetch(`/api/admin/delete-question/${questionId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.message || resp.statusText);
+        showNotification("✅ Frage erfolgreich gelöscht!");
+        // UI updaten
+        const listItem = document.querySelector(`[data-question-id="${questionId}"]`);
+        if (listItem) listItem.remove();
+        else await loadAdminQuestions();
+      } catch (err) {
+        showNotification("❌ Fehler beim Löschen der Frage: " + err.message);
+      }
+    });
+  } else {
+    console.warn("⚠️ Kein Element mit id=confirmDeleteBtn gefunden!");
+  }
+  });
+  
 
 
 
@@ -64,6 +102,7 @@ function initializeApp() {
 // 🎮 **Globale Spielfortschritt-Variablen**
 const gameState = {
     selectedDeck: null,
+    selectedDeckName: null,  // Neuer Schlüssel für Deck-Name
     selectedGameMode: null,
     isReady: false,
     score: 0,
@@ -83,13 +122,23 @@ const submitReportButton = document.getElementById("submitReport");
 
 // Funktion: handleDeckChange
 function handleDeckChange(event) {
-    gameState.selectedDeck = event.target.value;
-    
+    const select = event.target;
+    gameState.selectedDeck = select.value;
+    gameState.selectedDeckName = select.selectedOptions[0]?.text || "Unbekanntes Deck";
+
     if (gameState.selectedDeck) {
         loadDeckQuestions(gameState.selectedDeck);
+        if (typeof socket !== "undefined" && currentRoom) {
+            socket.emit("selectDeck", {
+                roomCode: currentRoom,
+                playerId,
+                deckId: gameState.selectedDeck,
+                deckName: gameState.selectedDeckName
+            });
+        }
     }
-    
-    updateReadyButtonState(); // Bereit-Button Status überprüfen
+
+    updateReadyButtonState();
 }
 
 function handleReadyButton() {
@@ -99,15 +148,12 @@ function handleReadyButton() {
     }
 
     gameState.isReady = !gameState.isReady;
-    const readyButton = document.getElementById("readyButton");
     const statusText = document.getElementById("status");
 
     if (gameState.isReady) {
-        readyButton.innerText = "Nicht bereit";
-        statusText.innerText = `🟢 Quiz startet...`;
-        startQuiz(); // 🎯 Quiz sofort starten!
+        statusText.innerText = "🟢 Quiz startet...";
+        startQuiz();
     } else {
-        readyButton.innerText = "Bereit";
         statusText.innerText = "Bitte wähle ein Deck und einen Spielmodus.";
     }
 }
@@ -117,28 +163,18 @@ function handleReadyButton() {
 
 // ✅ **Zentrale Event-Listener**
 function setupEventListeners() {
-    const selectDeckElement = document.getElementById("selectDeck");
-    const readyButton = document.getElementById("readyButton");
+    document.getElementById("selectDeck")?.addEventListener("change", handleDeckChange);
 
-    // 🎯 Event-Listener für das Deck-Auswahlmenü
-    selectDeckElement?.addEventListener("change", function (event) {
-        gameState.selectedDeck = event.target.value;
-        updateReadyButtonState();
+    document.querySelectorAll("#gameModeSelection button").forEach(button =>
+        button.addEventListener("click", () => selectGameMode(button.getAttribute("data-mode")))
+    );
+
+
+    document.addEventListener("keydown", handleEscapeKey);
+    window.addEventListener("click", event => {
+        const modal = document.getElementById('editQuestionModal');
+        if (event.target === modal) closeEditQuestionModal();
     });
-
-    // 🎯 Event-Listener für Spielmodus-Buttons
-    document.querySelectorAll("#gameModeSelection button").forEach(button => {
-        button.addEventListener("click", function () {
-            const mode = this.getAttribute("data-mode");
-            selectGameMode(mode);
-            updateReadyButtonState();
-        });
-    });
-
-    // 🎯 "Bereit"-Button Funktion
-    readyButton?.addEventListener("click", handleReadyButton);
-
-    
 }
 
 
@@ -158,17 +194,12 @@ function handleEscapeKey(event) {
 
 // ✅ **UI-Initialisierung**
 function initializeUI() {
-    const usernameDisplay = document.getElementById("displayUsername");
-    const username = localStorage.getItem("username") || "DeinBenutzername";
-
-    if (usernameDisplay) {
-        usernameDisplay.innerText = username;
-    } else {
-        console.warn("⚠️ Benutzername nicht gefunden.");
-    }
-    const readyButton = document.getElementById("readyButton");
-    if (readyButton) readyButton.style.display = "none";
+    document.getElementById("displayUsername").innerText =
+        localStorage.getItem("username") || "DeinBenutzername";
     setupModals();
+    setupEventListeners();
+    fetchUserDataIfAuthenticated();
+    loadDeckOptions();
 }
 
 // ✅ **Modale verwalten**
@@ -257,7 +288,13 @@ async function loadDeckOptions() {
 
                     // 📡 Falls der Nutzer in einem Raum ist, Deck-Auswahl senden
                     if (typeof socket !== "undefined" && currentRoom) {
-                        socket.emit("selectDeck", { roomCode: currentRoom, playerId, deckId: selectedDeckId });
+                        socket.emit("selectDeck", {
+                            roomCode:    currentRoom,
+                            playerId,
+                            deckId:      selectedDeckId,
+                            deckName:    gameState.selectedDeckName   // <–– hier den Namen übergeben
+                          });
+                          
                     }
                 }
             });
@@ -367,11 +404,9 @@ async function submitReport() {
 // ✅ **Spielmodus wählen & UI aktualisieren**
 function selectGameMode(mode) {
     gameState.selectedGameMode = mode;
-
-    // 🔄 Markiere den ausgewählten Spielmodus visuell
-    document.querySelectorAll("#gameModeSelection button").forEach(btn => btn.classList.remove("selected"));
-    document.querySelector(`#gameModeSelection button[data-mode='${mode}']`)?.classList.add("selected");
-
+    document.querySelectorAll("#gameModeSelection button").forEach(btn =>
+        btn.classList.toggle("selected", btn.getAttribute("data-mode") === mode)
+    );
     updateReadyButtonState();
 }
 
@@ -379,24 +414,25 @@ function selectGameMode(mode) {
 
 // ✅ **"Bereit"-Button Status aktualisieren**
 function updateReadyButtonState() {
-    const readyButton = document.getElementById("readyButton");
     const statusText = document.getElementById("status");
-    const statusDeck = document.getElementById("statusDeck"); // 🆕 Anzeige für Deck
-    const statusGameMode = document.getElementById("statusGameMode"); // 🆕 Anzeige für Spielmodus
+    const statusDeck = document.getElementById("statusDeck");
+    const statusGameMode = document.getElementById("statusGameMode");
 
+    // Deck-Status anzeigen
     if (gameState.selectedDeck) {
-        const deckElement = document.querySelector(`#selectDeck option[value="${gameState.selectedDeck}"]`);
-        statusDeck.innerText = `📖 Gewähltes Deck: ${deckElement ? deckElement.innerText : "Unbekannt"}`;
+        statusDeck.innerText = `📖 Gewähltes Deck: ${gameState.selectedDeckName}`;
     } else {
         statusDeck.innerText = "📖 Gewähltes Deck: Noch nicht gewählt";
     }
 
+    // Spielmodus-Status anzeigen
     if (gameState.selectedGameMode) {
         statusGameMode.innerText = `🎮 Spielmodus: ${gameState.selectedGameMode}`;
     } else {
         statusGameMode.innerText = "🎮 Spielmodus: Noch nicht gewählt";
     }
 
+    // Button ein- oder ausblenden
     if (gameState.selectedDeck && gameState.selectedGameMode) {
         readyButton.style.display = "block";
         statusText.innerText = "Drücke 'Bereit', um das Spiel zu starten!";
@@ -456,29 +492,63 @@ function closeReportModal() {
     document.getElementById("reportModal").style.display = "none";
 }
 
+// Speichert den Highscore ins Backend
 async function saveHighscore(deckId, score) {
-    const userId = localStorage.getItem("username"); // Verwende die tatsächliche `userId`, nicht `username`
-    const username = localStorage.getItem("username") || "Anonym"; // Username ist weiterhin optional
-
-    if (!userId || !deckId || score === undefined) {
-        console.error("❌ Fehlende Daten für Highscore-Speicherung:", { userId, deckId, score });
-        return;
+    // hole zuerst beides
+    const userId   = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+  
+    if ((!userId && !username) || !deckId || score == null) {
+      console.error('❌ Fehlende Daten für Highscore:', { userId, username, deckId, score });
+      return;
     }
-
+  
     try {
-        const response = await fetch("http://localhost:5000/api/scores/save", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, username, deckId, score })
-        });
-
-        if (!response.ok) {
-            throw new Error(`❌ Fehler: ${response.status} - ${await response.text()}`);
-        }
+      const response = await fetch('/api/scores/save', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          // Entweder userId (wenn vorhanden) ODER username
+          userId:   userId || undefined,
+          username: username,  
+          deckId,
+          score
+        })
+      });
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`Status ${response.status} – ${err}`);
+      }
+      console.debug('🏆 Highscore gespeichert:', { userId, username, deckId, score });
     } catch (error) {
-        console.error("❌ Fehler beim Speichern des Highscores:", error);
+      console.error('❌ Fehler beim Speichern des Highscores:', error);
     }
-}
+  }
+  
+  
+  // EndQuiz nur noch einmalig am Ende speichern
+  async function endQuiz() {
+    stopAllTimers();
+  
+    const userId = localStorage.getItem('userId');
+    const deckId  = gameState.selectedDeck;
+    const score   = gameState.score;
+    if (!userId || !deckId || score == null) {
+      console.error('❌ Fehlende Daten zum Beenden:', { userId, deckId, score });
+      return;
+    }
+  
+    // Highscore in DB speichern
+    await saveHighscore(deckId, score);
+  
+    // Restliches Ende-UI
+    document.getElementById("quizContainer").style.display = "none";
+    document.getElementById("finalScreen").style.display   = "block";
+    document.getElementById("finalScore").innerText       = `🏆 Dein Score: ${score}`;
+  
+    await loadLeaderboard(deckId);
+  }
+  
 
 
 
@@ -595,90 +665,69 @@ function stopCountdown() {
     clearInterval(gameState.countdownTimer);
 }
 
-
-function checkAnswer(selectedIndex, correctIndex) {
-    clearInterval(gameState.timer); // ⏳ Stopp den Timer für die aktuelle Frage
-
+async function checkAnswer(selectedIndex, correctIndex) {
+    clearInterval(gameState.timer);
     const answerButtons = document.querySelectorAll("#answerOptions button");
-
-    if (!answerButtons || answerButtons.length === 0) {
-        console.error("❌ Fehler: Antwort-Buttons nicht gefunden!");
-        return;
+    if (!answerButtons.length) {
+      console.error("Antwort-Buttons nicht gefunden!");
+      return;
     }
-
-    // 🔇 (Optional) Sounds abspielen
-    const correctSound = new Audio("sounds/correct.mp3"); // 🎵 Richtig
-    const incorrectSound = new Audio("sounds/incorrect.mp3"); // ❌ Falsch
-
-    // 🚀 Buttons deaktivieren, damit nicht mehrfach geklickt werden kann
+  
+    // Buttons deaktivieren
     answerButtons.forEach(btn => btn.disabled = true);
-
-    // ✅ Korrekte Antwort markieren
-    answerButtons.forEach((btn, index) => {
-        if (index === correctIndex) {
-            btn.style.backgroundImage = "linear-gradient(135deg, #28a745, #1e7e34)"; // Grün
-            btn.style.color = "white";
-            btn.style.border = "2px solid #155d27";
-            btn.style.animation = "correctFlash 0.3s ease-in-out";
-            correctSound.play(); // ✅ Sound abspielen
+  
+    // Klassen statt Inline-Styles benutzen
+    answerButtons.forEach((btn, idx) => {
+        if (idx === correctIndex) {
+          btn.classList.add("correct");
         }
-
-        if (index === selectedIndex && selectedIndex !== correctIndex) {
-            // ❌ Falsche Antwort markieren
-            btn.style.backgroundImage = "linear-gradient(135deg, #dc3545, #a71d2a)"; // Rot
-            btn.style.color = "white";
-            btn.style.border = "2px solid #6a121b";
-            btn.style.animation = "incorrectShake 0.3s ease-in-out";
-            incorrectSound.play(); // ❌ Sound abspielen
+        if (idx === selectedIndex && idx !== correctIndex) {
+          btn.classList.add("incorrect");
         }
-    });
-
-    // 🔥 Punktesystem aktualisieren
+      });
+      
+  
+    // Punkte vergeben / Spiel beenden bei Survival
     if (selectedIndex === correctIndex) {
-        gameState.score++;
-    } else {
-        // 🔴 Überlebensmodus: Bei Fehler sofort beenden!
-        if (gameState.selectedGameMode === "survival") {
-            stopAllTimers();
-            endQuiz();
-            return;
-        }
-
-        // ⚠️ Risikomodus: Punkte abziehen
-        if (gameState.selectedGameMode === "risk") {
-            gameState.score = Math.max(0, gameState.score - 1);
-        }
+      gameState.score++;
+    } else if (gameState.selectedGameMode === "survival") {
+      stopAllTimers();
+      return endQuiz();
+    } else if (gameState.selectedGameMode === "risk") {
+      gameState.score = Math.max(0, gameState.score - 1);
     }
-
-    document.getElementById("scoreDisplay").innerText = `🏆 Punktestand: ${gameState.score}`;
-
-    // ⏳ Warte 3 Sekunden, bevor zur nächsten Frage gewechselt wird
+  
+    // Score im UI aktualisieren
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    if (scoreDisplay) {
+      scoreDisplay.innerText = `🏆 Punktestand: ${gameState.score}`;
+    }
+  
+    // Score speichern
+    try {
+      await saveHighscore(gameState.selectedDeck, gameState.score);
+    } catch (e) {
+      console.warn("Live-Highscore-Save fehlgeschlagen:", e);
+    }
+  
+    // Nach 3 Sekunden zur nächsten Frage (bzw. Ende)
     setTimeout(() => {
-        // 🔄 Reset Button-Designs
-        answerButtons.forEach(btn => {
-            btn.style.backgroundImage = "";
-            btn.style.color = "";
-            btn.style.border = "";
-            btn.style.animation = "";
-            btn.disabled = false; // Reaktivieren
-        });
-
-        gameState.currentQuestionIndex++;
-
-        // 🔄 Endlosmodus: Falls alle Fragen durch sind → zurücksetzen
-        if (gameState.selectedGameMode === "endless" && gameState.currentQuestionIndex >= gameState.questionSet.length) {
-            gameState.currentQuestionIndex = 0;
-            shuffleQuestions();
-        }
-
-        // 🚀 Falls noch Fragen übrig sind → nächste Frage anzeigen
-        if (gameState.currentQuestionIndex < gameState.questionSet.length) {
-            displayQuestion();
-        } else {
-            endQuiz();
-        }
+      answerButtons.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove("correct", "incorrect");
+      });
+  
+      gameState.currentQuestionIndex++;
+      if (gameState.currentQuestionIndex < gameState.questionSet.length) {
+        displayQuestion();
+      } else {
+        endQuiz();
+      }
     }, 3000);
-}
+  }
+  
+  
+  
 
 
 
@@ -814,81 +863,109 @@ function startQuestionTimer() {
 
 // 🏁 **Frage anzeigen & ggf. Timer starten**
 function displayQuestion() {
-    clearInterval(gameState.timer); // Timer stoppen, um Überschneidungen zu verhindern
+    // 1) laufenden Frage-Timer stoppen
+    clearInterval(gameState.timer);
+  
+    // 2) Container holen
     const questionContainer = document.getElementById("question-container");
-
     if (!questionContainer) {
-        console.error("❌ Fehler: `question-container` nicht gefunden!");
-        return;
-    } 
-
+      console.error("❌ Fehler: question-container nicht gefunden!");
+      return;
+    }
+  
+    // 3) Quiz beenden, falls alle Fragen durch
     if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
-        endQuiz();
-        return;
+      endQuiz();
+      return;
     }
-
+  
     const currentQuestion = gameState.questionSet[gameState.currentQuestionIndex];
-
-    if (!currentQuestion || !currentQuestion.questionText || !currentQuestion.options) {
-        console.error("⚠️ Fehler: Ungültige Frage!");
-        return;
+    if (!currentQuestion?.questionText || !Array.isArray(currentQuestion.options)) {
+      console.error("⚠️ Fehler: Ungültige Frage-Daten!", currentQuestion);
+      return;
     }
-
-    // 🧹 Container leeren & neue Frage einfügen
+  
+    // 4) Container leeren und Grundstruktur einfügen
     questionContainer.innerHTML = `
-        <h2>${currentQuestion.questionText}</h2>
-        <div id="answerOptions"></div>
-        <p id="timeLeft" class="timer">⏳ Zeit: 5s</p>
-        <button class="report-button" onclick="openReportModal('${currentQuestion._id}', '${gameState.selectedDeck}')">⚠️ Frage melden</button>
+      <h2>${currentQuestion.questionText}</h2>
+      <div id="answerOptions"></div>
+      ${gameState.selectedGameMode === "timeattack"
+        ? `<p id="timeLeft" class="timer">⏳ Zeit: ${gameState.countdownValue}s</p>`
+        : ""
+      }
+      <button id="reportBtn" class="report-button">⚠️ Frage melden</button>
     `;
-
-    // Antwortmöglichkeiten hinzufügen
+  
+    // 5) Antwort-Buttons hinzufügen
     const answerOptionsContainer = document.getElementById("answerOptions");
-
-    currentQuestion.options.forEach((option, index) => {
-        const btn = document.createElement("button");
-        btn.innerText = option;
-        btn.onclick = () => checkAnswer(index, currentQuestion.correctOptionIndex);
-        answerOptionsContainer.appendChild(btn);
-    });
-
-    // Falls "Zeitangriff"-Modus aktiv ist, Timer starten
-    if (gameState.selectedGameMode === "timeattack") {
-        startQuestionTimer();
+    if (!answerOptionsContainer) {
+      console.error("❌ Fehler: answerOptions-Container fehlt!");
+      return;
     }
-}
+  
+    currentQuestion.options.forEach((optionText, idx) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.classList.add("answer-btn");
+      btn.innerText = optionText;
+      btn.addEventListener("click", () =>
+        checkAnswer(idx, currentQuestion.correctOptionIndex)
+      );
+      answerOptionsContainer.appendChild(btn);
+    });
+  
+    // 6) Timer starten, falls Zeitangriff-Modus
+    if (gameState.selectedGameMode === "timeattack") {
+      startQuestionTimer();
+    }
+  
+    // 7) Report-Button binden
+    const reportBtn = document.getElementById("reportBtn");
+    reportBtn?.addEventListener("click", () =>
+      openReportModal(currentQuestion._id, gameState.selectedDeck)
+    );
+  }
+  
 
 
 
 
     
-
-    // 📊 Leaderboard für das aktuelle Deck laden
-    async function loadLeaderboard(deckId) {
-
-        try {
-            const response = await fetch(`/api/scores/leaderboard/${deckId}`);
-            if (!response.ok) throw new Error(`Fehler: ${response.status} - ${await response.text()}`);
-
-            const leaderboard = await response.json();
-            const leaderboardContainer = document.getElementById("leaderboard");
-
-            if (!leaderboard.length) {
-                leaderboardContainer.innerHTML = "<p>❌ Noch keine Highscores für dieses Deck.</p>";
-                return;
-            }
-
-            let leaderboardHTML = "<h3>🏆 Leaderboard</h3><ul>";
-            leaderboard.forEach((entry, index) => {
-                leaderboardHTML += `<li>${index + 1}. ${entry.username}: ${entry.score} Punkte</li>`;
-            });
-            leaderboardHTML += "</ul>";
-
-            leaderboardContainer.innerHTML = leaderboardHTML;
-        } catch (error) {
-            console.error("❌ Fehler beim Laden des Leaderboards:", error);
-        }
+// 🔧 Leaderboard Rendering: zeigt und aktualisiert live (guard für fehlenden Container)
+function renderLeaderboard(entries) {
+    const container = document.getElementById("leaderboard");
+    if (!container) return; // Element nicht vorhanden: nichts tun
+    if (!entries || entries.length === 0) {
+        container.innerHTML = "<p>❌ Noch keine Highscores für dieses Deck.</p>";
+        return;
     }
+    let html = "<h3>🏆 Leaderboard</h3><ul>";
+    entries.forEach((entry, idx) => {
+        html += `<li>${idx + 1}. ${entry.username}: ${entry.score} Punkte</li>`;
+    });
+    html += "</ul>";
+    container.innerHTML = html;
+}
+
+// 📊 Initiales Laden und Live-Updates abonnieren
+async function loadLeaderboard(deckId) {
+    try {
+      // 1) Einmalig per HTTP laden
+      const resp = await fetch(`/api/scores/leaderboard/${deckId}`);
+      if (!resp.ok) throw new Error(`Status ${resp.status}`);
+      const initial = await resp.json();
+      renderLeaderboard(initial);
+  
+      // 2) Nur noch in den passenden Socket-Room joinen
+      socket.emit('joinLeaderboardRoom', deckId);
+  
+    } catch (err) {
+      console.error("Fehler beim Laden des Leaderboards:", err);
+    }
+  }
+  
+  
+
     
  
 
@@ -997,44 +1074,67 @@ function displayQuestion() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('register').style.display = 'block';
   }
-
   async function login() {
-    const identifier = document.getElementById("username").value.trim(); // Kann Username oder E-Mail sein
-    const password = document.getElementById("password").value.trim();
-
+    const identifier = document.getElementById("username").value.trim(); 
+    const password   = document.getElementById("password").value.trim();
+  
     if (!identifier || !password) {
-        return showError("⚠️ Bitte Benutzername/E-Mail und Passwort eingeben.");
+      return showError("⚠️ Bitte Benutzername/E-Mail und Passwort eingeben.");
     }
-
+  
     try {
-        const response = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: identifier, email: identifier, password })
-        });
-
-        const responseText = await response.text();
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (jsonError) {
-            throw new Error("Ungültige Antwort vom Server. Bitte später erneut versuchen.");
+      // 1) Login und Token holen
+      const loginResp = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: identifier, email: identifier, password })
+      });
+      const loginText = await loginResp.text();
+      let loginData;
+      try {
+        loginData = JSON.parse(loginText);
+      } catch {
+        throw new Error("Ungültige Antwort vom Server. Bitte später erneut versuchen.");
+      }
+      if (!loginResp.ok) {
+        throw new Error(loginData.message || "Login fehlgeschlagen.");
+      }
+  
+      // 2) Token & Basisinfos speichern
+      localStorage.setItem("token",    loginData.token);
+      localStorage.setItem("username", loginData.username);
+      localStorage.setItem("email",    loginData.email);
+  
+      // 3) Jetzt die vollständigen User-Daten abfragen (inkl. userId)
+      const meResp = await fetch("/api/auth/me", {
+        method: "GET",
+        headers: { 
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${loginData.token}`
         }
-
-        if (!response.ok) {
-            throw new Error(data.message || "Login fehlgeschlagen.");
+      });
+      if (!meResp.ok) {
+        console.warn("⚠️ Konnte userId nicht holen:", await meResp.text());
+      } else {
+        const meData = await meResp.json();
+        // Hier musst du prüfen, ob dein Backend die ID in _id oder id zurückgibt
+        const uid = meData._id || meData.id;
+        if (uid) {
+          localStorage.setItem("userId", uid);
+        } else {
+          console.warn("⚠️ userId nicht im /me-Response gefunden:", meData);
         }
-
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("username", data.username);
-        localStorage.setItem("email", data.email); // 🆕 E-Mail speichern
-
-        window.location.reload();
+      }
+  
+      // 4) Seite neu laden
+      window.location.reload();
+  
     } catch (error) {
-        console.error("❌ Fehler beim Login:", error);
-        showError(error.message);
+      console.error("❌ Fehler beim Login:", error);
+      showError(error.message);
     }
-}
+  }
+  
 
 
 
@@ -1164,23 +1264,47 @@ function displayQuestion() {
 
 
   // Deck löschen
-  function deleteDeck(deckId) {
-    if (!confirm('Möchtest du dieses Deck wirklich löschen?')) return;
+  let pendingDeckId = null;
+
+  // 1) Öffnet das Modal
+  function deleteDeck(deckId, deckName = '') {
+    pendingDeckId = deckId;
+    // Optional: Text anpassen, wenn du den Deck-Namen kennst:
+    document.getElementById('deleteDeckText').innerText =
+      deckName
+        ? `Möchtest du das Deck "${deckName}" wirklich löschen?`
+        : 'Möchtest du dieses Deck wirklich löschen?';
+    document.getElementById('deleteDeckModal').style.display = 'flex';
+  }
+  
+  // 2) Modal schließen ohne Aktion
+  function closeDeleteDeckModal() {
+    pendingDeckId = null;
+    document.getElementById('deleteDeckModal').style.display = 'none';
+  }
+  
+  // 3) Lösch-Anfrage bestätigen
+  async function confirmDeleteDeck() {
+    if (!pendingDeckId) return closeDeleteDeckModal();
+  
     const token = localStorage.getItem('token');
-    fetch(`/api/admin/delete-deck/${deckId}`, {
+    try {
+      const resp = await fetch(`/api/admin/delete-deck/${pendingDeckId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(response => response.json())
-    .then(data => {
-        showNotification('Deck erfolgreich gelöscht!');
-        // Decks abrufen und Dropdowns füllen
-        loadDeckOptions();
-        loadDecks();
-    })
-    .catch(error => {
-        showNotification('Fehler beim Löschen des Decks: ' + error.message);
-    });
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.message || resp.statusText);
+  
+      showNotification('✅ Deck erfolgreich gelöscht!');
+      // Dropdowns und Listen neu laden
+      loadDeckOptions();
+      loadDecks();
+    } catch (err) {
+      showNotification('❌ Fehler beim Löschen des Decks: ' + err.message);
+    } finally {
+      closeDeleteDeckModal();
+    }
   }
 
 
@@ -1346,102 +1470,93 @@ async function loadAdminQuestions() {
 
 // Funktion zum Hinzufügen einer neuen Frage
 async function addQuestion() {
-
     const adminModal = document.getElementById('adminModal');
     if (!adminModal) {
-        console.error("❌ Fehler: Admin-Modal nicht gefunden!");
-        showNotification("❌ Fehler: Das Admin-Panel konnte nicht gefunden werden.", "error");
-        return;
+      console.error("❌ Fehler: Admin-Modal nicht gefunden!");
+      showNotification("❌ Fehler: Das Admin-Panel konnte nicht gefunden werden.", "error");
+      return;
     }
-
-    // 🛠 Sicherstellen, dass `selectDeckAdmin` existiert
+  
     const selectDeckAdmin = document.getElementById("selectDeckAdmin");
     if (!selectDeckAdmin) {
-        console.error("❌ Fehler: `selectDeckAdmin` nicht gefunden!");
-        showNotification("❌ Fehler: Das Deck-Auswahlfeld fehlt!", "error");
-        return;
+      console.error("❌ Fehler: `selectDeckAdmin` nicht gefunden!");
+      showNotification("❌ Fehler: Das Deck-Auswahlfeld fehlt!", "error");
+      return;
     }
-
-    const selectedOption = selectDeckAdmin.options[selectDeckAdmin.selectedIndex];
-    const quizDeckId = selectedOption?.value.trim();
-
+  
+    const quizDeckId = selectDeckAdmin.value.trim();
     if (!quizDeckId) {
-        showNotification("⚠️ Bitte wähle ein Deck aus, bevor du eine Frage hinzufügst.", "warning");
-        return;
+      showNotification("⚠️ Bitte wähle ein Deck aus, bevor du eine Frage hinzufügst.", "warning");
+      return;
     }
-
-    // 🛠 Felder für die Frage
-    const questionTextElement = adminModal.querySelector('#questionText');
-    const option1Element = adminModal.querySelector('#option1');
-    const option2Element = adminModal.querySelector('#option2');
-    const option3Element = adminModal.querySelector('#option3');
-    const option4Element = adminModal.querySelector('#option4');
-    const correctOptionElement = adminModal.querySelector('#correctOption');
-
-    if (!questionTextElement || !option1Element || !option2Element || !option3Element || !option4Element || !correctOptionElement) {
-        console.error("❌ Fehler: Mindestens ein Eingabefeld fehlt!");
-        showNotification("❌ Fehler: Ein erforderliches Eingabefeld fehlt!", "error");
-        return;
-    }
-
-    const questionText = questionTextElement.value.trim();
-    const options = [
-        option1Element.value.trim(),
-        option2Element.value.trim(),
-        option3Element.value.trim(),
-        option4Element.value.trim()
+  
+    // Eingabefelder
+    const questionTextEl = adminModal.querySelector('#questionText');
+    const opts = [
+      adminModal.querySelector('#option1'),
+      adminModal.querySelector('#option2'),
+      adminModal.querySelector('#option3'),
+      adminModal.querySelector('#option4')
     ];
-    const correctOptionIndex = parseInt(correctOptionElement.value, 10);
-
-    // 🚨 Validierung der Eingaben
+    const correctEl = adminModal.querySelector('#correctOption');
+  
+    if (!questionTextEl || opts.some(el => !el) || !correctEl) {
+      console.error("❌ Fehler: Mindestens ein Eingabefeld fehlt!");
+      showNotification("❌ Fehler: Ein erforderliches Eingabefeld fehlt!", "error");
+      return;
+    }
+  
+    const questionText = questionTextEl.value.trim();
+    const options = opts.map(el => el.value.trim());
+    const input = parseInt(correctEl.value, 10);      // erwartete Eingabe 1–4
+    const correctOptionIndex = input - 1;              // intern 0–3
+  
+    // Validierung
     if (!questionText || options.some(opt => opt === '')) {
-        showNotification('⚠️ Bitte fülle alle Felder aus.', "warning");
-        return;
+      showNotification('⚠️ Bitte fülle alle Felder aus.', "warning");
+      return;
     }
-
-    if (isNaN(correctOptionIndex) || correctOptionIndex < 0 || correctOptionIndex > 3) {
-        showNotification('⚠️ Bitte gib eine gültige korrekte Antwortnummer (0-3) an.', "warning");
-        return;
+    if (isNaN(input) || correctOptionIndex < 0 || correctOptionIndex > options.length - 1) {
+      showNotification('⚠️ Bitte gib eine gültige korrekte Antwortnummer (1–4) an.', "warning");
+      return;
     }
-
+  
     const token = localStorage.getItem('token');
     if (!token) {
-        showNotification("⚠️ Nicht angemeldet! Bitte melde dich an.", "warning");
-        window.location.href = "/login";
-        return;
+      showNotification("⚠️ Nicht angemeldet! Bitte melde dich an.", "warning");
+      window.location.href = "/login";
+      return;
     }
-
+  
     try {
-        const response = await fetch('/api/admin/add-question', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ quizDeckId, questionText, options, correctOptionIndex })
-        });
-
-        if (!response.ok) {
-            throw new Error(`❌ Fehler beim Hinzufügen der Frage: ${response.status} - ${await response.text()}`);
-        }
-
-        showNotification('✅ Frage erfolgreich hinzugefügt!', "success");
-
-        // 🔄 Lade die Fragen neu, damit sie in der Liste erscheinen
-        await loadAdminQuestions();
-
-        // 🧹 Felder zurücksetzen
-        questionTextElement.value = "";
-        option1Element.value = "";
-        option2Element.value = "";
-        option3Element.value = "";
-        option4Element.value = "";
-        correctOptionElement.value = "";
+      const response = await fetch('/api/admin/add-question', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ quizDeckId, questionText, options, correctOptionIndex })
+      });
+  
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Status ${response.status} – ${errText}`);
+      }
+  
+      showNotification('✅ Frage erfolgreich hinzugefügt!', "success");
+      await loadAdminQuestions();   // Liste neu laden
+  
+      // Felder zurücksetzen
+      questionTextEl.value = "";
+      opts.forEach(el => el.value = "");
+      correctEl.value = "";
     } catch (error) {
-        console.error('❌ Fehler beim Hinzufügen der Frage:', error);
-        showNotification(`❌ Fehler beim Hinzufügen der Frage: ${error.message}`, "error");
+      console.error('❌ Fehler beim Hinzufügen der Frage:', error);
+      showNotification(`❌ Fehler beim Hinzufügen der Frage: ${error.message}`, "error");
     }
-}
+  }
+  
+  
 
 
 
@@ -1450,21 +1565,32 @@ async function addQuestion() {
   function openEditQuestionModal(questionId, questionText, options, correctIndex) {
     const modal = document.getElementById('editQuestionModal');
     if (!modal) {
-        console.error("❌ Fehler: Modal nicht gefunden!");
-        return;
+      console.error("❌ Fehler: Modal nicht gefunden!");
+      return;
     }
+  
+    // Hidden field for ID
     document.getElementById('editQuestionId').value = questionId;
+  
+    // Fragetext vorbefüllen
     document.getElementById('editQuestionText').value = questionText;
+  
+    // Antwortoptionen vorbefüllen
     document.getElementById('editOption1').value = options[0] || '';
     document.getElementById('editOption2').value = options[1] || '';
     document.getElementById('editOption3').value = options[2] || '';
     document.getElementById('editOption4').value = options[3] || '';
-    document.getElementById('editCorrectOption').value = correctIndex;
-    // Modal anzeigen
+  
+    // Korrekte Antwortnummer (Frontend arbeitet mit 1–4)
+    document.getElementById('editCorrectOption').value = (correctIndex + 1).toString();
+  
+    // Modal anzeigen und Fokus setzen
     modal.style.display = "block";
-    // Fokus auf das Eingabefeld setzen
-    setTimeout(() => document.getElementById('editQuestionText').focus(), 100);
+    setTimeout(() => {
+      document.getElementById('editQuestionText').focus();
+    }, 100);
   }
+  
   // Schließt das Bearbeitungsmodalfunction closeEditQuestionModal() {
     function closeEditQuestionModal() {
       document.getElementById('editQuestionModal').style.display = "none";
@@ -1474,45 +1600,68 @@ async function addQuestion() {
     const questionId = document.getElementById('editQuestionId').value.trim();
     const newText = document.getElementById('editQuestionText').value.trim();
     const newOptions = [
-        document.getElementById('editOption1').value.trim(),
-        document.getElementById('editOption2').value.trim(),
-        document.getElementById('editOption3').value.trim(),
-        document.getElementById('editOption4').value.trim()
+      document.getElementById('editOption1').value.trim(),
+      document.getElementById('editOption2').value.trim(),
+      document.getElementById('editOption3').value.trim(),
+      document.getElementById('editOption4').value.trim()
     ];
     const correctOptionInput = document.getElementById('editCorrectOption').value.trim();
-    const deckId = document.getElementById('selectDeck').value; // Deck ID für UI-Update
-    // ✅ 1. Alle Felder müssen ausgefüllt sein
-    if (!questionId || !newText || newOptions.some(option => option === '')) {
-        showNotification('⚠️ Bitte fülle alle Felder aus.');
-        return;
+  
+    // 1) Validierung: alle Felder gefüllt?
+    if (!questionId || !newText || newOptions.some(opt => opt === '')) {
+      showNotification('⚠️ Bitte fülle alle Felder aus.', 'warning');
+      return;
     }
-    // ✅ 2. Überprüfung, ob die korrekte Antwort eine gültige Zahl zwischen 0-3 ist
-    const newCorrectOption = parseInt(correctOptionInput, 10);
-    if (isNaN(newCorrectOption) || newCorrectOption < 0 || newCorrectOption > 3) {
-        showNotification('⚠️ Bitte gib eine gültige korrekte Antwortnummer zwischen 0 und 3 an.');
-        return;
+  
+    // Eingabe 1–4 → intern 0–3
+    const input = parseInt(correctOptionInput, 10);
+    const newCorrectOption = input - 1;
+    if (isNaN(input) || newCorrectOption < 0 || newCorrectOption > 3) {
+      showNotification('⚠️ Bitte gib eine gültige korrekte Antwortnummer (1–4) an.', 'warning');
+      return;
     }
+  
+    // Auth-Check
     const token = localStorage.getItem('token');
+    if (!token) {
+      showNotification('⚠️ Nicht angemeldet! Bitte melde dich an.', 'warning');
+      window.location.href = '/login';
+      return;
+    }
+  
     try {
-        const response = await fetch(`/api/admin/edit-question/${questionId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ 
-                questionText: newText, 
-                options: newOptions, 
-                correctOptionIndex: newCorrectOption 
-            })
-        });
-        if (!response.ok) {
-            throw new Error(`Fehler beim Bearbeiten der Frage: ${response.status}`);
-        }
-        showNotification('✅ Frage erfolgreich bearbeitet!');
-        closeEditQuestionModal();
-        window.location.reload();
+      const response = await fetch(`/api/admin/edit-question/${questionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          questionText: newText,
+          options: newOptions,
+          correctOptionIndex: newCorrectOption
+        })
+      });
+  
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Status ${response.status} – ${errText}`);
+      }
+  
+      showNotification('✅ Frage erfolgreich bearbeitet!', 'success');
+      closeEditQuestionModal();
+  
+      // Liste aktualisieren
+      await loadAdminQuestions();
     } catch (error) {
-        showNotification('❌ Fehler beim Bearbeiten der Frage: ' + error.message);
+      console.error('❌ Fehler beim Bearbeiten der Frage:', error);
+      showNotification('❌ Fehler beim Bearbeiten der Frage: ' + error.message, 'error');
     }
   }
+  
+  
+  
+  
   // 🗑 Frage löschen – Modal statt confirm
     function deleteQuestion(questionId, deckId, questionText = '') {
         // Speichere aktuelle Löschdaten
@@ -1546,12 +1695,14 @@ async function addQuestion() {
           if (questionListItem) {
             questionListItem.remove();
           } else {
-            await loadDeckQuestions(deckId);
+            // Fallback: kompletten Fragen-Reload
+            await loadAdminQuestions();
           }
         } catch (error) {
           showNotification('❌ Fehler beim Löschen der Frage: ' + error.message);
         }
       });
+      
       
   
 
@@ -1954,8 +2105,15 @@ function generateRoomCode() {
 const socket = io();
 let playerId = Math.random().toString(36).substr(2, 9);
 let isMultiplayer = false;
-let isHost = false;
+let isHost = false;  
+socket.on('newHost', newHostId => {  
+  if (socket.id === newHostId) isHost = true;  
+});
 
+// Einmaliger, globaler Listener für alle Leaderboard-Updates
+socket.on('leaderboardUpdated', top10 => {
+    renderLeaderboard(top10);
+  });
 function openJoinGameModal() {
     document.getElementById("joinGameModal").style.display = "block";
 }
@@ -2076,13 +2234,21 @@ document.getElementById("selectDeck").addEventListener("change", function () {
     let selectedDeckId = this.value;
     if (selectedDeckId) {
         gameState.selectedDeck = selectedDeckId;
-        socket.emit("selectDeck", { roomCode: currentRoom, deckId: selectedDeckId });
+        socket.emit("selectDeck", {
+            roomCode: currentRoom,
+            deckId: gameState.selectedDeck,
+            deckName: gameState.selectedDeckName   // <-- Name hinzufügen
+          });
+          
     }
 });
 
-socket.on("updateDeckSelection", (deckId) => {
-    document.getElementById("statusDeck").innerText = `📖 Gewähltes Deck: ${deckId}`;
-});
+socket.on("updateDeckSelection", ({ deckId, deckName }) => {
+    gameState.selectedDeck     = deckId;
+    gameState.selectedDeckName = deckName;
+    updateReadyButtonState();
+  });
+  
 
 // 🎮 Spielmodus synchronisieren
 document.querySelectorAll("#gameModeSelection button").forEach(button => {
@@ -2093,22 +2259,22 @@ document.querySelectorAll("#gameModeSelection button").forEach(button => {
     });
 });
 
-// 🏁 Server informiert alle Spieler, dass Deck & Modus gewählt wurden
-socket.on("allSelectionsMade", ({ deck, mode }) => {
-    let statusText = document.getElementById("status");
-    if (statusText) {
-        statusText.innerText = `📖 Gewähltes Deck: ${deck} | 🎮 Spielmodus: ${mode}`;
-    }
-
-    let readyButton = document.getElementById("readyButton");
-    if (readyButton) {
-        readyButton.style.display = "block";
-    }
+// 📡 Alle Auswahlen gemacht: Deck-Name und Modus anzeigen
+socket.on("allSelectionsMade", ({ deckId, deckName, mode }) => {
+    gameState.selectedDeck = deckId;
+    gameState.selectedDeckName = deckName;
+    gameState.selectedGameMode = mode;
+    updateReadyButtonState();
 });
+  
 
-socket.on("updateGameModeSelection", (gameMode) => {
-    document.getElementById("statusGameMode").innerText = `🎮 Spielmodus: ${gameMode}`;
-});
+
+  
+  // 🎮 Spielmodus synchronisieren via Socket.IO
+  socket.on("updateGameModeSelection", (mode) => {
+      gameState.selectedGameMode = mode;
+      updateReadyButtonState();
+  });
 
 
 
@@ -2118,26 +2284,40 @@ function setReady() {
     socket.emit("playerReady", { roomCode: currentRoom, playerId });
 }
 
-document.getElementById("readyButton").addEventListener("click", function () {
-    socket.emit("playerReady", { roomCode: currentRoom, playerId });
-});
+
+
 
 socket.on("updateReadyStatus", (players) => {
-    let readyStatusList = document.getElementById("readyStatus");
+    const readyStatusList = document.getElementById("readyStatus");
+    if (!readyStatusList) {
+      // Liste nicht vorhanden (z.B. im Quiz- oder Login-Screen) – nichts tun
+      return;
+    }
+    // Bestehende Einträge löschen
     readyStatusList.innerHTML = "";
+  
+    // Neue Liste aufbauen
     players.forEach(player => {
-        let li = document.createElement("li");
-        li.innerText = `${player.username}: ${player.isReady ? "✅ Bereit" : "⏳ Warten..."}`;
-        readyStatusList.appendChild(li);
+      const li = document.createElement("li");
+      li.innerText = `${player.username}: ${player.isReady ? "✅ Bereit" : "⏳ Warten..."}`;
+      readyStatusList.appendChild(li);
     });
-});
+  });
+  
 
 
 // Event: Spiel kann starten
 socket.on("gameCanStart", () => {
-    document.getElementById("startGameBtn").style.display = "block";
-});
+    const startBtn = document.getElementById("startGameBtn");
+    if (startBtn) startBtn.style.display = "block";
+  });
 
+  socket.on("gameStarted", () => {
+    const lobby = document.getElementById("lobby");
+    const quiz = document.getElementById("quizContainer");
+    if (lobby) lobby.style.display = "none";
+    if (quiz)  quiz.style.display = "block";
+  });
 
 socket.on("connect", () => {
 
@@ -2163,6 +2343,7 @@ socket.on("connect", () => {
 function autoCreateRoom(username) {
     socket.emit("createRoom", username);
 }
+
 
 
 
@@ -2243,35 +2424,60 @@ socket.on("updatePlayers", ({ players, host }) => {
 
 
 
-function joinGame() {
-    let roomCode = document.getElementById("roomCodeInput").value.trim();
-    let username = localStorage.getItem("username") || prompt("Bitte gib deinen Namen ein:");
-
+async function joinGame() {
+    const roomCode = document.getElementById("roomCodeInput")?.value.trim();
+    const username = localStorage.getItem("username") || prompt("Bitte gib deinen Namen ein:");
+  
     if (!roomCode || !username) {
-        showNotification("❌ Bitte Raumcode und Namen eingeben!");
-        return;
+      showNotification("❌ Bitte Raumcode und Namen eingeben!");
+      return;
     }
-
+  
+    // Modal schließen
+    const joinModal = document.getElementById("joinGameModal");
+    if (joinModal) joinModal.style.display = "none";
+  
+    // Username speichern & Raum beitreten
     localStorage.setItem("username", username);
     socket.emit("joinRoom", { roomCode, username });
-}
+  }
+  
+
 
 
 // Event: Erfolgreicher Beitritt
 socket.on("roomJoined", (data) => {
     currentRoom = data.roomCode;
-
-    if (data.isSingleplayer) {
-        document.getElementById("status").innerText = "🕹️ Einzelspieler-Modus aktiviert!";
-    } else {
-        document.getElementById("status").innerText = `👥 Spieler im Raum: ${data.players.length}`;
-        updatePlayers(data.players); // Falls Multiplayer, zeige Liste an
+  
+    // 1) Modal sicher schließen
+    const joinModal = document.getElementById("joinGameModal");
+    if (joinModal) joinModal.style.display = "none";
+  
+    // 2) Dashboard/Lobby umschalten
+    const dash = document.getElementById("dashboard");
+    if (dash) dash.style.display = "none";
+    const lobby = document.getElementById("lobby");
+    if (lobby) lobby.style.display = "block";
+  
+    // 3) Status-Text updaten
+    const statusEl = document.getElementById("status");
+    if (statusEl) {
+      statusEl.innerText = data.isSingleplayer
+        ? "🕹️ Einzelspieler-Modus aktiviert!"
+        : `👥 Spieler im Raum: ${data.players.length}`;
     }
-
-    document.getElementById("dashboard").style.display = "none";
-    document.getElementById("lobby").style.display = "block";
-    document.getElementById("roomCode").innerText = `Raumcode: ${currentRoom}`;
-});
+  
+    // 4) Raumcode anzeigen
+    const rc = document.getElementById("roomCode");
+    if (rc) rc.innerText = `Raumcode: ${currentRoom}`;
+  
+    // 5) Spielerliste rendern (nur im Multiplayer)
+    if (!data.isSingleplayer && Array.isArray(data.players)) {
+      updatePlayers(data.players);
+    }
+  });
+  
+  
 
 
 function updatePlayers(players) {
@@ -2318,13 +2524,29 @@ function endGame() {
     socket.emit("endGame", currentRoom);
 }
 
+// Spiel kann nicht mehr starten, wir gehen zurück in die Lobby:
 socket.on("returnToLobby", () => {
-    document.getElementById("quizContainer").style.display = "none";
-    document.getElementById("lobby").style.display = "block";
+  const quiz = document.getElementById("quizContainer");
+  const lobby = document.getElementById("lobby");
+  const readyBtn = document.getElementById("readyButton");
+  const readyList = document.getElementById("readyStatus");
+  const statusDeck = document.getElementById("statusDeck");
+  const statusGameMode = document.getElementById("statusGameMode");
+  const statusText = document.getElementById("status");
 
-    // Setze "Bereit"-Status zurück
-    document.getElementById("readyButton").innerText = "Bereit";
+  if (quiz) quiz.style.display = "none";
+  if (lobby) lobby.style.display = "block";
+  if (readyBtn) {
+    readyBtn.innerText = "Bereit";
+    // readyBtn.style.display = "none";
+  }
+  if (readyList)   readyList.innerHTML = "";
+  if (statusDeck)  statusDeck.innerText = "📖 Gewähltes Deck: Noch nicht gewählt";
+  if (statusGameMode) statusGameMode.innerText = "🎮 Spielmodus: Noch nicht gewählt";
+  if (statusText) statusText.innerText = "Bitte wähle ein Deck und klicke 'Bereit'.";
 });
+  
+  
 
 
 // Event: Neue Frage anzeigen
@@ -2348,12 +2570,17 @@ function sendAnswer(questionId, answerIndex) {
 
 // Event: Punkte aktualisieren
 socket.on("updateScores", (scores) => {
-    let scoreDisplay = document.getElementById("scoreDisplay");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    if (!scoreDisplay) return;    // <<< Guard: existiert das Element?
+    
+    // erst hier mit innerHTML arbeiten
     scoreDisplay.innerHTML = "🏆 Punktestand:<br>";
-    for (let player in scores) {
-        scoreDisplay.innerHTML += `${player}: ${scores[player]} Punkte<br>`;
+    for (let user in scores) {
+      scoreDisplay.innerHTML += `${user}: ${scores[user]} Punkte<br>`;
     }
-});
+  });
+  
+  
 
 // Event: Spielende & Ergebnisse anzeigen
 socket.on("gameOver", (finalScores) => {

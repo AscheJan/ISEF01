@@ -232,7 +232,7 @@
             <input type="text" id="option2" placeholder="Antwort 2">
             <input type="text" id="option3" placeholder="Antwort 3">
             <input type="text" id="option4" placeholder="Antwort 4">
-            <input type="number" id="correctOption" placeholder="Index der richtigen Antwort (0-3)">
+            <input type="number" id="correctOption" min="1" max="4" placeholder="Richtige Antwortnummer (1–4)" >
             <button onclick="addQuestion()">Frage hinzufügen</button>
 
             <h3>Fragen verwalten</h3>
@@ -248,22 +248,38 @@
             <input type="text" id="editOption2" placeholder="Antwort 2">
             <input type="text" id="editOption3" placeholder="Antwort 3">
             <input type="text" id="editOption4" placeholder="Antwort 4">
-            <input type="number" id="editCorrectOption" placeholder="Richtige Option (0-3)">
+            <input type="number" id="editCorrectOption" min="1" max="4" placeholder="Richtige Antwortnummer (1–4)" >
             <button onclick="editQuestion()">💾 Speichern</button>
             <button onclick="closeEditQuestionModal()">❌ Abbrechen</button>
           </div>
     </div>
 
-    <div id="deleteModal" class="modal-backdrop" style="display: none;">
+    <!-- Delete Deck Modal -->
+    <div id="deleteDeckModal" class="modal" style="display: none;">
         <div class="modal-content">
-          <h3>Frage wirklich löschen?</h3>
-          <p id="deleteModalText"></p>
-          <div class="modal-actions">
-            <button onclick="closeDeleteModal()">Abbrechen</button>
-            <button id="confirmDeleteBtn" class="danger">Löschen</button>
-          </div>
+        <h3>Deck löschen</h3>
+        <p id="deleteDeckText">Möchtest du dieses Deck wirklich löschen?</p>
+        <div class="button-group">
+            <button class="btn cancel-btn" onclick="closeDeleteDeckModal()">Abbrechen</button>
+            <button class="btn danger-btn" onclick="confirmDeleteDeck()">Löschen</button>
         </div>
-      </div>
+        </div>
+    </div>
+  
+    <!-- Delete Question Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+        <h3>Frage löschen</h3>
+        <!-- Hier wird der Frage-Text hineingeschrieben -->
+        <p id="deleteModalText">❓ Soll diese Frage wirklich gelöscht werden?</p>
+        <div class="button-group">
+            <button class="btn cancel-btn" onclick="closeDeleteModal()">Abbrechen</button>
+            <!-- Dieser Button bekommt später per JS den Listener -->
+            <button id="confirmDeleteBtn" class="btn danger-btn">Löschen</button>
+        </div>
+        </div>
+    </div>
+  
       
     
 </body>

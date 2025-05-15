@@ -1,47 +1,47 @@
-// Importiere Mongoose für die Modellierung von MongoDB-Daten
 const mongoose = require('mongoose');
+const ReportedQuestion = require('./ReportedQuestion'); // Passe den Pfad an
 
-// Definiert das Schema für eine einzelne Quizfrage
 const QuestionSchema = new mongoose.Schema({
-  // 🔗 Referenz zum zugehörigen QuizDeck
   quizDeckId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'QuizDeck',
     required: true
   },
 
-  // Der Fragetext
   questionText: {
     type: String,
     required: true,
     trim: true
   },
 
-  // Liste der Antwortoptionen (z. B. ["A", "B", "C", "D"])
+  // genau 4 Optionen
   options: {
     type: [String],
     required: true,
     validate: {
       validator: function (opts) {
-        return Array.isArray(opts) && opts.length >= 2 && opts.length <= 10;
+        return Array.isArray(opts) && opts.length === 4;
       },
-      message: 'Eine Frage muss zwischen 2 und 10 Antwortmöglichkeiten haben.'
+      message: 'Eine Frage muss genau 4 Antwortmöglichkeiten haben.'
     }
   },
 
-  // Index der korrekten Antwort (bezogen auf das options-Array)
   correctOptionIndex: {
     type: Number,
     required: true,
     validate: {
-      validator: function (i) {
-        return Number.isInteger(i) && i >= 0 && (!this.options || i < this.options.length);
+      validator: function(i) {
+        // 0 ≤ i ≤ options.length-1
+        return Number.isInteger(i) && i >= 0 && i < this.options.length;
       },
-      message: 'Der Index der richtigen Antwort muss gültig im Options-Array liegen.'
+      message: 'Der Index der richtigen Antwort muss zwischen 0 und ' +
+               (this.options ? this.options.length - 1 : 'Anzahl der Optionen minus 1') +
+               ' liegen.'
     }
   },
+  
+  
 
-  // Anzahl der Nutzermeldungen (z. B. bei Unklarheiten)
   reports: {
     type: Number,
     default: 0,
@@ -49,9 +49,12 @@ const QuestionSchema = new mongoose.Schema({
   }
 
 }, {
-  // Automatische Erstellung von createdAt und updatedAt
   timestamps: true
 });
 
-// Exportiere das Question-Modell
+// ➡️ Cascade-Delete aller ReportedQuestion, wenn diese Frage gelöscht wird
+QuestionSchema.pre('remove', async function() {
+  await ReportedQuestion.deleteMany({ questionId: this._id });
+});
+
 module.exports = mongoose.model('Question', QuestionSchema);

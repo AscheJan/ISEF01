@@ -29,7 +29,7 @@ const io = socketIo(server);
 // Stelle die Verbindung zur MongoDB-Datenbank her (aus config/db.js)
 connectDB();
 
-
+app.set('io', io);
 // Routen für Authentifizierung (Login, Registrierung, Token-Prüfung etc.)
 app.use('/api/auth', authRoutes);
 
@@ -60,6 +60,10 @@ let players = [];     // Liste aller verbundenen Spieler (für Modus-/Deckwahl, 
 io.on("connection", (socket) => {
     console.log("👤 Neuer Spieler verbunden:", socket.id);
 
+    // → Damit Clients später ein Leaderboard-Topic joinen können:
+    socket.on('joinLeaderboardRoom', (deckId) => {
+        socket.join(`leaderboard_${deckId}`);
+    });
     // 🎲 Raum automatisch erstellen
     let roomCode = createRoom(socket);
 
@@ -114,6 +118,17 @@ io.on("connection", (socket) => {
         }
 
         io.emit("updateLobby", lobby.players);
+    });
+
+    socket.on("hostReadyAll", ({ roomCode }) => {
+        const room = rooms[roomCode];
+        if (!room) return;
+        // Alle Spieler auf ready setzen
+        room.players.forEach(p => p.isReady = true);
+        // allen Clients die neue Ready-Liste schicken
+        io.to(roomCode).emit("updateReadyStatus", room.players);
+        // und direkt das Startsignal
+        io.to(roomCode).emit("gameCanStart");
     });
 
     socket.on("leaveLobby", ({ playerId, roomCode }) => {
@@ -220,22 +235,25 @@ io.on("connection", (socket) => {
         // 🏆 Deck & Spielmodus an den neuen Spieler senden
         socket.emit("roomJoined", {
             roomCode,
-            players: room.players,
-            host: room.host,
-            selectedDeck: room.selectedDeck,
+            players:          room.players,
+            host:             room.host,
+            selectedDeck:     room.selectedDeck,
+            selectedDeckName: room.selectedDeckName,  // neu
             selectedGameMode: room.selectedGameMode
-        });
+          });
     });
     
     
     // 🎲 Deck-Auswahl für alle synchronisieren
-    socket.on("selectDeck", ({ roomCode, deckId }) => {
-        if (rooms[roomCode]) {
-            rooms[roomCode].selectedDeck = deckId;
-            io.to(roomCode).emit("updateDeckSelection", deckId);
-            checkIfAllSelectionsMade(roomCode);
-        }
+    socket.on("selectDeck", ({ roomCode, deckId, deckName }) => {
+        if (!rooms[roomCode]) return;
+    
+        rooms[roomCode].selectedDeck     = deckId;
+        rooms[roomCode].selectedDeckName = deckName;
+        io.to(roomCode).emit("updateDeckSelection", { deckId, deckName });
+        checkIfAllSelectionsMade(roomCode);
     });
+    
 
     // 🎮 Spielmodus-Auswahl für alle synchronisieren
     socket.on("selectGameMode", ({ roomCode, gameMode }) => {
@@ -248,36 +266,47 @@ io.on("connection", (socket) => {
 
     // 🏁 Überprüfen, ob alle Voraussetzungen erfüllt sind
     function checkIfAllSelectionsMade(roomCode) {
-        let room = rooms[roomCode];
-        if (!room || !room.selectedDeck || !room.selectedGameMode) return;
+        const room = rooms[roomCode];
+        if (!room?.selectedDeck || !room.selectedGameMode) return;
+      
+        io.to(roomCode).emit("allSelectionsMade", {
+          deckId:   room.selectedDeck,
+          deckName: room.selectedDeckName,
+          mode:     room.selectedGameMode
+        });
+      }
+      
+      
 
-        // 📡 Alle Spieler im Raum informieren
-        io.to(roomCode).emit("allSelectionsMade", { deck: room.selectedDeck, mode: room.selectedGameMode });
-    }
 
 
-
-    socket.on("answer", ({ roomCode, questionId, answerIndex, playerId }) => {
-        let game = activeGames[roomCode];
+      socket.on("answer", ({ roomCode, questionId, answerIndex, playerId }) => {
+        const game = activeGames[roomCode];
         if (!game || game.currentQuestionIndex === 0) return;
-
-        let currentQuestion = game.questions[game.currentQuestionIndex - 1];
-        let isCorrect = currentQuestion.correctOption === answerIndex;
-
+    
+        const currentQuestion = game.questions[game.currentQuestionIndex - 1];
+        const isCorrect = currentQuestion.correctOption === answerIndex;
+    
+        // Initialisiere Score und answeredPlayers-Set, falls nötig
         if (!game.scores[playerId]) game.scores[playerId] = 0;
         if (!game.answeredPlayers) game.answeredPlayers = new Set();
-
-        if (isCorrect) game.scores[playerId] += 10;
+    
+        // Punktevergabe
+        if (isCorrect) {
+            game.scores[playerId] += 10;
+        }
         game.answeredPlayers.add(playerId);
-
+    
+        // 📢 Live-Update aller Punktestände an alle Spieler im Raum
         io.to(roomCode).emit("updateScores", game.scores);
-
-        // Falls alle Spieler geantwortet haben, nächste Frage senden
+    
+        // 📨 Wenn alle Spieler geantwortet haben → nächste Frage
         if (game.answeredPlayers.size === rooms[roomCode].players.length) {
-            game.answeredPlayers.clear(); // Set leeren
+            game.answeredPlayers.clear();
             sendNextQuestion(roomCode);
         }
     });
+    
 
     socket.on("disconnect", () => {
         for (let roomCode in rooms) {

@@ -39,17 +39,26 @@ router.get('/decks', async (req, res) => {
 // Deck löschen (nur Admins)
 router.delete('/delete-deck/:deckId', async (req, res) => {
     try {
-        const { deckId } = req.params; // Hole die deckId aus der URL
-        if (!deckId) {
-            return res.status(400).json({ message: 'Deck-ID erforderlich' });
-        }
-        await Question.deleteMany({ quizDeckId: deckId });
-        await QuizDeck.findByIdAndDelete(deckId);
-        res.json({ message: 'Deck erfolgreich gelöscht' });
+      const { deckId } = req.params;
+      if (!deckId) {
+        return res.status(400).json({ message: 'Deck-ID erforderlich' });
+      }
+  
+      // 1) Alle ReportedQuestion für dieses Deck löschen
+      await ReportedQuestion.deleteMany({ quizDeckId: deckId });
+  
+      // 2) Alle Fragen dieses Decks löschen (und damit auch deren IDs)
+      await Question.deleteMany({ quizDeckId: deckId });
+  
+      // 3) Das Deck selbst löschen
+      await QuizDeck.findByIdAndDelete(deckId);
+  
+      res.json({ message: 'Deck und zugehörige Fragen sowie Meldungen erfolgreich gelöscht' });
     } catch (error) {
-        res.status(500).json({ message: 'Fehler beim Löschen des Decks' });
+      console.error('❌ Fehler beim Löschen des Decks:', error);
+      res.status(500).json({ message: 'Fehler beim Löschen des Decks' });
     }
-});
+  });
 
 
 
@@ -161,28 +170,29 @@ router.put('/edit-question/:questionId', async (req, res) => {
 // **Frage löschen (Admin-Only)**
 router.delete('/delete-question/:questionId', async (req, res) => {
     try {
-        const { questionId } = req.params;
-
-        // Frage existiert?
-        const question = await Question.findById(questionId);
-        if (!question) {
-            return res.status(404).json({ message: '❌ Frage nicht gefunden.' });
-        }
-
-        // Frage aus dem zugehörigen Deck entfernen
-        await QuizDeck.findByIdAndUpdate(question.quizDeckId, {
-            $pull: { questions: questionId }
-        });
-
-        // Frage löschen
-        await Question.findByIdAndDelete(questionId);
-
-        res.status(200).json({ message: '✅ Frage erfolgreich gelöscht!' });
+      const { questionId } = req.params;
+      const question = await Question.findById(questionId);
+      if (!question) {
+        return res.status(404).json({ message: '❌ Frage nicht gefunden.' });
+      }
+  
+      // 1) Alle ReportedQuestion für diese Frage löschen
+      await ReportedQuestion.deleteMany({ questionId });
+  
+      // 2) Die Frage-ID aus dem Deck pullen
+      await QuizDeck.findByIdAndUpdate(question.quizDeckId, {
+        $pull: { questions: questionId }
+      });
+  
+      // 3) Die Frage selbst löschen
+      await Question.findByIdAndDelete(questionId);
+  
+      res.status(200).json({ message: '✅ Frage und alle zugehörigen Meldungen erfolgreich gelöscht!' });
     } catch (error) {
-        console.error('❌ Fehler beim Löschen der Frage:', error);
-        res.status(500).json({ message: 'Fehler beim Löschen der Frage' });
+      console.error('❌ Fehler beim Löschen der Frage:', error);
+      res.status(500).json({ message: 'Fehler beim Löschen der Frage' });
     }
-});
+  });
 
 
 // **1. Frage melden**
