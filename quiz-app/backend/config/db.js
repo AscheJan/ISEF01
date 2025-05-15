@@ -1,48 +1,58 @@
-// Importiert notwendige Module
+// Importiere erforderliche Module
 const mongoose = require('mongoose');
-require('dotenv').config(); // Lädt Umgebungsvariablen aus der .env-Datei
 const chalk = require('chalk');
+const dotenv = require('dotenv');
 
-// Asynchrone Funktion zur Herstellung der Verbindung zur MongoDB
+// Umgebungsvariablen laden und validieren
+const result = dotenv.config();
+if (result.error) {
+  console.error(chalk.red('[ENV] Fehler beim Laden der .env-Datei:'), result.error);
+  process.exit(1);
+}
+
+// Asynchrone Verbindungsfunktion zur MongoDB
 const connectDB = async () => {
-    console.log(chalk.blue('[MongoDB] Verbindung wird hergestellt...'));
+  console.log(chalk.blueBright('[MongoDB] Verbindung wird vorbereitet...'));
 
-    // Überprüft, ob die Umgebungsvariable korrekt geladen wurde
-    if (!process.env.MONGO_URI) {
-        console.error(chalk.red('[MongoDB] Fehler: MONGO_URI ist nicht definiert. Überprüfe deine .env Datei.'));
-        process.exit(1);
+  const uri = process.env.MONGO_URI?.trim();
+  if (!uri) {
+    console.error(chalk.red('[MongoDB] ❌ Fehler: MONGO_URI ist nicht definiert oder leer.'));
+    process.exit(1);
+  }
+
+  try {
+    const conn = await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000
+    });
+
+    console.log(chalk.greenBright('\n✔️ MongoDB verbunden!'));
+    console.log(chalk.cyanBright(`🔗 Host: ${chalk.white(conn.connection.host)}`));
+    console.log(chalk.cyanBright(`📂 Datenbank: ${chalk.white(conn.connection.name)}\n`));
+
+    // Optional: Log-Level für spätere Diagnose setzen
+    mongoose.set('debug', process.env.NODE_ENV === 'development');
+
+  } catch (error) {
+    console.error(chalk.redBright(`\n[MongoDB] ❌ Fehler beim Verbindungsaufbau: ${error.message}`));
+
+    if (error.name === 'MongoNetworkError') {
+      console.error(chalk.yellow('📡 Netzwerkproblem: Prüfe deine Internetverbindung oder den Mongo-Server.'));
+    } else if (error.message.includes('ECONNREFUSED')) {
+      console.error(chalk.yellow('🚫 Verbindung wurde abgelehnt – läuft dein MongoDB-Dienst?'));
+    } else if (error.message.includes('ENOTFOUND')) {
+      console.error(chalk.yellow('❓ Host nicht gefunden – URI korrekt?'));
+    } else if (error.message.includes('authentication')) {
+      console.error(chalk.yellow('🔐 Authentifizierungsfehler – Benutzername/Passwort prüfen.'));
+    } else {
+      console.error(chalk.yellow('⚠️ Unerwarteter Fehler – weitere Details oben.'));
     }
 
-    // Verbindungsversuch
-    try {
-        const conn = await mongoose.connect(process.env.MONGO_URI);
-
-        // Erfolgreiche Verbindung
-        console.log(chalk.greenBright('\n✔️  MongoDB-Verbindung erfolgreich hergestellt!'));
-        console.log(chalk.cyanBright(`🔗 Host: ${chalk.white(conn.connection.host)}`));
-        console.log(chalk.cyanBright(`📂 Datenbank: ${chalk.white(conn.connection.name)}\n`));
-    } catch (error) {
-        // Fehlerbehandlung mit detaillierter Ausgabe
-        console.error(chalk.red(`[MongoDB] Fehler: ${error.message}`));
-
-        switch (true) {
-            case error.message.includes('ECONNREFUSED'):
-                console.error(chalk.yellow('[MongoDB] Verbindung wurde abgelehnt. Läuft dein MongoDB-Server?'));
-                break;
-            case error.message.includes('authentication'):
-                console.error(chalk.yellow('[MongoDB] Authentifizierungsfehler. Überprüfe Benutzername/Passwort in der .env Datei.'));
-                break;
-            case error.message.includes('ENOTFOUND'):
-                console.error(chalk.yellow('[MongoDB] Host konnte nicht gefunden werden. Überprüfe die URI.'));
-                break;
-            default:
-                console.error(chalk.yellow('[MongoDB] Ein unerwarteter Fehler ist aufgetreten.'));
-        }
-
-        // Anwendung mit Fehlercode 1 beenden
-        process.exit(1);
-    }
+    process.exit(1);
+  }
 };
 
-// Export der Funktion zur Verwendung in anderen Dateien
+// Exportiere die Verbindungsfunktion
 module.exports = connectDB;
