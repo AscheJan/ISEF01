@@ -358,47 +358,62 @@ function openReportModal(questionId, quizDeckId) {
 
 // ✅ **Frage melden**
 async function submitReport() {
+    const MIN_REASON_LENGTH = 10;
+  
     const questionId = document.getElementById("reportQuestionId").value.trim();
     const quizDeckId = document.getElementById("reportQuizDeckId").value.trim();
     const reason = document.getElementById("reportReason").value.trim();
     const reportedBy = localStorage.getItem("username") || "Anonym";
-
-    if (!questionId || !quizDeckId || !reason) {
-        showNotification("⚠️ Bitte gib einen Grund für die Meldung an!", "warning");
+  
+    // Pflichtfelder?
+    if (!questionId || !quizDeckId) {
+      showNotification("⚠️ Bitte die Frage und das Deck auswählen!", "warning");
+      return;
+    }
+  
+    // Mindestlänge prüfen
+    if (reason.length < MIN_REASON_LENGTH) {
+        showNotification(
+        `⚠️ Du brauchst mindestens ${MIN_REASON_LENGTH} Zeichen! (aktuell ${reason.length})`,
+        "warning"
+        );
         return;
     }
-
+    
+  
+    // Auth-Token vorhanden?
     const token = localStorage.getItem("token");
     if (!token) {
-        showNotification("⚠️ Nicht angemeldet! Bitte melde dich an.", "warning");
-        return;
+      showNotification("⚠️ Nicht angemeldet! Bitte melde dich an.", "warning");
+      return;
     }
-
+  
     try {
-        const response = await fetch("/api/admin/report-question", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ questionId, quizDeckId, reportedBy, reason })
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-            showNotification(`❌ Fehler: ${data.message}`, "error");
-            return;
-        }
-
-        showNotification("✅ Frage wurde gemeldet!", "success");
-        closeReportModal();
-        document.getElementById("reportReason").value = ""; // Eingabe leeren
-
+      const response = await fetch("/api/admin/report-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ questionId, quizDeckId, reportedBy, reason })
+      });
+  
+      const data = await response.json();
+      if (!response.ok) {
+        showNotification(`❌ Fehler: ${data.message}`, "error");
+        return;
+      }
+  
+      showNotification("✅ Frage wurde gemeldet!", "success");
+      closeReportModal();
+      document.getElementById("reportReason").value = ""; // Eingabe leeren
+  
     } catch (error) {
-        console.error("❌ Fehler beim Melden der Frage:", error);
-        showNotification("❌ Fehler beim Melden der Frage.", "error");
+      console.error("❌ Fehler beim Melden der Frage:", error);
+      showNotification("❌ Fehler beim Melden der Frage.", "error");
     }
-}
+  }
+  
 
 
 // ✅ **Spielmodus wählen & UI aktualisieren**

@@ -43,61 +43,11 @@
             <p>Willkommen, <span id="displayUsername"></span>!</p>
             <button onclick="createGame()">Spiel starten</button>
             <button onclick="openJoinGameModal()">Spiel beitreten</button>
-            <button onclick="logout()">Abmelden</button>
-        </div>
-
-        <!-- ✅ Modal für Spiel beitreten -->
-        <div id="joinGameModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close" onclick="closeJoinGameModal()">&times;</span>
-                <h2>🔑 Spiel beitreten</h2>
-                <p>Gib den Raumcode ein, um einem Spiel beizutreten:</p>
-                <input type="text" id="roomCodeInput" placeholder="Raumcode eingeben">
-                <button onclick="joinGame()">Beitreten</button>
-                <button onclick="closeJoinGameModal()">❌ Abbrechen</button> <!-- Schließen-Button -->
-            </div>
-        </div>
-
-        <div id="lobby">
-            <h2>🕹 Wartelobby</h2>
-            <p id="roomCode">⏳ Raumcode wird generiert...</p>
-            <p id="status"></p>
-
-            <!-- Status der eigenen Auswahl -->
-            <p id="statusDeck">📖 Gewähltes Deck: Noch nicht gewählt</p>
-            <p id="statusGameMode">🎮 Spielmodus: Noch nicht gewählt</p>
-
-
-            <h3>Spielmodus-Auswahl der Spieler:</h3>
-            <ul id="multiplayerGameModeList"></ul>
-
-
-            <div id="playerList"></div>
-            <button id="leaveButton" style="display: none;">Wartelobby verlassen</button>
-            <h3>Deck auswählen:</h3>
-            <select id="selectDeck">
-                <option value="">-- Lade Decks... --</option>
-            </select>
-        
-            <h3>Spielmodus wählen:</h3>
-            <div id="gameModeSelection">
-                <button onclick="selectGameMode('classic')" data-mode="classic">🔵 Klassisch</button>
-                <button onclick="selectGameMode('timeattack')" data-mode="timeattack">⏳ Zeitangriff</button>
-                <button onclick="selectGameMode('shuffle')" data-mode="shuffle">🎲 Shuffle</button>
-                <button onclick="selectGameMode('survival')" data-mode="survival">💀 Überleben</button>
-                <button onclick="selectGameMode('speed')" data-mode="speed">⚡ Blitz</button>
-                <button onclick="selectGameMode('risk')" data-mode="risk">💰 Risiko</button>
-                <button onclick="selectGameMode('endless')" data-mode="endless">♾️ Endlos</button>
-            </div>
-
-            <button id="readyButton" style="display:none;">Bereit</button>
-            <p id="status">Bitte wähle ein Deck und einen Spielmodus.</p>
-
             <!-- 🏆 Button zum Öffnen der Legende -->
             <button onclick="openGameRulesModal()">📖 Spielregeln anzeigen</button>
-
+            <button onclick="logout()">Abmelden</button>
             <!-- 📜 Spielregeln Modal -->
-            <div id="gameRulesModal" class="modal">
+            <div id="gameRulesModal" class="modal" style="display: none;">
                 <div class="modal-content">
                     <span class="close" onclick="closeGameRulesModal()">&times;</span>
                     <h2>📜 Spielmodi & Regeln</h2>
@@ -128,6 +78,61 @@
                     <p>Das Quiz endet nie! Fragen werden nach dem Durchlauf neu gemischt.</p>
                 </div>
             </div>
+        </div>
+
+        <!-- ✅ Modal für Spiel beitreten -->
+        <div id="joinGameModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeJoinGameModal()">&times;</span>
+                <h2>🔑 Spiel beitreten</h2>
+                <p>Gib den Raumcode ein, um einem Spiel beizutreten:</p>
+                <input type="text" id="roomCodeInput" placeholder="Raumcode eingeben">
+                <button onclick="joinGame()">Beitreten</button>
+                <button onclick="closeJoinGameModal()">❌ Abbrechen</button> <!-- Schließen-Button -->
+            </div>
+        </div>
+
+        <div id="lobby">
+            <h2>🕹 Wartelobby</h2>
+          
+            <p id="roomCode">⏳ Raumcode wird erstellt...</p>
+            <p id="status"></p>
+          
+            <!-- Status der eigenen Auswahl -->
+            <p id="statusDeck">📖 Deck: Noch nicht gewählt</p>
+            <p id="statusGameMode">🎮 Modus: Noch nicht gewählt</p>
+          
+            <h3>🎯 Moduswahl der Spieler</h3>
+            <ul id="multiplayerGameModeList"></ul>
+          
+            <div id="playerList"></div>
+          
+            <button id="leaveButton" style="display: none;">🔙 Lobby verlassen</button>
+          
+            <h3>📚 Deck auswählen</h3>
+            <select id="selectDeck">
+              <option value="">-- Decks werden geladen... --</option>
+            </select>
+          
+        
+            <h3>Spielmodus wählen:</h3>
+            <div id="gameModeSelection" class="mode-grid">
+                <button onclick="selectGameMode('classic')" data-mode="classic">🔵 Klassisch</button>
+                <button onclick="selectGameMode('timeattack')" data-mode="timeattack">⏳ Zeitangriff</button>
+                <button onclick="selectGameMode('shuffle')" data-mode="shuffle">🎲 Shuffle</button>
+                <button onclick="selectGameMode('survival')" data-mode="survival">💀 Überleben</button>
+                <button onclick="selectGameMode('speed')" data-mode="speed">⚡ Blitz</button>
+                <button onclick="selectGameMode('risk')" data-mode="risk">💰 Risiko</button>
+                <button onclick="selectGameMode('endless')" data-mode="endless">♾️ Endlos</button>
+              </div>
+              
+
+            <button id="readyButton" style="display:none;">Bereit</button>
+            <p id="status">Bitte wähle ein Deck und einen Spielmodus.</p>
+
+
+
+            
         </div>
         
         <!-- ✅ QUIZ-ANSICHT -->
@@ -209,35 +214,73 @@
         
         
         <!-- Modal für Deck-Verwaltung und Fragen-Erstellung -->
-        <div id="adminModal" style="display:none;">
-            <button onclick="closeAdminModal()">Schließen</button>
-            <h2>Decks verwalten & Fragen hinzufügen</h2>
-            
-            <!-- Neues Deck erstellen -->
-            <input type="text" id="deckName" placeholder="Deck-Name eingeben">
-            <button onclick="createDeck()">Deck erstellen</button>
-            
-            <h3>Bestehende Decks</h3>
-            <ul id="deckList"></ul>
-            
-            <h3>Fragen zu Deck hinzufügen</h3>
-            <label for="selectDeckAdmin">Deck auswählen:</label>
-            <select id="selectDeckAdmin" onchange="loadAdminQuestions()">
-                <option value="">-- Deck auswählen --</option>
-            </select>
-
-            <h3>Neue Frage hinzufügen</h3>
-            <input type="text" id="questionText" placeholder="Fragetext eingeben">
-            <input type="text" id="option1" placeholder="Antwort 1">
-            <input type="text" id="option2" placeholder="Antwort 2">
-            <input type="text" id="option3" placeholder="Antwort 3">
-            <input type="text" id="option4" placeholder="Antwort 4">
-            <input type="number" id="correctOption" min="1" max="4" placeholder="Richtige Antwortnummer (1–4)" >
-            <button onclick="addQuestion()">Frage hinzufügen</button>
-
-            <h3>Fragen verwalten</h3>
-            <ul id="adminQuestionList"></ul>
-        </div>
+        <div id="adminModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+            <div class="modal-content">
+          
+              <!-- 🔤 Titel -->
+              <header>
+                <h2 id="adminModalTitle">Decks verwalten &amp; Fragen hinzufügen</h2>
+                <div class="button-group">
+                  <button class="close-btn" onclick="closeAdminModal()" aria-label="Modal schließen">Schließen</button>
+                </div>
+              </header>
+          
+              <!-- 📦 Neues Deck erstellen -->
+              <section>
+                <h3>Neues Deck erstellen</h3>
+                <form class="input-group" onsubmit="event.preventDefault(); createDeck();">
+                  <input type="text" id="deckName" placeholder="Deck-Name eingeben" required>
+                  <button type="submit" class="primary-btn">Deck erstellen</button>
+                </form>
+              </section>
+          
+              <!-- 📚 Bestehende Decks -->
+              <section>
+                <h3>Bestehende Decks</h3>
+                <ul id="deckList" class="list-style">
+                  <li>
+                    <span>Wochenende</span>
+                    <button class="icon-btn" title="Deck löschen">🗑</button>
+                  </li>
+                </ul>
+              </section>
+          
+              <!-- 🔄 Fragen zu Deck hinzufügen -->
+              <section>
+                <h3>Fragen zu Deck hinzufügen</h3>
+                <label for="selectDeckAdmin">Deck auswählen</label>
+                <select id="selectDeckAdmin" onchange="loadAdminQuestions()" required>
+                  <option value="">-- Deck auswählen --</option>
+                  <option value="6826119202c9c41bc4bf46d3">Wochenende</option>
+                </select>
+              </section>
+          
+              <!-- ➕ Neue Frage -->
+              <section>
+                <h3>Neue Frage hinzufügen</h3>
+                <form onsubmit="event.preventDefault(); addQuestion();">
+                  <input type="text" id="questionText" placeholder="Fragetext eingeben" required>
+                  <div class="grid-2">
+                    <input type="text" id="option1" placeholder="Antwort 1" required>
+                    <input type="text" id="option2" placeholder="Antwort 2" required>
+                    <input type="text" id="option3" placeholder="Antwort 3" required>
+                    <input type="text" id="option4" placeholder="Antwort 4" required>
+                  </div>
+                  <input type="number" id="correctOption" min="1" max="4" placeholder="Richtige Antwortnummer (1–4)" required>
+                  <button type="submit" class="primary-btn">Frage hinzufügen</button>
+                </form>
+              </section>
+          
+              <!-- 📋 Fragen verwalten -->
+              <section>
+                <h3>Fragen verwalten</h3>
+                <ul id="adminQuestionList" class="list-style"></ul>
+              </section>
+              
+            </div>
+          </div>
+          
+          
 
         <!-- Modal für Frage bearbeiten -->
         <div id="editQuestionModal" style="display:none;">

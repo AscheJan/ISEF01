@@ -454,33 +454,97 @@ textarea:focus {
 }
 
 
-
 /* 🌑 Modal Hintergrund */
-.modal {
+#gameRulesModal .modal {
   display: none;
   position: fixed;
+  inset: 0; /* ersetzt: top, right, bottom, left */
   z-index: 1000;
-  inset: 0; /* ersetzt: left, top, width, height */
-  background: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(6px);
-  transition: opacity var(--transition-default);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity var(--transition-default, 0.3s ease);
+  overflow-y: auto;
 }
 
 /* 📜 Modal-Inhalt */
-.modal-content {
-  background-color: var(--color-white);
-  z-index: 1100;
-  padding: var(--spacing-xl);
+#gameRulesModal .modal-content {
+  position: relative;
+  background-color: var(--color-white, #ffffff);
   margin: 8% auto;
+  padding: var(--spacing-xl, 2rem);
   width: 85%;
-  max-width: var(--modal-width);
-  max-height: 40vh;
+  max-width: var(--modal-width, 600px);
+  max-height: 80vh;
   overflow-y: auto;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--shadow-xl, 0 8px 32px rgba(0,0,0,0.2));
   text-align: center;
-  box-shadow: var(--shadow-xl);
-  animation: fadeIn var(--transition-default);
+  z-index: 1100;
+  animation: fadeIn var(--transition-default, 0.3s ease);
+  box-sizing: border-box;
 }
+
+/* ❌ Schließen-Button */
+#gameRulesModal .modal .close {
+  position: absolute;
+  top: var(--spacing-sm, 1rem);
+  right: var(--spacing-md, 1.5rem);
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-muted, #666);
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+  transition: color var(--transition-default, 0.3s ease);
+}
+.modal .close:hover {
+  color: var(--color-error, #dc3545);
+}
+
+/* 📸 Logo-Bild */
+.modal .modal-logo {
+  width: 130px;
+  height: auto;
+  border-radius: 50%;
+  margin: 0 auto var(--spacing-sm, 1rem);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.15));
+  display: block;
+}
+
+/* 📢 Modal-Titel */
+.modal h1 {
+  font-size: 1.625rem;
+  color: var(--color-dark, #111);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm, 1rem);
+}
+
+/* 📝 Beschreibungstext */
+.modal p {
+  font-size: var(--font-size-base, 1rem);
+  color: var(--color-muted, #555);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* 📱 Responsives Verhalten */
+@media (max-width: 480px) {
+  .modal-content {
+    margin: 12% auto;
+    width: 92%;
+    padding: var(--spacing-lg, 1.5rem);
+  }
+  .modal h1 {
+    font-size: 1.25rem;
+  }
+  .modal .close {
+    font-size: 1.25rem;
+    right: var(--spacing-sm, 1rem);
+  }
+}
+
 
 /* ❌ Schließen-Button */
 .close {
@@ -594,11 +658,65 @@ textarea:focus {
 }
 
 /* 🏷️ Titel */
-#lobby h1 {
-  font-size: var(--font-size-lg);
-  color: var(--color-dark);
-  margin-bottom: var(--spacing-sm);
+#lobby h1,
+#lobby h2,
+#lobby h3 {
+  color: var(--color-dark, #222);
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: var(--spacing-sm, 1rem);
 }
+
+#lobby h1 {
+  font-size: calc(var(--font-size-lg, 1.5rem) + 4px);
+  text-align: center;
+}
+
+#lobby h2 {
+  font-size: var(--font-size-lg, 1.5rem);
+}
+
+#lobby h3 {
+  font-size: var(--font-size-base, 1.125rem);
+  color: var(--color-primary, #007bff);
+}
+
+/* 📝 Textabsätze */
+#lobby p {
+  font-size: var(--font-size-base, 1rem);
+  color: var(--color-muted, #555);
+  margin-bottom: var(--spacing-sm, 1rem);
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  word-break: break-word;
+}
+
+/* 📋 Listen */
+#lobby ul {
+  padding-left: 1.25rem;
+  margin-bottom: var(--spacing-md, 1.5rem);
+}
+
+#lobby li {
+  font-size: var(--font-size-base, 1rem);
+  color: var(--color-dark, #333);
+  margin-bottom: var(--spacing-xs, 0.5rem);
+  line-height: 1.5;
+  position: relative;
+  padding-left: 1rem;
+}
+
+#lobby li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--color-primary, #007bff);
+  font-weight: bold;
+}
+
+
 
 /* 🔐 Raumcode */
 #roomCode {
@@ -642,40 +760,58 @@ textarea:focus {
   padding: var(--spacing-sm);
 }
 
-/* 🎮 Spielmodus-Auswahl */
-#gameModeSelection {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  margin: var(--spacing-sm) 0;
+
+
+
+/* 🎮 Game Mode Auswahl – modernes Grid */
+#gameModeSelection.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-md, 1rem);
+  margin-top: var(--spacing-lg, 2rem);
 }
+
+/* 🟦 Game Mode Button */
 #gameModeSelection button {
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-base);
-  border-radius: var(--radius-md);
-  border: none;
+  background-color: var(--color-light, #f9f9f9);
+  color: var(--color-dark, #222);
+  border: 1px solid var(--color-gray, #ddd);
+  padding: 1rem;
+  font-size: var(--font-size-base, 1rem);
+  font-weight: 500;
+  border-radius: var(--radius-lg, 12px);
   cursor: pointer;
-  transition: background var(--transition-fast), transform var(--transition-fast);
+  transition: 
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  min-height: 3.5rem;
 }
 
-/* 🔵 Klassischer Modus */
-#gameModeSelection button[data-mode="classic"] {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-}
-#gameModeSelection button[data-mode="classic"]:hover {
-  background-color: var(--color-primary-dark);
+/* 🔍 Hover + Fokus */
+#gameModeSelection button:hover,
+#gameModeSelection button:focus {
+  background-color: var(--color-primary, #007bff);
+  color: var(--color-white, #fff);
+  border-color: var(--color-primary-dark, #0056b3);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  transform: translateY(-2px);
 }
 
-/* ⏱️ Zeitangriff */
-#gameModeSelection button[data-mode="timeattack"] {
-  background-color: var(--color-warning);
-  color: var(--color-white);
+/* ✅ Aktiver Modus (optional bei Auswahl) */
+#gameModeSelection button.active {
+  background-color: var(--color-primary-dark, #0056b3);
+  color: var(--color-white, #fff);
+  border-color: var(--color-primary-dark, #0056b3);
+  box-shadow: inset 0 0 0 2px var(--color-white, #fff);
 }
-#gameModeSelection button[data-mode="timeattack"]:hover {
-  background-color: var(--color-warning-dark);
-}
+
 
 /* ✅ Bereit-Button */
 #readyButton {
@@ -853,44 +989,51 @@ reportedQuestionsModal .modal-content {
     padding: var(--spacing-sm);
   }
 }
-/* ##########################################
-   🧩 Admin Modal – Modern, Clean & Scrollable
-   ########################################## */
 
-   #adminModal {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--spacing-lg);
-    background: var(--color-dark);
-    z-index: 1000;
-    box-sizing: border-box;
-  
-    /* nur Y-Scrollbar, X-Achse unterdrücken */
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  
-  
-  #adminModal .modal-content {
-    background: var(--color-white);
-    width: 100%;
-    max-width: 720px;
-    max-height: 90vh;
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-2xl);
-    overflow-y: auto;
-    padding: var(--spacing-xl);
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-gap: var(--spacing-lg);
-    font-family: var(--font-family);
-    box-sizing: border-box;
-  }
+
+
+/* 🌌 Modal Overlay */
+#adminModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 1000;
+  overflow: hidden;
+  box-sizing: border-box;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* 📦 Modal Content */
+#adminModal .modal-content {
+  background-color: var(--color-white);
+  color: var(--color-dark);
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  padding: 2.5rem;
+  padding-bottom: 4rem; /* 👈 Abstand nach unten */
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+  font-family: var(--font-family);
+  animation: fadeInModal 0.3s ease-out;
+}
+
+/* ✨ Scrollbar */
 #adminModal .modal-content::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 #adminModal .modal-content::-webkit-scrollbar-track {
   background: var(--color-light);
@@ -901,7 +1044,19 @@ reportedQuestionsModal .modal-content {
   border-radius: var(--radius-sm);
 }
 
-/* 🔤 Headings */
+/* 🎬 Fade-In Animation */
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 🔤 Titel & Header */
 #adminModal h2 {
   font-size: calc(var(--font-size-lg) + 4px);
   font-weight: 700;
@@ -918,12 +1073,14 @@ reportedQuestionsModal .modal-content {
   margin: var(--spacing-lg) 0 var(--spacing-sm);
 }
 
-/* 📝 Form Layout */
-#adminModal form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
+/* 📄 Sections */
+#adminModal section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
+
+/* 🏷️ Labels */
 #adminModal label {
   font-size: var(--font-size-sm);
   color: var(--color-muted);
@@ -931,7 +1088,32 @@ reportedQuestionsModal .modal-content {
   display: block;
 }
 
-/* ✏️ Inputs, Selects, Textareas */
+/* 🧾 Formulare */
+#adminModal form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* 📦 Input-Gruppen (horizontal) */
+#adminModal .input-group {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+#adminModal .input-group input {
+  flex: 1 1 auto;
+  min-width: 200px;
+}
+
+/* 🧮 Grid-Layout */
+#adminModal .grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+/* 🖊️ Input, Select, Textarea */
 #adminModal input,
 #adminModal select,
 #adminModal textarea {
@@ -952,7 +1134,35 @@ reportedQuestionsModal .modal-content {
   box-shadow: 0 0 8px rgba(30, 144, 255, 0.25);
 }
 
-/* 🔘 Button Group */
+/* 🗑️ Icon-Button */
+#adminModal .icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  color: var(--color-error);
+  transition: color var(--transition-fast);
+}
+#adminModal .icon-btn:hover {
+  color: var(--color-error-dark);
+}
+
+/* 📋 List-Styling */
+#adminModal ul.list-style {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#adminModal ul.list-style li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-gray);
+}
+
+/* 🔘 Button-Gruppe */
 #adminModal .button-group {
   display: flex;
   justify-content: flex-end;
@@ -961,47 +1171,55 @@ reportedQuestionsModal .modal-content {
   margin-top: var(--spacing-lg);
 }
 
-/* 🗲 Common Button Base */
-#adminModal .button-group button {
-  flex: 0 1 150px;
-  padding: calc(var(--spacing-sm) * 1.5) var(--spacing-lg);
+/* 🧩 Buttons */
+#adminModal button,
+#adminModal .button-group button,
+#adminModal .primary-btn,
+#adminModal .close-btn {
+  flex: 0 1 auto;
+  min-width: 120px;
+  padding: 0.75rem 1.5rem;
   font-size: var(--font-size-base);
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
   background-color: var(--color-light);
   color: var(--color-dark);
+  text-align: center;
+  cursor: pointer;
+  box-shadow: none;
   transition:
-    background-color var(--transition-fast),
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast);
-  box-sizing: border-box;
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
 }
 
-/* ✅ Primary Button */
-#adminModal .button-group button.primary-btn {
+/* ✅ Primärbutton */
+#adminModal .primary-btn {
   background-color: var(--color-primary);
   color: var(--color-white);
+  border-color: var(--color-primary);
 }
-#adminModal .button-group button.primary-btn:hover {
+#adminModal .primary-btn:hover {
   background-color: var(--color-primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-primary-dark);
+  transform: translateY(-1px);
 }
 
-/* ❌ Close Button */
-#adminModal .button-group button.close-btn {
+/* ❌ Close/Fehlerbutton */
+#adminModal .close-btn {
+  background-color: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}
+#adminModal .close-btn:hover {
   background-color: var(--color-error);
   color: var(--color-white);
-}
-#adminModal .button-group button.close-btn:hover {
-  background-color: var(--color-error-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
-/* 📱 Responsive: Full-Width Buttons on Small Screens */
+
+/* 📱 Responsive */
 @media (max-width: 480px) {
   #adminModal .button-group {
     justify-content: center;
@@ -1012,6 +1230,8 @@ reportedQuestionsModal .modal-content {
   }
 }
 
+
+  
   
 
 /* ##########################################
@@ -1275,6 +1495,105 @@ reportedQuestionsModal .modal-content {
     padding: var(--spacing-sm);
   }
 }
+
+/* 🌑 Modal-Overlay */
+#deleteModal.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg, 2rem);
+  box-sizing: border-box;
+}
+
+/* 🧱 Modal-Inhalt */
+#deleteModal .modal-content {
+  background-color: var(--color-white, #fff);
+  color: var(--color-dark, #111);
+  width: 100%;
+  max-width: 420px;
+  padding: var(--spacing-xl, 2rem);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--shadow-xl, 0 8px 32px rgba(0,0,0,0.25));
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 1rem);
+  animation: fadeIn 0.25s ease-out;
+  box-sizing: border-box;
+}
+
+/* 📝 Text */
+#deleteModal h3 {
+  font-size: var(--font-size-lg, 1.25rem);
+  margin-bottom: var(--spacing-sm, 0.75rem);
+  color: var(--color-error, #dc3545);
+  text-align: center;
+}
+
+#deleteModal p {
+  font-size: var(--font-size-base, 1rem);
+  color: var(--color-muted, #555);
+  text-align: center;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/* 🔘 Button-Gruppe */
+#deleteModal .button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md, 1rem);
+  margin-top: var(--spacing-lg, 2rem);
+}
+
+/* 🎨 Buttons (Basis) */
+#deleteModal .btn {
+  flex: 1 1 auto;
+  padding: 0.75rem 1.25rem;
+  font-size: var(--font-size-base, 1rem);
+  font-weight: 500;
+  border-radius: var(--radius-md, 10px);
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+/* 🛑 Löschen */
+#deleteModal .danger-btn {
+  background-color: var(--color-error, #dc3545);
+  color: var(--color-white, #fff);
+}
+#deleteModal .danger-btn:hover {
+  background-color: var(--color-error-dark, #b52a37);
+  transform: translateY(-1px);
+}
+
+/* 🚫 Abbrechen */
+#deleteModal .cancel-btn {
+  background-color: var(--color-light, #f0f0f0);
+  color: var(--color-dark, #222);
+}
+#deleteModal .cancel-btn:hover {
+  background-color: var(--color-gray, #ddd);
+  transform: translateY(-1px);
+}
+
+/* ✨ Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 
 /* 🏠 Home-Container */
 #home {
