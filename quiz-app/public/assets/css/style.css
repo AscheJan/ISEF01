@@ -499,6 +499,66 @@ textarea:focus {
   line-height: 1;
   transition: color var(--transition-default, 0.3s ease);
 }
+
+/* 🌟 Modal-Overlay mit hohem z-index */
+#deleteDeckModal.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex; /* wird per Inline-Style aktiviert */
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6); /* dunkler Overlay */
+  z-index: 1100;
+}
+
+/* 🧩 Modal-Inhalt */
+#deleteDeckModal .modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+/* 🧷 Button-Gruppe */
+#deleteDeckModal .button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+/* 🟢 Buttons */
+#deleteDeckModal .btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 🔴 Abbrechen-Button */
+#deleteDeckModal .cancel-btn {
+  background-color: #ccc;
+  color: #333;
+}
+
+/* 🔥 Löschen-Button */
+#deleteDeckModal .danger-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+#fiftyFiftyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
 .modal .close:hover {
   color: var(--color-error, #dc3545);
 }

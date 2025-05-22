@@ -20,30 +20,76 @@ function authenticateUser(req, res, next) {
   }
 }
 
+// 🔁 Sichtbarkeit (global/privat) eines eigenen Decks umschalten
+router.put('/decks/:deckId/toggle-visibility', authenticateUser, async (req, res) => {
+  const { deckId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(deckId)) {
+    return res.status(400).json({ message: 'Ungültige Deck-ID' });
+  }
+
+  try {
+    const deck = await QuizDeck.findOne({ _id: deckId, userId: req.userId });
+    if (!deck) {
+      return res.status(404).json({ message: 'Deck nicht gefunden oder nicht berechtigt' });
+    }
+
+    // 🌐 Sichtbarkeit umschalten
+    deck.isGlobal = !deck.isGlobal;
+    await deck.save();
+
+    res.json({
+      message: `Sichtbarkeit wurde geändert: ${deck.isGlobal ? '🌍 Global' : '🔒 Privat'}`,
+      isGlobal: deck.isGlobal
+    });
+
+  } catch (err) {
+    console.error("❌ Fehler beim Umschalten der Sichtbarkeit:", err);
+    res.status(500).json({ message: 'Serverfehler beim Umschalten der Sichtbarkeit' });
+  }
+});
+
+
+
 // 📦 Deck erstellen
 router.post('/create-deck', authenticateUser, async (req, res) => {
   try {
     const { name } = req.body;
-    if (!name) return res.status(400).json({ message: 'Deck-Name erforderlich' });
+    if (!name) return res.status(400).json({ message: 'Bitte gib einen Namen für das Deck ein.' });
 
     const newDeck = new QuizDeck({ name, userId: req.userId, questions: [] });
     await newDeck.save();
-    res.json({ message: '✅ Deck erstellt', deck: newDeck });
+    res.json({ message: '✅ Deck erfolgreich erstellt.', deck: newDeck });
   } catch (error) {
     console.error('❌ Fehler beim Erstellen des Decks:', error);
-    res.status(500).json({ message: 'Serverfehler beim Deck-Erstellen' });
+
+    if (error.name === 'ValidationError') {
+      // 🎯 Benutzerfreundliche Formulierung je nach Feld
+      const friendlyMessages = Object.values(error.errors).map(err => {
+        if (err.path === 'name' && err.kind === 'minlength') {
+          return 'Der Name des Decks muss mindestens 3 Zeichen lang sein.';
+        }
+        return err.message;
+      });
+
+      return res.status(400).json({ message: friendlyMessages.join(' ') });
+    }
+
+    res.status(500).json({ message: 'Es ist ein Serverfehler aufgetreten. Bitte versuche es später erneut.' });
   }
 });
+
 
 // 📚 Eigene Decks laden
 router.get('/decks', authenticateUser, async (req, res) => {
   try {
-    const decks = await QuizDeck.find({ userId: req.userId });
+    const decks = await QuizDeck.find({ userId: req.userId }).sort({ name: 1 }); // A–Z Sortierung
     res.json({ decks });
   } catch (error) {
     res.status(500).json({ message: 'Fehler beim Abrufen der Decks' });
   }
 });
+
 
 // ❓ Fragen für ein eigenes Deck laden
 router.get('/questions/:deckId', authenticateUser, async (req, res) => {

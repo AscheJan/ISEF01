@@ -1,14 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 1) Basis-Initialisierung
-    checkAndHandleLoginStatus();
-    initializeApp();
-  
-    // 2) Admin-Deck-Wechsel (bleibt wie gehabt)
-    const selectDeckAdmin = document.getElementById("selectDeckAdmin");
-    if (!selectDeckAdmin) {
-      console.error("❌ Fehler: `selectDeckAdmin` wurde nicht gefunden!");
-      return;
-    }
+  // ✅ Login & App-Initialisierung
+  checkAndHandleLoginStatus();
+  initializeApp();
+
+  // ✅ Deckauswahl im Admin-Modus
+  const selectDeckAdmin = document.getElementById("selectDeckAdmin");
+  if (selectDeckAdmin) {
     selectDeckAdmin.addEventListener("change", () => {
       if (!selectDeckAdmin.value) {
         console.warn("⚠️ Kein Deck ausgewählt!");
@@ -16,23 +13,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       loadAdminQuestions();
     });
-  
-    // 3) Ready-Button initial holen
-    const readyButton = document.getElementById("readyButton");
-    const statusText  = document.getElementById("status");
-  
-    if (!readyButton || !statusText) {
-      console.error("❌ Fehler: 'readyButton' oder 'status' nicht gefunden!");
-      return;
-    }
-  
-    // 4) Klick-Handler für den Ready-Button
+  }
+
+  // ✅ "Bereit"-Button und Status
+  const readyButton = document.getElementById("readyButton");
+  const statusText = document.getElementById("status");
+
+  if (readyButton && statusText) {
     readyButton.addEventListener("click", () => {
-      // a) Lokales Toggle
       gameState.isReady = !gameState.isReady;
       readyButton.innerText = gameState.isReady ? "Nicht bereit" : "Bereit";
-  
-      // b) UI-Status aktualisieren
+
       if (gameState.isReady) {
         statusText.innerText = `Das Quiz startet in ${gameState.countdownValue} Sekunden...`;
         startCountdown();
@@ -40,27 +31,29 @@ document.addEventListener("DOMContentLoaded", () => {
         statusText.innerText = "Bitte wähle ein Deck und klicke 'Bereit'.";
         stopCountdown();
       }
-  
-      // c) Socket-Emit: Meinen Ready-Status an den Server
+
       socket.emit("playerReady", { roomCode: currentRoom, playerId });
-  
-      // d) Wenn ich Host bin, alle anderen automatisch auf "ready" setzen
+
       if (isHost) {
         socket.emit("hostReadyAll", { roomCode: currentRoom });
       }
     });
-
- 
-
-
-
-      // guard für den <p id="deleteModalText">
-  const deleteModalText = document.getElementById("deleteModalText");
-  if (!deleteModalText) {
-    console.warn("⚠️ Kein Element mit id=deleteModalText gefunden!");
   }
 
-  // confirmDeleteBtn erst hier holen und Listener anhängen
+  // ✅ 50:50 Joker Button
+  const fiftyBtn = document.getElementById("fiftyFiftyBtn");
+  if (fiftyBtn) {
+    fiftyBtn.addEventListener("click", () => {
+      const currentQuestion = gameState.questionSet[gameState.currentQuestionIndex];
+      useFiftyFiftyJoker(currentQuestion);
+      fiftyBtn.disabled = true; // Nur einmal nutzbar
+    });
+  }
+
+
+  
+
+  // ✅ Modal: Frage löschen (Admin)
   const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
   if (confirmDeleteBtn) {
     confirmDeleteBtn.addEventListener("click", async () => {
@@ -75,7 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.message || resp.statusText);
         showNotification("✅ Frage erfolgreich gelöscht!");
-        // UI updaten
         const listItem = document.querySelector(`[data-question-id="${questionId}"]`);
         if (listItem) listItem.remove();
         else await loadAdminQuestions();
@@ -83,11 +75,111 @@ document.addEventListener("DOMContentLoaded", () => {
         showNotification("❌ Fehler beim Löschen der Frage: " + err.message);
       }
     });
-  } else {
-    console.warn("⚠️ Kein Element mit id=confirmDeleteBtn gefunden!");
   }
+
+
+
+
+
+
+
+  
+  // Optional: Sichtbarkeits-Button initial aktualisieren, wenn Deck ausgewählt wird
+  document.getElementById("userDeckSelect")?.addEventListener("change", async () => {
+    const deckId = document.getElementById("userDeckSelect").value;
+    const button = document.getElementById("toggleDeckVisibilityBtn");
+    if (!deckId || !button) return;
+  
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`/api/user/decks`, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+  
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+  
+      const selectedDeck = data.decks.find(deck => deck._id === deckId);
+      if (!selectedDeck) return;
+  
+      button.innerText = selectedDeck.isGlobal
+        ? "🌐 Als privat markieren"
+        : "🌐 Als global markieren";
+  
+    } catch (err) {
+      console.warn("⚠️ Sichtbarkeit konnte nicht geladen werden:", err.message);
+    }
   });
   
+
+
+
+
+
+
+
+});
+
+
+// 🌍 Deck-Sichtbarkeit umschalten (global/privat)
+async function toggleDeckVisibility() {
+  const deckId = document.getElementById("userDeckSelect").value;
+  const button = document.getElementById("toggleDeckVisibilityBtn");
+
+  if (!deckId || deckId.length !== 24) {
+    showNotification("⚠️ Kein gültiges Deck ausgewählt!");
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`/api/user/decks/${deckId}/toggle-visibility`, {
+      method: "PUT",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    // 🌐 Neue Sichtbarkeit auslesen (Boolean)
+    const isGlobal = data.isGlobal;
+    const icon = isGlobal ? "🌍" : "🔒";
+    const label = isGlobal ? "Global" : "Privat";
+
+    showNotification(`✅ Sichtbarkeit geändert: ${icon} ${label}`);
+
+    // 🔁 Deckliste neu laden und Auswahl beibehalten
+    await loadUserDecks();
+    const select = document.getElementById("userDeckSelect");
+    select.value = deckId;
+
+    // 🖼️ Optionstext (Icon) aktualisieren
+    const option = [...select.options].find(opt => opt.value === deckId);
+    if (option) {
+      const name = option.textContent.split(" (")[0]; // Deckname extrahieren
+      option.textContent = `${name} (${icon})`;
+    }
+
+    // 🔘 Button-Text aktualisieren
+    button.innerText = isGlobal
+      ? "🌐 Als privat markieren"
+      : "🌐 Als global markieren";
+
+  } catch (err) {
+    console.error("❌ Fehler beim Umschalten:", err);
+    showNotification("❌ Fehler beim Umschalten: " + err.message);
+  }
+}
+
+// 🔁 Event Listener hinzufügen
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.getElementById("toggleDeckVisibilityBtn");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", toggleDeckVisibility);
+  }
+});
+
 
 
 
@@ -229,82 +321,88 @@ function fetchUserDataIfAuthenticated() {
     }
 }
 
-
+// ✅ Admin- und Lobby-Decks laden mit Sichtbarkeits-Symbol
 async function loadDeckOptions() {
-    const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
-    if (!token) {
-        console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
-        showNotification("Bitte melde dich erneut an.");
-        return;
+  if (!token) {
+    console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
+    showNotification("Bitte melde dich erneut an.");
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/admin/decks', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) throw new Error(`Fehler beim Laden der Decks: ${response.status}`);
+
+    const data = await response.json();
+
+    if (!data.decks || data.decks.length === 0) {
+      console.warn("⚠️ Keine Decks gefunden.");
+      return;
     }
 
-    try {
-        const response = await fetch('/api/admin/decks', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+    // 🔽 Alle relevanten Select-Elemente abrufen
+    const selectDeckAdmin = document.getElementById("selectDeckAdmin");
+    const selectDeckLobby = document.getElementById("selectDeck");
 
-        if (!response.ok) throw new Error(`Fehler beim Laden der Decks: ${response.status}`);
+    const selectElements = [selectDeckAdmin, selectDeckLobby].filter(el => el !== null);
 
-        const data = await response.json();
-
-        if (!data.decks || data.decks.length === 0) {
-            console.warn("⚠️ Keine Decks gefunden.");
-            return;
-        }
-
-        // 🔽 Alle relevanten Select-Elemente abrufen
-        const selectDeckAdmin = document.getElementById("selectDeckAdmin");
-        const selectDeckLobby = document.getElementById("selectDeck");
-
-        const selectElements = [selectDeckAdmin, selectDeckLobby].filter(el => el !== null);
-
-        if (selectElements.length === 0) {
-            console.error("❌ Keine passenden <select>-Elemente gefunden!");
-            return;
-        }
-
-        // 🔄 Alle gefundenen <select>-Elemente aktualisieren
-        selectElements.forEach(select => {
-            select.innerHTML = '<option value="">-- Deck auswählen --</option>';
-
-            data.decks.forEach(deck => {
-                const option = document.createElement('option');
-                option.value = deck._id;
-                option.innerText = deck.name;
-                select.appendChild(option);
-            });
-        });
-
-        // 🏆 Event-Listener für die Deck-Auswahl in der Lobby hinzufügen
-        if (selectDeckLobby) {
-            selectDeckLobby.addEventListener("change", function () {
-                let selectedDeckId = this.value;
-                let selectedDeckName = data.decks.find(deck => deck._id === selectedDeckId)?.name || "Unbekanntes Deck";
-
-                if (selectedDeckId) {
-                    loadDeckQuestions(selectedDeckId);
-
-                    // 📡 Falls der Nutzer in einem Raum ist, Deck-Auswahl senden
-                    if (typeof socket !== "undefined" && currentRoom) {
-                        socket.emit("selectDeck", {
-                            roomCode:    currentRoom,
-                            playerId,
-                            deckId:      selectedDeckId,
-                            deckName:    gameState.selectedDeckName   // <–– hier den Namen übergeben
-                          });
-                          
-                    }
-                }
-            });
-        }
-
-    } catch (error) {
-        console.error("❌ Fehler beim Laden der Decks:", error);
-        showNotification(error.message);
+    if (selectElements.length === 0) {
+      console.error("❌ Keine passenden <select>-Elemente gefunden!");
+      return;
     }
+
+    // 🔄 Alle <select>-Elemente befüllen
+    selectElements.forEach(select => {
+      select.innerHTML = '<option value="">-- Deck auswählen --</option>';
+
+      data.decks.forEach(deck => {
+        const option = document.createElement('option');
+        option.value = deck._id;
+        const icon = deck.isGlobal ? "🌍" : "🔒";
+        option.innerText = `${icon} ${deck.name}`;
+        select.appendChild(option);
+      });
+    });
+
+    // 🏆 Deckauswahl-Listener für Lobby
+    if (selectDeckLobby) {
+      selectDeckLobby.addEventListener("change", function () {
+        const selectedDeckId = this.value;
+        const selectedDeck = data.decks.find(deck => deck._id === selectedDeckId);
+        const selectedDeckName = selectedDeck ? selectedDeck.name : "Unbekanntes Deck";
+
+        if (selectedDeckId) {
+          loadDeckQuestions(selectedDeckId);
+
+          // 📡 Multiplayer: Auswahl synchronisieren
+          if (typeof socket !== "undefined" && currentRoom) {
+            socket.emit("selectDeck", {
+              roomCode: currentRoom,
+              playerId,
+              deckId: selectedDeckId,
+              deckName: selectedDeckName
+            });
+          }
+
+          // Speichere auch lokal
+          gameState.selectedDeck = selectedDeckId;
+          gameState.selectedDeckName = selectedDeckName;
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error("❌ Fehler beim Laden der Decks:", error);
+    showNotification(error.message);
+  }
 }
+
 
 
 
@@ -477,30 +575,92 @@ function stopAllTimers() {
 
 // ✅ **Quiz starten (abhängig vom gewählten Modus)**
 function startQuiz() {
-    resetGameState();
-    document.getElementById("lobby").style.display = "none";
-    document.getElementById("quizContainer").style.display = "block";
+  resetGameState();
 
-    loadDeckQuestions(gameState.selectedDeck).then(() => {
-        if (gameState.selectedGameMode === "shuffle") shuffleQuestions();
-        displayQuestion();
+  // UI umschalten: Lobby aus, Quiz an
+  document.getElementById("lobby").style.display = "none";
+  document.getElementById("quizContainer").style.display = "block";
 
-        // ✅ Zeitangriff-Modus (mit Timer)
-        if (gameState.selectedGameMode === "timeattack") startTimeAttackMode();
+  // Den 50:50-Button zunächst immer ausblenden und deaktivieren
+  const fiftyBtn = document.getElementById("fiftyFiftyBtn");
+  if (fiftyBtn) {
+    fiftyBtn.style.display = "none";
+    fiftyBtn.disabled = false;
+  }
 
-        // ✅ Speed-Modus (60 Sekunden Gesamtzeit)
-        if (gameState.selectedGameMode === "speed") startSpeedMode();
+  // Fragen für das gewählte Deck laden
+  loadDeckQuestions(gameState.selectedDeck).then(() => {
+    // Falls Shuffle-Modus → Fragen mischen
+    if (gameState.selectedGameMode === "shuffle") {
+      shuffleQuestions();
+    }
 
-        // ✅ Überlebensmodus (eine falsche Antwort = Ende)
-        if (gameState.selectedGameMode === "survival") console.log("🛡️ Überlebensmodus aktiv!");
+    // Immer erste Frage anzeigen
+    displayQuestion();
 
-        // ✅ Endlosmodus (Fragen rotieren weiter, kein Ende)
-        if (gameState.selectedGameMode === "endless") console.log("🔄 Endlosmodus aktiv!");
-
-        // ✅ Risikomodus (doppelte Punkte oder Punktabzug)
-        if (gameState.selectedGameMode === "risk") console.log("🎲 Risikomodus aktiv!");
-    });
+    // ✅ Spielmodus-spezifische Initialisierungen
+    switch (gameState.selectedGameMode) {
+      case "timeattack":
+        startTimeAttackMode(); // Einzel-Timer pro Frage
+        break;
+      case "speed":
+        startSpeedMode(); // 60 Sekunden Gesamtzeit
+        break;
+      case "survival":
+        console.log("🛡️ Überlebensmodus aktiv!");
+        break;
+      case "endless":
+        console.log("🔄 Endlosmodus aktiv!");
+        break;
+      case "risk":
+        console.log("🎲 Risikomodus aktiv!");
+        break;
+      case "fiftyfifty":
+        gameState.jokerUsed = false; // Joker zurücksetzen
+        if (fiftyBtn) fiftyBtn.style.display = "inline-block"; // Joker-Button einblenden
+        break;
+    }
+  }).catch(err => {
+    console.error("❌ Fehler beim Start des Quiz:", err);
+    showNotification("❌ Fehler beim Start des Quiz. Bitte versuche es erneut.");
+  });
 }
+
+
+function useFiftyFiftyJoker(currentQuestion) {
+  const fiftyBtn = document.getElementById("fiftyFiftyBtn");
+
+  // ✅ Joker wurde bereits verwendet
+  if (gameState.jokerUsed) {
+    showNotification("⚠️ Du hast den 50:50 Joker bereits verwendet!", "warning");
+    if (fiftyBtn) fiftyBtn.disabled = true;
+    return;
+  }
+
+  // ✅ Joker aktivieren
+  gameState.jokerUsed = true;
+
+  const wrongAnswers = currentQuestion.options
+    .map((option, index) => index !== currentQuestion.correctOptionIndex ? index : null)
+    .filter(index => index !== null);
+
+  const removedIndexes = wrongAnswers.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+  document.querySelectorAll("#answerOptions button").forEach((btn, index) => {
+    if (removedIndexes.includes(index)) {
+      btn.style.display = "none";
+    }
+  });
+
+  if (fiftyBtn) fiftyBtn.disabled = true;
+
+  showNotification("🎭 50:50 Joker verwendet – zwei falsche Antworten wurden entfernt.", "success");
+}
+
+
+
+
+
 
 // ✅ **Report-Modal schließen**
 function closeReportModal() {
@@ -540,67 +700,54 @@ async function saveHighscore(deckId, score) {
     }
   }
   
-  
-  // EndQuiz nur noch einmalig am Ende speichern
   async function endQuiz() {
     stopAllTimers();
   
-    const userId = localStorage.getItem('userId');
-    const deckId  = gameState.selectedDeck;
-    const score   = gameState.score;
-    if (!userId || !deckId || score == null) {
-      console.error('❌ Fehlende Daten zum Beenden:', { userId, deckId, score });
+    // 🧠 Endless-Modus: Kein Ende, sondern Neustart
+    if (gameState.selectedGameMode === "endless") {
+      gameState.currentQuestionIndex = 0;
+      shuffleQuestions();
+      displayQuestion();
       return;
     }
   
-    // Highscore in DB speichern
+    const userId = localStorage.getItem("userId") || localStorage.getItem("username");
+    const deckId = gameState.selectedDeck;
+    const score = gameState.score;
+  
+    if (!userId || !deckId || score == null) {
+      console.error("❌ Fehlende Daten für Highscore-Speicherung:", { userId, deckId, score });
+      return;
+    }
+  
     await saveHighscore(deckId, score);
   
-    // Restliches Ende-UI
-    document.getElementById("quizContainer").style.display = "none";
-    document.getElementById("finalScreen").style.display   = "block";
-    document.getElementById("finalScore").innerText       = `🏆 Dein Score: ${score}`;
+    const quizContainer = document.getElementById("quizContainer");
+    const finalScreen = document.getElementById("finalScreen");
+    const finalScore = document.getElementById("finalScore");
+  
+    if (!quizContainer || !finalScreen || !finalScore) {
+      console.error("❌ UI-Elemente für Endscreen fehlen!");
+      return;
+    }
+  
+    // 🧹 UI umschalten
+    quizContainer.style.display = "none"; 
+    finalScreen.style.display = "block"; 
+    finalScore.innerText = `🏆 Dein Score: ${score}`;
+  
+    // 🧽 Joker-Button zurücksetzen/verstecken
+    const fiftyBtn = document.getElementById("fiftyFiftyBtn");
+    if (fiftyBtn) {
+      fiftyBtn.style.display = "none";
+      fiftyBtn.disabled = false;
+      gameState.jokerUsed = false;
+    }
   
     await loadLeaderboard(deckId);
   }
   
-
-
-
-
-
-
-
-// ✅ **Quiz beenden**
-async function endQuiz() {
-    stopAllTimers(); // Stelle sicher, dass alle Timer gestoppt sind
-
-    const userId = localStorage.getItem("username");
-    const deckId = gameState.selectedDeck;
-    const score = gameState.score;
-
-    if (!userId || !deckId || score === undefined) {
-        console.error("❌ Fehlende Daten für Highscore-Speicherung:", { userId, deckId, score });
-        return;
-    }
-
-    await saveHighscore(deckId, score);
-
-    const quizContainer = document.getElementById("quizContainer");
-    const finalScreen = document.getElementById("finalScreen");
-    const finalScore = document.getElementById("finalScore");
-
-    if (!quizContainer || !finalScreen || !finalScore) {
-        console.error("❌ UI-Elemente für Endscreen fehlen!");
-        return;
-    }
-
-    quizContainer.style.display = "none"; 
-    finalScreen.style.display = "block"; 
-    finalScore.innerText = `🏆 Dein Score: ${score}`;
-
-    await loadLeaderboard(deckId);
-}
+  
 
 
 
@@ -814,27 +961,6 @@ function checkAnswerRisk(selectedIndex, correctIndex) {
 
 
 
-let jokerUsed = false;
-
-function useFiftyFiftyJoker(currentQuestion) {
-    if (gameState.jokerUsed) {
-        showNotification("⚠️ Du hast den 50:50 Joker bereits benutzt!");
-        return;
-    }
-
-    gameState.jokerUsed = true;
-    let wrongAnswers = currentQuestion.options
-        .map((option, index) => index !== currentQuestion.correctOptionIndex ? index : null)
-        .filter(index => index !== null);
-    
-    let removedIndexes = wrongAnswers.sort(() => 0.5 - Math.random()).slice(0, 2);
-    
-    document.querySelectorAll("#answerOptions button").forEach((btn, index) => {
-        if (removedIndexes.includes(index)) {
-            btn.style.display = "none";
-        }
-    });
-}
 
 function checkAnswerEndless(selectedIndex, correctIndex) {
     if (selectedIndex === correctIndex) {
@@ -878,68 +1004,80 @@ function startQuestionTimer() {
 
 // 🏁 **Frage anzeigen & ggf. Timer starten**
 function displayQuestion() {
-    // 1) laufenden Frage-Timer stoppen
-    clearInterval(gameState.timer);
-  
-    // 2) Container holen
-    const questionContainer = document.getElementById("question-container");
-    if (!questionContainer) {
-      console.error("❌ Fehler: question-container nicht gefunden!");
-      return;
-    }
-  
-    // 3) Quiz beenden, falls alle Fragen durch
-    if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
-      endQuiz();
-      return;
-    }
-  
-    const currentQuestion = gameState.questionSet[gameState.currentQuestionIndex];
-    if (!currentQuestion?.questionText || !Array.isArray(currentQuestion.options)) {
-      console.error("⚠️ Fehler: Ungültige Frage-Daten!", currentQuestion);
-      return;
-    }
-  
-    // 4) Container leeren und Grundstruktur einfügen
-    questionContainer.innerHTML = `
-      <h2>${currentQuestion.questionText}</h2>
-      <div id="answerOptions"></div>
-      ${gameState.selectedGameMode === "timeattack"
-        ? `<p id="timeLeft" class="timer">⏳ Zeit: ${gameState.countdownValue}s</p>`
-        : ""
-      }
-      <button id="reportBtn" class="report-button">⚠️ Frage melden</button>
-    `;
-  
-    // 5) Antwort-Buttons hinzufügen
-    const answerOptionsContainer = document.getElementById("answerOptions");
-    if (!answerOptionsContainer) {
-      console.error("❌ Fehler: answerOptions-Container fehlt!");
-      return;
-    }
-  
-    currentQuestion.options.forEach((optionText, idx) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.classList.add("answer-btn");
-      btn.innerText = optionText;
-      btn.addEventListener("click", () =>
-        checkAnswer(idx, currentQuestion.correctOptionIndex)
-      );
-      answerOptionsContainer.appendChild(btn);
-    });
-  
-    // 6) Timer starten, falls Zeitangriff-Modus
-    if (gameState.selectedGameMode === "timeattack") {
-      startQuestionTimer();
-    }
-  
-    // 7) Report-Button binden
-    const reportBtn = document.getElementById("reportBtn");
-    reportBtn?.addEventListener("click", () =>
-      openReportModal(currentQuestion._id, gameState.selectedDeck)
-    );
+  // 1) laufenden Frage-Timer stoppen
+  clearInterval(gameState.timer);
+
+  // 2) Container holen
+  const questionContainer = document.getElementById("question-container");
+  if (!questionContainer) {
+    console.error("❌ Fehler: question-container nicht gefunden!");
+    return;
   }
+
+  // 3) Quiz beenden, falls alle Fragen durch
+  if (gameState.currentQuestionIndex >= gameState.questionSet.length) {
+    endQuiz();
+    return;
+  }
+
+  const currentQuestion = gameState.questionSet[gameState.currentQuestionIndex];
+  if (!currentQuestion?.questionText || !Array.isArray(currentQuestion.options)) {
+    console.error("⚠️ Fehler: Ungültige Frage-Daten!", currentQuestion);
+    return;
+  }
+
+  // 4) Container leeren und Grundstruktur einfügen
+  questionContainer.innerHTML = `
+    <h2>${currentQuestion.questionText}</h2>
+    <div id="answerOptions"></div>
+    ${gameState.selectedGameMode === "timeattack"
+      ? `<p id="timeLeft" class="timer">⏳ Zeit: ${gameState.countdownValue}s</p>`
+      : ""
+    }
+    <button id="reportBtn" class="report-button">⚠️ Frage melden</button>
+  `;
+
+  // 5) Antwort-Buttons hinzufügen
+  const answerOptionsContainer = document.getElementById("answerOptions");
+  if (!answerOptionsContainer) {
+    console.error("❌ Fehler: answerOptions-Container fehlt!");
+    return;
+  }
+
+  currentQuestion.options.forEach((optionText, idx) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add("answer-btn");
+    btn.innerText = optionText;
+    btn.addEventListener("click", () =>
+      checkAnswer(idx, currentQuestion.correctOptionIndex)
+    );
+    answerOptionsContainer.appendChild(btn);
+  });
+
+  // 6) Timer starten, falls Zeitangriff-Modus
+  if (gameState.selectedGameMode === "timeattack") {
+    startQuestionTimer();
+  }
+
+  // 7) Report-Button binden
+  const reportBtn = document.getElementById("reportBtn");
+  reportBtn?.addEventListener("click", () =>
+    openReportModal(currentQuestion._id, gameState.selectedDeck)
+  );
+
+  // 8) 🎭 50:50 Joker-Button behandeln
+  const fiftyBtn = document.getElementById("fiftyFiftyBtn");
+  if (fiftyBtn) {
+    if (gameState.selectedGameMode === "fiftyfifty") {
+      fiftyBtn.style.display = "inline-block";
+      fiftyBtn.disabled = gameState.jokerUsed;
+    } else {
+      fiftyBtn.style.display = "none";
+    }
+  }
+}
+
   
 
 
@@ -1242,34 +1380,33 @@ async function loadLeaderboard(deckId) {
   async function createDeck() {
     const deckNameInput = document.getElementById('deckName');
     if (!deckNameInput || !deckNameInput.value.trim()) {
-        showNotification('❌ Bitte einen Namen für das Deck eingeben.');
-        return;
+      showNotification('❌ Bitte einen Namen für das Deck eingeben.');
+      return;
     }
     const deckName = deckNameInput.value.trim();
     const token = localStorage.getItem('token');
     if (!token) {
-        showNotification('⚠️ Authentifizierung fehlgeschlagen. Bitte erneut anmelden.');
-        return;
+      showNotification('⚠️ Authentifizierung fehlgeschlagen. Bitte erneut anmelden.');
+      return;
     }
     try {
-        const response = await fetch('/api/admin/create-deck', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ name: deckName })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Fehler beim Erstellen des Decks');
-        showNotification(`✅ Deck "${deckName}" erfolgreich erstellt!`);
-        deckNameInput.value = '';
-        // Decks abrufen und Dropdowns füllen
-        loadDeckOptions();
-        await loadDecks(); // Deck-Liste aktualisieren
+      const response = await fetch('/api/admin/create-deck', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: deckName })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Fehler beim Erstellen des Decks');
+      showNotification(`✅ Deck "${deckName}" erfolgreich erstellt!`);
+      deckNameInput.value = '';
+      loadDeckOptions();
+      await loadDecks();
     } catch (error) {
-        console.error('❌ Fehler beim Erstellen des Decks:', error);
-        showNotification(error.message);
+      console.error('❌ Fehler beim Erstellen des Decks:', error);
+      showNotification(error.message);
     }
   }
   
@@ -1847,6 +1984,11 @@ async function loadUserDecks() {
   const token = localStorage.getItem("token");
   const select = document.getElementById("userDeckSelect");
 
+  if (!token || !select) {
+    console.warn("⚠️ Token oder Select-Feld fehlt.");
+    return;
+  }
+
   try {
     const res = await fetch("/api/user/decks", {
       headers: { "Authorization": `Bearer ${token}` }
@@ -1856,16 +1998,19 @@ async function loadUserDecks() {
     if (!res.ok) throw new Error(data.message);
 
     select.innerHTML = `<option value="">-- Wähle ein Deck --</option>`;
+
     data.decks.forEach(deck => {
       const opt = document.createElement("option");
       opt.value = deck._id;
-      opt.textContent = deck.name;
+      opt.textContent = `${deck.name} (${deck.isGlobal ? "🌍" : "🔒"})`;
       select.appendChild(opt);
     });
   } catch (err) {
-    showModalMessage("❌ Fehler beim Laden der Decks: " + err.message);
+    console.error("❌ Fehler beim Laden der Decks:", err);
+    showNotification("❌ Fehler beim Laden deiner Decks: " + err.message);
   }
 }
+
 
 // ❓ Fragen laden
 async function loadUserDeckQuestions() {
@@ -2380,60 +2525,65 @@ function generateRoomCode() {
 
 
 
-
-  async function loadDecks() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
-        showNotification("Bitte melde dich erneut an.");
-        return;
-    }
-    try {
-        const response = await fetch('/api/admin/decks', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.status === 401) throw new Error('⚠️ Nicht autorisiert – Bitte erneut einloggen.');
-        if (response.status === 403) throw new Error('⛔ Zugriff verweigert – Nur Admins dürfen Decks verwalten.');
-        if (!response.ok) throw new Error(`❌ Fehler beim Abrufen der Decks – Status: ${response.status}`);
-        const data = await response.json();
-        const deckList = document.getElementById('deckList');
-        const selectDeck = document.getElementById('selectDeck');
-        if (!deckList || !selectDeck) {
-            console.error("❌ `deckList` oder `selectDeck` nicht gefunden. Abbruch.");
-            return;
-        }
-        // Vorhandene Einträge löschen
-        deckList.innerHTML = '';
-        selectDeck.innerHTML = '<option value="">-- Deck auswählen --</option>';
-        if (!data.decks || data.decks.length === 0) {
-            console.warn("⚠️ Keine Decks gefunden.");
-            return;
-        }
-        // Decks zur Liste und Dropdown hinzufügen
-        data.decks.forEach(deck => {
-            const listItem = document.createElement('li');
-            listItem.innerText = deck.name;
-            listItem.addEventListener('click', () => loadDeckQuestions(deck._id));
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = "🗑";
-            deleteButton.addEventListener('click', async (event) => {
-                event.stopPropagation(); // Verhindert, dass der Klick auch das Deck lädt
-                await deleteDeck(deck._id);
-            });
-            listItem.appendChild(deleteButton);
-            deckList.appendChild(listItem);
-            // Dropdown-Option
-            const option = document.createElement('option');
-            option.value = deck._id;
-            option.innerText = deck.name;
-            selectDeck.appendChild(option);
-        });
-    } catch (error) {
-        console.error('❌ Fehler beim Laden der Decks:', error);
-        showNotification(error.message);
-    }
+async function loadDecks() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.warn("⚠️ Kein Token gefunden – Benutzer nicht eingeloggt?");
+    showNotification("Bitte melde dich erneut an.");
+    return;
   }
+
+  try {
+    const response = await fetch('/api/admin/decks', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) throw new Error(`Fehler beim Laden der Decks: ${response.status}`);
+    const data = await response.json();
+
+    const deckList = document.getElementById('deckList');
+    const selectDeck = document.getElementById('selectDeck');
+
+    if (!deckList || !selectDeck) {
+      console.error("❌ `deckList` oder `selectDeck` nicht gefunden.");
+      return;
+    }
+
+    deckList.innerHTML = '';
+    selectDeck.innerHTML = '<option value="">-- Deck auswählen --</option>';
+
+    data.decks.forEach(deck => {
+      const nameSuffix = deck.isGlobal ? "🌍 Global" : "🔒 Privat";
+
+      // 🔘 Liste
+      const li = document.createElement('li');
+      li.textContent = `${deck.name} (${nameSuffix})`;
+      li.addEventListener('click', () => loadDeckQuestions(deck._id));
+
+      const delBtn = document.createElement('button');
+      delBtn.innerText = "🗑";
+      delBtn.onclick = async (e) => {
+        e.stopPropagation();
+        await deleteDeck(deck._id, deck.name);
+      };
+
+      li.appendChild(delBtn);
+      deckList.appendChild(li);
+
+      // 🔽 Dropdown
+      const opt = document.createElement('option');
+      opt.value = deck._id;
+      opt.textContent = `${deck.name} (${deck.isGlobal ? "🌍" : "🔒"})`;
+      selectDeck.appendChild(opt);
+    });
+
+  } catch (err) {
+    console.error("❌ Fehler beim Laden der Decks:", err);
+    showNotification(err.message);
+  }
+}
+
 
   function showNotification(message, type = "info", duration = 3000) {
     // 🔄 Falls bereits eine Benachrichtigung existiert, entfernen

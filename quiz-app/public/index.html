@@ -39,14 +39,13 @@
 
         <!-- ✅ Dashboard-Bereich -->
         <div id="dashboard" style="display:none;">
-            <h1>Dashboard</h1>
-            <p>Willkommen, <span id="displayUsername"></span>!</p>
-            <button onclick="createGame()">Spiel starten</button>
-            <button onclick="openJoinGameModal()">Spiel beitreten</button>
-            <button onclick="openUserQuizManager()">🧠 Eigene Quiz verwalten</button>
-            <!-- 🏆 Button zum Öffnen der Legende -->
-            <button onclick="openGameRulesModal()">📖 Spielregeln anzeigen</button>
-            <button onclick="logout()">Abmelden</button>
+          <h1>🧠 Dashboard</h1>
+          <p>👋 Hey <span id="displayUsername"></span>, schön dich wiederzusehen! 🚀</p>
+          <button onclick="createGame()">Spiel starten</button>
+          <button onclick="openJoinGameModal()">Spiel beitreten</button>
+          <button onclick="openUserQuizManager()">🧐 Eigene Quiz verwalten</button>
+          <button onclick="openGameRulesModal()">📓 Spielregeln anzeigen</button>
+          <button onclick="logout()">Abmelden</button>
             <!-- 📜 Spielregeln Modal -->
             <div id="gameRulesModal" class="modal" style="display: none;">
                 <div class="modal-content">
@@ -87,11 +86,17 @@
           <input type="text" id="userDeckName" placeholder="Deckname eingeben" />
           <button onclick="createUserDeck()">Deck erstellen</button>
           <button onclick="showDeleteDeckConfirmation()">🗑 Deck löschen</button>
-
         
+          <!-- Deck-Auswahl -->
           <select id="userDeckSelect" onchange="loadUserDeckQuestions()">
             <option value="">-- Wähle ein Deck --</option>
           </select>
+        
+          <!-- 🔁 Sichtbarkeit umschalten -->
+          <button id="toggleDeckVisibilityBtn" style="margin-top: 0.5rem;">
+            🌐 Als global markieren
+          </button>
+
         
           <!-- Fragen -->
           <h3>📋 Fragen im ausgewählten Deck</h3>
@@ -112,6 +117,7 @@
             <input type="hidden" id="userEditingQuestionId" />
           </div>
         </div>
+        
 
         <!-- 🔒 Bestätigungs-Modal -->
         <div id="confirmDeleteModal" class="custom-modal" style="display: none;">
@@ -176,24 +182,25 @@
                 <button onclick="selectGameMode('survival')" data-mode="survival">💀 Überleben</button>
                 <button onclick="selectGameMode('speed')" data-mode="speed">⚡ Blitz</button>
                 <button onclick="selectGameMode('risk')" data-mode="risk">💰 Risiko</button>
+                <button onclick="selectGameMode('fiftyfifty')" data-mode="fiftyfifty">🎭 50:50 Joker</button>
                 <button onclick="selectGameMode('endless')" data-mode="endless">♾️ Endlos</button>
               </div>
               
 
             <button id="readyButton" style="display:none;">Bereit</button>
             <p id="status">Bitte wähle ein Deck und einen Spielmodus.</p>
-
-
-
-            
         </div>
         
-        <!-- ✅ QUIZ-ANSICHT -->
+        <!-- QUIZ-ANSICHT -->
         <div id="quizContainer" style="display: none;">
             <h2>🧠 Quiz läuft...</h2>
             <p id="scoreDisplay">🏆 Punktestand: 0</p>
+            <div id="totalTimeDisplay" style="display: none;">⏳ Zeit: 60s</div>
+            <button id="fiftyFiftyBtn" style="display: none;">🎭 50:50 Joker</button>
+
+
         
-            <!-- ✅ Hier wird die Frage angezeigt -->
+            <!-- Hier wird die Frage angezeigt -->
             <div id="question-container">
                 <h3 id="questionText">Frage wird geladen...</h3>
                 <div id="answerOptions"></div>
@@ -201,7 +208,7 @@
 
         </div>
         
-        <!-- ✅ QUIZ BEENDET -->
+        <!-- QUIZ BEENDET -->
         <div id="finalScreen" style="display: none;">
             <h2>🎉 Quiz beendet!</h2>
             <p id="finalScore"></p>
@@ -211,7 +218,7 @@
         
         
                 
-        <!-- 🚨 Modal zum Melden einer Frage -->
+        <!-- Modal zum Melden einer Frage -->
         <div id="reportModal" style="display:none;">
             <h2>Frage melden</h2>
             <p>Gib bitte den Grund für die Meldung an:</p>

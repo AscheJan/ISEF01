@@ -5,36 +5,50 @@ const Question = require('../models/Question');
 const QuizDeck = require('../models/QuizDeck');
 const User = require('../models/User');
 const router = express.Router();
-
+const authenticateUser = require('../middleware/authenticateUser');
+const authenticateAdmin = require('../middleware/authenticateAdmin');
 
 // Neues Deck erstellen (nur Admins)
-router.post('/create-deck', async (req, res) => { 
+router.post('/create-deck', authenticateAdmin, async (req, res) => { 
     try {
-        const { name } = req.body;
-        if (!name) {
-            return res.status(400).json({ message: 'Deck-Name erforderlich' });
-        }
-
-        const newDeck = new QuizDeck({ name, questions: [] });
-        await newDeck.save();
-        res.json({ message: '✅ Deck erfolgreich erstellt', deck: newDeck });
+      const { name } = req.body;
+      if (!name) {
+        return res.status(400).json({ message: 'Deck-Name erforderlich' });
+      }
+  
+      const newDeck = new QuizDeck({
+        name,
+        isGlobal: true,        // 💡 Wichtig: explizit global setzen
+        questions: []
+      });
+  
+      await newDeck.save();
+      res.json({ message: '✅ Globales Deck erfolgreich erstellt', deck: newDeck });
     } catch (error) {
-        console.error('❌ Fehler beim Erstellen des Decks:', error);
-        res.status(500).json({ message: 'Fehler beim Erstellen des Decks' });
+      console.error('❌ Fehler beim Erstellen des Decks:', error);
+      res.status(500).json({ message: 'Fehler beim Erstellen des Decks' });
     }
-});
+  });
 
 
 
 // Alle Decks abrufen
-router.get('/decks', async (req, res) => {
-    try {
-        const decks = await QuizDeck.find();
-        res.json({ decks });
-    } catch (error) {
-        res.status(500).json({ message: 'Fehler beim Abrufen der Decks' });
-    }
+router.get('/decks', authenticateUser, async (req, res) => {
+  try {
+    const decks = await QuizDeck.find({
+      $or: [
+        { isGlobal: true },        // 🌍 Globale Decks (für alle sichtbar)
+        { userId: req.userId }     // 👤 Private Decks nur für den jeweiligen Nutzer
+      ]
+    }).sort({ name: 1 });          // 🔠 Alphabetisch sortieren
+
+    res.json({ decks });
+  } catch (error) {
+    console.error('❌ Fehler beim Abrufen der Decks:', error);
+    res.status(500).json({ message: 'Fehler beim Abrufen der Decks' });
+  }
 });
+
 
 // Deck löschen (nur Admins)
 router.delete('/delete-deck/:deckId', async (req, res) => {
@@ -97,22 +111,30 @@ router.post('/add-question', async (req, res) => {
 // 📥 Fragen eines Decks abrufen
 router.get('/questions/:deckId', async (req, res) => {
     try {
-        const { deckId } = req.params;
-
-        // Überprüfe, ob das Deck existiert
-        const deckExists = await QuizDeck.exists({ _id: deckId });
-        if (!deckExists) {
-            return res.status(404).json({ message: 'Deck nicht gefunden' });
-        }
-
-        // Fragen abrufen
-        const questions = await Question.find({ quizDeckId: deckId });
-        res.status(200).json({ questions });
+      const { deckId } = req.params;
+  
+      // Deck mit Sichtbarkeit abrufen
+      const deck = await QuizDeck.findById(deckId);
+      if (!deck) {
+        return res.status(404).json({ message: 'Deck nicht gefunden' });
+      }
+  
+      const questions = await Question.find({ quizDeckId: deckId });
+  
+      res.status(200).json({
+        deck: {
+          name: deck.name,
+          isGlobal: deck.isGlobal ?? deck.visibility === 'public' // Falls alt
+        },
+        questions
+      });
+  
     } catch (error) {
-        console.error('❌ Fehler beim Abrufen der Fragen:', error);
-        res.status(500).json({ message: 'Fehler beim Abrufen der Fragen' });
+      console.error('❌ Fehler beim Abrufen der Fragen:', error);
+      res.status(500).json({ message: 'Fehler beim Abrufen der Fragen' });
     }
-});
+  });
+  
 
 
 // **Frage bearbeiten (Admin-Only)**
