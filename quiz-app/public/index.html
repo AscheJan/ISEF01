@@ -43,6 +43,7 @@
             <p>Willkommen, <span id="displayUsername"></span>!</p>
             <button onclick="createGame()">Spiel starten</button>
             <button onclick="openJoinGameModal()">Spiel beitreten</button>
+            <button onclick="openUserQuizManager()">🧠 Eigene Quiz verwalten</button>
             <!-- 🏆 Button zum Öffnen der Legende -->
             <button onclick="openGameRulesModal()">📖 Spielregeln anzeigen</button>
             <button onclick="logout()">Abmelden</button>
@@ -79,6 +80,58 @@
                 </div>
             </div>
         </div>
+        <div id="userQuizManager" style="display: none; margin-top: 2rem;">
+          <h2>🧠 Eigene Quiz-Verwaltung</h2>
+        
+          <!-- Deck-Erstellung -->
+          <input type="text" id="userDeckName" placeholder="Deckname eingeben" />
+          <button onclick="createUserDeck()">Deck erstellen</button>
+          <button onclick="showDeleteDeckConfirmation()">🗑 Deck löschen</button>
+
+        
+          <select id="userDeckSelect" onchange="loadUserDeckQuestions()">
+            <option value="">-- Wähle ein Deck --</option>
+          </select>
+        
+          <!-- Fragen -->
+          <h3>📋 Fragen im ausgewählten Deck</h3>
+          <ul id="userQuestionList"></ul>
+          <button onclick="openAddUserQuestionModal()">➕ Neue Frage</button>
+        
+          <!-- Modal für Fragen -->
+          <div id="userQuestionModal" style="display:none;">
+            <h4 id="questionModalTitle">Frage erstellen</h4>
+            <input id="userQuestionText" placeholder="Fragetext" />
+            <input id="userOption1" placeholder="Option 1" />
+            <input id="userOption2" placeholder="Option 2" />
+            <input id="userOption3" placeholder="Option 3" />
+            <input id="userOption4" placeholder="Option 4" />
+            <input id="userCorrectOption" placeholder="Korrekte Option (1–4)" type="number" min="1" max="4" />
+            <button onclick="saveUserQuestion()">💾 Speichern</button>
+            <button onclick="closeUserQuestionModal()">❌ Abbrechen</button>
+            <input type="hidden" id="userEditingQuestionId" />
+          </div>
+        </div>
+
+        <!-- 🔒 Bestätigungs-Modal -->
+        <div id="confirmDeleteModal" class="custom-modal" style="display: none;">
+          <div class="modal-content">
+            <p>Möchtest du diese Frage wirklich löschen?</p>
+            <button onclick="deleteUserQuestionConfirmed()">🗑 Ja, löschen</button>
+            <button onclick="closeDeleteConfirmation()">❌ Abbrechen</button>
+          </div>
+        </div>
+
+        <div id="confirmDeleteDeckModal" class="custom-modal" style="display: none;">
+          <div class="modal-content">
+            <p>Möchtest du dieses Deck wirklich löschen? Alle Fragen darin werden ebenfalls entfernt.</p>
+            <button onclick="deleteUserDeckConfirmed()">✅ Ja, löschen</button>
+            <button onclick="closeDeleteDeckConfirmation()">❌ Abbrechen</button>
+          </div>
+        </div>
+        
+
+        
 
         <!-- ✅ Modal für Spiel beitreten -->
         <div id="joinGameModal" class="modal" style="display: none;">

@@ -7,6 +7,7 @@ const socketIo = require("socket.io");          // WebSocket-Kommunikation mit C
 const connectDB = require('./config/db');       // Eigene DB-Verbindung aus externer Datei
 const authRoutes = require('./routes/auth');    // Authentifizierungsrouten
 const adminRoutes = require('./routes/admin');  // Admin-bezogene API-Routen
+const userRoutes = require('./routes/user');  // Admin-bezogene API-Routen
 const scoreRoutes = require('./routes/score');  // Routen zur Punkteverwaltung
 const Question = require("./models/Question");  // Datenmodell für Fragen (optional verwendet)
 const path = require('path');                   // Zum Arbeiten mit Dateipfaden
@@ -32,6 +33,9 @@ connectDB();
 app.set('io', io);
 // Routen für Authentifizierung (Login, Registrierung, Token-Prüfung etc.)
 app.use('/api/auth', authRoutes);
+
+// Routen für Authentifizierung (Login, Registrierung, Token-Prüfung etc.)
+app.use('/api/user', userRoutes);
 
 // Admin-Funktionen wie Fragenverwaltung oder Nutzerübersicht
 app.use('/api/admin', adminRoutes);

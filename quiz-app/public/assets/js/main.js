@@ -1481,8 +1481,6 @@ async function loadAdminQuestions() {
     }
 }
 
-
-
 // Funktion zum Hinzufügen einer neuen Frage
 async function addQuestion() {
     const adminModal = document.getElementById('adminModal');
@@ -1717,7 +1715,357 @@ async function addQuestion() {
           showNotification('❌ Fehler beim Löschen der Frage: ' + error.message);
         }
       });
-      
+
+
+// 🗑 Frage löschen (Admin)
+async function deleteAdminQuestion(questionId) {
+  const token = localStorage.getItem("token");
+  if (!questionId) return showModalMessage("❌ Keine gültige Frage-ID.");
+
+  const confirm = window.confirm("❓ Diese Frage wirklich löschen?");
+  if (!confirm) return;
+
+  try {
+    const res = await fetch(`/api/admin/delete-question/${questionId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    await loadUserDeckQuestions();
+  } catch (err) {
+    showModalMessage("❌ Fehler beim Löschen der Frage: " + err.message);
+  }
+}
+
+// ✏️ Frage bearbeiten (Admin)
+function openEditAdminQuestionModal(question) {
+  const modal = document.getElementById("editQuestionModal");
+  if (!modal) return showModalMessage("❌ Bearbeitungsmodal nicht gefunden.");
+
+  document.getElementById("editQuestionId").value = question._id;
+  document.getElementById("editQuestionText").value = question.questionText;
+  document.getElementById("editOption1").value = question.options[0] || "";
+  document.getElementById("editOption2").value = question.options[1] || "";
+  document.getElementById("editOption3").value = question.options[2] || "";
+  document.getElementById("editOption4").value = question.options[3] || "";
+  document.getElementById("editCorrectOption").value = (question.correctOptionIndex + 1).toString();
+
+  modal.style.display = "block";
+}
+
+
+
+
+
+
+
+
+// 🔐 Globale Variablen
+let userCurrentDeckId = null;
+let pendingDeleteQuestionId = null;
+let pendingDeleteDeckId = null;
+
+// 📦 Deck erstellen
+async function createUserDeck() {
+  const name = document.getElementById("userDeckName").value.trim();
+  if (!name) return showModalMessage("❌ Bitte gib einen Decknamen ein!");
+
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await fetch("/api/user/create-deck", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ name })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    document.getElementById("userDeckName").value = "";
+    showModalMessage("✅ Deck erstellt!");
+    await loadUserDecks();
+
+    setTimeout(() => {
+      const select = document.getElementById("userDeckSelect");
+      select.value = data.deck._id;
+      loadUserDeckQuestions();
+    }, 100);
+  } catch (err) {
+    showModalMessage("❌ Fehler beim Erstellen: " + err.message);
+  }
+}
+
+// 🗑 Deck löschen vorbereiten
+function showDeleteDeckConfirmation() {
+  const deckId = document.getElementById("userDeckSelect").value;
+  console.log("🧪 Aktuell ausgewähltes Deck:", deckId);
+  if (!deckId || deckId.length !== 24) {
+    showModalMessage("❌ Kein gültiges Deck ausgewählt.");
+    return;
+  }
+  pendingDeleteDeckId = deckId;
+  console.log("✅ Deck-ID zum Löschen gespeichert:", pendingDeleteDeckId);
+  document.getElementById("confirmDeleteDeckModal").style.display = "block";
+}
+
+
+function closeDeleteDeckConfirmation() {
+  document.getElementById("confirmDeleteDeckModal").style.display = "none";
+  pendingDeleteDeckId = null;
+}
+
+async function deleteUserDeckConfirmed() {
+  const token = localStorage.getItem("token");
+
+  const deckId = pendingDeleteDeckId; // zuerst speichern
+  pendingDeleteDeckId = null; // sofort leeren
+  closeDeleteDeckConfirmation(); // dann Modal schließen
+
+  if (!deckId) return;
+
+  try {
+    const res = await fetch(`/api/user/delete-deck/${deckId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    await loadUserDecks();
+    document.getElementById("userQuestionList").innerHTML = "";
+  } catch (err) {
+    showModalMessage("❌ Fehler beim Löschen des Decks: " + err.message);
+  }
+}
+
+
+// 📚 Decks laden
+async function loadUserDecks() {
+  const token = localStorage.getItem("token");
+  const select = document.getElementById("userDeckSelect");
+
+  try {
+    const res = await fetch("/api/user/decks", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    select.innerHTML = `<option value="">-- Wähle ein Deck --</option>`;
+    data.decks.forEach(deck => {
+      const opt = document.createElement("option");
+      opt.value = deck._id;
+      opt.textContent = deck.name;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    showModalMessage("❌ Fehler beim Laden der Decks: " + err.message);
+  }
+}
+
+// ❓ Fragen laden
+async function loadUserDeckQuestions() {
+  userCurrentDeckId = document.getElementById("userDeckSelect").value;
+  if (!userCurrentDeckId) return;
+
+  const token = localStorage.getItem("token");
+  const list = document.getElementById("userQuestionList");
+  list.innerHTML = "<p>⏳ Lade Fragen...</p>";
+
+  try {
+    const res = await fetch(`/api/user/questions/${userCurrentDeckId}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    list.innerHTML = "";
+    if (!data.questions || data.questions.length === 0) {
+      list.innerHTML = "<p>⚠️ Keine Fragen im Deck.</p>";
+      return;
+    }
+
+    data.questions.forEach(q => {
+      const id = String(q._id);
+      if (!id || id.length !== 24) {
+        console.warn("⚠️ Ungültige Frage-ID:", q);
+        return;
+      }
+
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>${q.questionText}</strong>`;
+
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "✏️";
+      editBtn.onclick = () => openEditUserQuestionModal(q);
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "🗑";
+      delBtn.onclick = () => {
+        console.log("🧪 Löschen vorbereiten mit ID:", id);
+        showDeleteConfirmation(id);
+      };
+
+      li.appendChild(editBtn);
+      li.appendChild(delBtn);
+      list.appendChild(li);
+    });
+  } catch (err) {
+    showModalMessage("❌ Fehler beim Laden der Fragen: " + err.message);
+  }
+}
+
+
+function openAddUserQuestionModal() {
+  document.getElementById("questionModalTitle").textContent = "Frage erstellen";
+  document.getElementById("userEditingQuestionId").value = "";
+  ["userQuestionText", "userOption1", "userOption2", "userOption3", "userOption4", "userCorrectOption"]
+    .forEach(id => document.getElementById(id).value = "");
+  document.getElementById("userQuestionModal").style.display = "block";
+}
+
+function openEditUserQuestionModal(q) {
+  document.getElementById("questionModalTitle").textContent = "Frage bearbeiten";
+  document.getElementById("userEditingQuestionId").value = q._id;
+  document.getElementById("userQuestionText").value = q.questionText;
+  document.getElementById("userOption1").value = q.options[0] || "";
+  document.getElementById("userOption2").value = q.options[1] || "";
+  document.getElementById("userOption3").value = q.options[2] || "";
+  document.getElementById("userOption4").value = q.options[3] || "";
+  document.getElementById("userCorrectOption").value = (q.correctOptionIndex + 1).toString();
+  document.getElementById("userQuestionModal").style.display = "block";
+}
+
+function closeUserQuestionModal() {
+  document.getElementById("userQuestionModal").style.display = "none";
+}
+
+async function saveUserQuestion() {
+  const token = localStorage.getItem("token");
+  const id = document.getElementById("userEditingQuestionId").value;
+  const questionText = document.getElementById("userQuestionText").value.trim();
+  const options = [
+    document.getElementById("userOption1").value.trim(),
+    document.getElementById("userOption2").value.trim(),
+    document.getElementById("userOption3").value.trim(),
+    document.getElementById("userOption4").value.trim()
+  ];
+  const correctOption = parseInt(document.getElementById("userCorrectOption").value, 10) - 1;
+
+  if (!questionText || options.some(o => !o) || correctOption < 0 || correctOption > 3) {
+    return showModalMessage("⚠️ Bitte fülle alle Felder korrekt aus.");
+  }
+
+  const payload = {
+    questionText,
+    options,
+    correctOptionIndex: correctOption,
+    deckId: userCurrentDeckId
+  };
+
+  const url = id ? `/api/user/edit-question/${id}` : `/api/user/add-question`;
+  const method = id ? "PUT" : "POST";
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    closeUserQuestionModal();
+    await loadUserDeckQuestions();
+  } catch (err) {
+    showModalMessage("❌ Fehler beim Speichern: " + err.message);
+  }
+}
+
+function showDeleteConfirmation(questionId) {
+  const id = String(questionId).trim();
+  if (!id || id === "null" || id.length !== 24) {
+    console.warn("⚠️ Ungültige Frage-ID zum Löschen:", id);
+    showModalMessage("❌ Es wurde keine gültige Frage-ID übergeben.");
+    return;
+  }
+
+  pendingDeleteQuestionId = id;
+  console.log("✅ Frage-ID zum Löschen gespeichert:", id);
+  document.getElementById("confirmDeleteModal").style.display = "block";
+}
+
+function closeDeleteConfirmation() {
+  document.getElementById("confirmDeleteModal").style.display = "none";
+  pendingDeleteQuestionId = null;
+}
+
+async function deleteUserQuestionConfirmed() {
+  const token = localStorage.getItem("token");
+
+  if (!pendingDeleteQuestionId || pendingDeleteQuestionId === "null") {
+    showModalMessage("❌ Keine gültige Frage ausgewählt zum Löschen.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/user/delete-question/${pendingDeleteQuestionId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    await loadUserDeckQuestions();
+  } catch (err) {
+    showModalMessage("❌ Fehler beim Löschen: " + err.message);
+  } finally {
+    closeDeleteConfirmation();
+  }
+}
+
+
+function openUserQuizManager() {
+  const el = document.getElementById("userQuizManager");
+  const isOpen = el.style.display === "block";
+  el.style.display = isOpen ? "none" : "block";
+  if (!isOpen) loadUserDecks();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("userDeckSelect")) {
+    loadUserDecks();
+  }
+});
+
+function showModalMessage(message) {
+  const modal = document.createElement("div");
+  modal.className = "custom-modal";
+  modal.innerHTML = `<div class="modal-content"><p>${message}</p><button onclick="this.parentElement.parentElement.remove()">OK</button></div>`;
+  document.body.appendChild(modal);
+}
+
+
+
+   
+
+
+
+
+
+
+
+
+
+
       
   
 
