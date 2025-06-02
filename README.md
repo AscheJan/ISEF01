@@ -55,4 +55,4 @@ npm run production
 
 ## Lizenz
 
-Erstellt von Michael Schmidt Mark Haksteter Jan Asche  © 2025 [AscheJan](https://github.com/AscheJan)
+Erstellt von Michael Schmidt, Mark Haksteter, Jan Asche © 2025 [AscheJan](https://github.com/AscheJan)
